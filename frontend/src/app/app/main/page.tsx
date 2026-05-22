@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import MainLayout from '../../../components/MainLayout'
-import MainScreen from '../../../pages/MainScreen'
+import { useState } from 'react'
+import { NAVY } from '../../../theme'
+import AppHeader from '../components/AppHeader'
+import AppSidebar from '../components/AppSidebar'
+import Dashboard from '../components/Dashboard'
 
 interface Agent {
   id: string
@@ -13,34 +14,27 @@ interface Agent {
 }
 
 export default function MainPage() {
-  const router = useRouter()
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-
-  useEffect(() => {
-    // Load agents and selected agent from sessionStorage
-    const storedAgents = sessionStorage.getItem('agents')
-    const storedSelectedAgent = sessionStorage.getItem('selectedAgent')
-    
-    if (storedAgents) {
-      setAgents(JSON.parse(storedAgents))
-    }
-    if (storedSelectedAgent) {
-      setSelectedAgent(JSON.parse(storedSelectedAgent))
-    }
-  }, [])
-
-  // If no agents, redirect to agent selection
-  useEffect(() => {
-    const storedAgents = sessionStorage.getItem('agents')
-    if (!storedAgents || JSON.parse(storedAgents).length === 0) {
-      // Allow user to be on this page but they'll see empty state
-    }
-  }, [])
+  const [agents] = useState<Agent[]>([])
+  const [activeTab, setActiveTab] = useState('dashboard')
 
   return (
-    <MainLayout agentCount={agents.length}>
-      <MainScreen agents={agents} selectedAgent={selectedAgent} />
-    </MainLayout>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: NAVY,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <AppHeader agentCount={agents.length} />
+      
+      <div style={{ display: 'flex', flex: 1 }}>
+        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <main style={{ flex: 1, overflow: 'auto' }}>
+          <Dashboard agents={agents} />
+        </main>
+      </div>
+    </div>
   )
 }
