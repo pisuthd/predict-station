@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { NAVY } from '../../theme'
 import AppHeader from './components/AppHeader'
 import AppSidebar from './components/AppSidebar'
-import Dashboard from './components/Dashboard'
+import MainScreen from '../../pages/MainScreen'
 
 interface Agent {
   id: string
@@ -32,7 +32,7 @@ export default function AppPage() {
         <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         
         <main style={{ flex: 1, overflow: 'auto' }}>
-          <Dashboard agents={agents} />
+          <MainScreen agents={agents} selectedAgent={null} />
         </main>
       </div>
     </div>
