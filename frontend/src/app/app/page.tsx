@@ -37,6 +37,7 @@ export default function AppPage() {
   // Handle navigation with loading for agents page
   const handleNavClick = (navId: NavItem) => {
     if (navId === 'agents' && activeNav !== 'agents') {
+      setActiveNav('agents') // Set active immediately
       setIsAgentsLoading(true)
       setTimeout(() => {
         setIsAgentsLoading(false)
