@@ -24,7 +24,6 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
   return (
     <div
       style={{
-        minHeight: '100vh',
         background: NAVY,
         fontFamily: sansFont,
         padding: 24,
