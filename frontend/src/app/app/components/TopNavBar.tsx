@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { CYAN, monoFont } from '../../../theme'
+import { CYAN, NAVY, monoFont } from '../../../theme'
 
 type Network = 'testnet' | 'mainnet'
 
-export default function TopNavBar() {
+interface TopNavBarProps {
+  onConnectWallet?: () => void
+}
+
+export default function TopNavBar({ onConnectWallet }: TopNavBarProps) {
   const [network, setNetwork] = useState<Network>('testnet')
 
   return (
@@ -23,26 +27,37 @@ export default function TopNavBar() {
           background: 'rgba(255,255,255,0.04)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 12,
-          padding: '12px',
+          borderRadius: 16,
+          padding: '10px',
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
+          gap: 8,
         }}
       >
-        {/* Connect Wallet */}
+        {/* Connect Wallet - Same style as ENTER APP button */}
         <button
+          onClick={onConnectWallet}
           style={{
-            padding: '10px 16px',
-            background: 'rgba(62,196,192,0.15)',
-            border: '1px solid rgba(62,196,192,0.3)',
-            borderRadius: 8,
+            padding: '12px 28px',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(180,200,255,0.12)',
+            borderRadius: 16,
             fontFamily: monoFont,
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 700,
             color: CYAN,
             cursor: 'pointer',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.08em',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+            e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
           }}
         >
           CONNECT WALLET
@@ -55,12 +70,13 @@ export default function TopNavBar() {
             onChange={(e) => setNetwork(e.target.value as Network)}
             style={{
               appearance: 'none',
-              padding: '10px 32px 10px 12px',
-              background: 'rgba(255,255,255,0.05)',
+              padding: '12px 36px 12px 16px',
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(20px)',
               border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 8,
+              borderRadius: 16,
               fontFamily: monoFont,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               color: network === 'testnet' ? CYAN : 'rgba(180,200,255,0.5)',
               cursor: network === 'testnet' ? 'pointer' : 'not-allowed',
@@ -72,7 +88,7 @@ export default function TopNavBar() {
           <span
             style={{
               position: 'absolute',
-              right: 10,
+              right: 14,
               top: '50%',
               transform: 'translateY(-50%)',
               pointerEvents: 'none',
