@@ -7,6 +7,7 @@ import TopNavBar from './components/TopNavBar'
 import MainScreen from '../../pages/MainScreen'
 import PlaceholderPage from './components/PlaceholderPage'
 import LoadingScreen from '../../pages/LoadingScreen'
+import AgentSelector from '../../pages/AgentSelector'
 import OrbCanvas from '../../components/OrbCanvas'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
@@ -20,9 +21,11 @@ interface Agent {
 
 export default function AppPage() {
   const router = useRouter()
-  const [agents] = useState<Agent[]>([])
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
   const [isAgentsLoading, setIsAgentsLoading] = useState(false)
+  const [showAgentSelector, setShowAgentSelector] = useState(false)
 
   const navItems: { id: NavItem; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -37,11 +40,34 @@ export default function AppPage() {
       setIsAgentsLoading(true)
       setTimeout(() => {
         setIsAgentsLoading(false)
-        setActiveNav(navId)
+        setShowAgentSelector(true)
       }, 2500) // Match LoadingScreen duration
     } else {
       setActiveNav(navId)
     }
+  }
+
+  // Handle agent selection
+  const handleSelectAgent = (agent: Agent) => {
+    setSelectedAgent(agent)
+  }
+
+  // Handle create new agent
+  const handleCreateAgent = (agentData: { name: string }) => {
+    const newAgent: Agent = {
+      id: Date.now().toString(),
+      name: agentData.name,
+      status: 'idle',
+      createdAt: new Date().toISOString(),
+    }
+    setAgents([...agents, newAgent])
+    setSelectedAgent(newAgent)
+  }
+
+  // Handle continue from agent selector
+  const handleContinue = () => {
+    setShowAgentSelector(false)
+    setActiveNav('agents')
   }
 
   // Full sidebar component (reused)
@@ -134,7 +160,7 @@ export default function AppPage() {
   const renderContent = () => {
     switch (activeNav) {
       case 'dashboard':
-        return <MainScreen agents={agents} selectedAgent={null} />
+        return <MainScreen agents={agents} selectedAgent={selectedAgent} />
       case 'agents':
         return <PlaceholderPage title="Agents" />
       case 'markets':
@@ -142,7 +168,7 @@ export default function AppPage() {
       case 'settings':
         return <PlaceholderPage title="Settings" />
       default:
-        return <MainScreen agents={agents} selectedAgent={null} />
+        return <MainScreen agents={agents} selectedAgent={selectedAgent} />
     }
   }
 
@@ -156,6 +182,25 @@ export default function AppPage() {
         <Sidebar />
 
         <LoadingScreen onComplete={() => {}} />
+      </div>
+    )
+  }
+
+  // Show agent selector
+  if (showAgentSelector) {
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
+        <OrbCanvas />
+        
+        {/* Full sidebar visible */}
+        <Sidebar />
+
+        <AgentSelector
+          agents={agents}
+          onSelect={handleSelectAgent}
+          onCreateAgent={handleCreateAgent}
+          onContinue={handleContinue}
+        />
       </div>
     )
   }
