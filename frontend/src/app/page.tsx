@@ -171,7 +171,7 @@ export default function LandingPage() {
         />
 
         {/* Cyan Left Edge Accent - moves with scroll */}
-        <div
+        {/* <div
           style={{
             position: 'fixed',
             left: 0,
@@ -182,7 +182,7 @@ export default function LandingPage() {
             zIndex: 15,
             transition: 'bottom 0.1s ease-out',
           }}
-        />
+        /> */}
       </div>
     </div>
   )

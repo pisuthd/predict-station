@@ -55,7 +55,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       <OrbCanvas />
 
       {/* Teal left-edge accent */}
-      <div
+      {/* <div
         style={{
           position: 'absolute',
           bottom: 52,
@@ -65,7 +65,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           background: CYAN,
           zIndex: 5,
         }}
-      />
+      /> */}
 
       {/* Main content */}
       <div

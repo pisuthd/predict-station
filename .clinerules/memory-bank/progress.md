@@ -5,38 +5,49 @@
 - CLI with init/start commands
 - Next.js routing structure:
   - `/` - Landing page
-  - `/app` - App flow (loading → agent → main)
+  - `/app` - App flow (loading → main)
 - Landing page with:
-  - Hero section (split layout: text left, orbs right)
-  - Glassmorphism CTA buttons
-  - Features section (3 cards)
-  - "How It Works" section (3 steps)
-  - Footer CTA
-- App flow screens:
-  - LoadingScreen with animated progress
-  - AgentSelector with create/select agents
-  - MainScreen with dashboard
-- Components: Sidebar, OrbCanvas, Wordmark, StatusDot, MainLayout
+  - Nav with wordmark + ENTER APP button
+  - Hero section with animated orbs
+  - Supported Models ticker (animated, sliding left)
+  - How It Works section (3 steps)
+  - CLI Commands section with copyable textbox
+  - Footer CTA + Footer
+  - Cyan left edge accent bar (moves with scroll)
+- App flow:
+  - LoadingScreen with animated progress bar
+  - Full sidebar visible during loading (disabled at low opacity)
+  - TopNavBar with CONNECT WALLET button (ENTER APP style)
+  - MainScreen with dashboard (stats cards, agent list)
+  - Placeholder pages for Agents/Markets/Settings
+  - Content switching based on sidebar navigation
+- Components: Sidebar, TopNavBar, OrbCanvas, Wordmark, StatusDot, PlaceholderPage
 - Git repository initialized
 
-## App Flow ✅
+## App Layout ✅
 ```
-/ (Landing) → /app (Loading) → /app (Agent Selector) → /app (Main)
+/app (Loading) → /app (Main)
+  - Sidebar always visible (floating left, glassmorphism)
+  - TopNavBar floating at top-right (CONNECT WALLET button)
+  - Dashboard / Agents / Markets / Settings via sidebar navigation
 ```
 
 ## What's Left to Build 🚧
-- [ ] Sub-routes under /app (agents, markets, settings)
-- [ ] Add backend/API routes
+- [ ] Backend/API routes
 - [ ] Connect to local AI (ollama integration)
 - [ ] Prediction market integration
-- [ ] Wallet connection
+- [ ] Wallet connection functionality
+- [ ] Full Agents/Markets/Settings pages (not just placeholders)
 
 ## Migration Status
 Electron app successfully migrated to Next.js:
-- All pages converted
-- All components preserved (OrbCanvas, Sidebar, etc.)
+- Landing page completed with all sections
+- App layout with floating sidebar + TopNavBar
+- LoadingScreen with progress animation
+- MainScreen with dashboard stats
+- Placeholder pages for remaining sections
 - Design tokens preserved (CYAN, NAVY, BLUE, MUTED)
-- Glassmorphism styling applied to all buttons
+- Glassmorphism styling on all interactive elements
 
 ## Known Issues
 - Next.js 14.2.0 has a security vulnerability - consider upgrading
