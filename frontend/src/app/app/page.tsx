@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { NAVY, CYAN, MUTED, monoFont, sansFont } from '../../theme'
 import MainScreen from '../../pages/MainScreen'
 
@@ -14,6 +15,7 @@ interface Agent {
 }
 
 export default function AppPage() {
+  const router = useRouter()
   const [agents] = useState<Agent[]>([])
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
 
@@ -50,30 +52,25 @@ export default function AppPage() {
             minWidth: 160,
           }}
         >
-          {/* Logo/Brand */}
-          <div style={{ 
-            padding: '0 8px 16px', 
-            borderBottom: '1px solid rgba(180,200,255,0.08)',
-            marginBottom: 8
-          }}>
+          {/* Logo/Brand - Clickable to go back */}
+          <div 
+            onClick={() => router.push('/')}
+            style={{ 
+              padding: '0 8px 16px', 
+              borderBottom: '1px solid rgba(180,200,255,0.08)',
+              marginBottom: 8,
+              cursor: 'pointer'
+            }}
+          >
             <p style={{ 
               fontFamily: monoFont, 
               fontWeight: 700, 
               fontSize: 12, 
-              letterSpacing: '0.08em', 
+              letterSpacing: '0.06em', 
               color: CYAN, 
               margin: 0 
             }}>
-              PREDICT
-            </p>
-            <p style={{ 
-              fontFamily: monoFont, 
-              fontSize: 9, 
-              letterSpacing: '0.1em', 
-              color: 'rgba(180,200,255,0.4)', 
-              margin: 0 
-            }}>
-              STATION
+              <span style={{ color: '#fff' }}>Predict</span> Station
             </p>
           </div>
 
@@ -123,46 +120,6 @@ export default function AppPage() {
             </button>
           ))}
 
-          {/* Footer Status */}
-          <div style={{ 
-            padding: '16px 8px 4px', 
-            borderTop: '1px solid rgba(180,200,255,0.08)',
-            marginTop: 8
-          }}>
-            <div style={{
-              padding: '10px 12px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(180,200,255,0.06)',
-              borderRadius: 10,
-            }}>
-              <p style={{ 
-                fontFamily: monoFont, 
-                fontSize: 9, 
-                letterSpacing: '0.1em', 
-                color: 'rgba(180,200,255,0.4)', 
-                textTransform: 'uppercase', 
-                marginBottom: 4 
-              }}>
-                Local AI
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: CYAN,
-                  boxShadow: `0 0 6px ${CYAN}`,
-                }} />
-                <p style={{ 
-                  fontFamily: sansFont, 
-                  fontSize: 11, 
-                  fontWeight: 500, 
-                  color: CYAN, 
-                  margin: 0 
-                }}>
-                  Connected
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
