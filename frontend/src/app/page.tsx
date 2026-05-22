@@ -291,7 +291,7 @@ export default function LandingPage() {
                 onClick={() => router.push('/app')}
                 style={{
                   padding: '16px 24px',
-                  background: '#22c55e',
+                  background: CYAN,
                   border: 'none',
                   borderRadius: 12,
                   fontFamily: monoFont,
@@ -304,10 +304,10 @@ export default function LandingPage() {
                   whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#16a34a'
+                  e.currentTarget.style.background = 'rgba(62,196,192,0.8)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#22c55e'
+                  e.currentTarget.style.background = CYAN
                 }}
               >
                 ENTER APP →
