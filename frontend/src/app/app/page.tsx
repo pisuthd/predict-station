@@ -6,6 +6,8 @@ import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
 import TopNavBar from './components/TopNavBar'
 import MainScreen from '../../pages/MainScreen'
 import PlaceholderPage from './components/PlaceholderPage'
+import LoadingScreen from '../../pages/LoadingScreen'
+import OrbCanvas from '../../components/OrbCanvas'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -20,6 +22,7 @@ export default function AppPage() {
   const router = useRouter()
   const [agents] = useState<Agent[]>([])
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
+  const [isLoading, setIsLoading] = useState(true)
 
   const navItems: { id: NavItem; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -44,9 +47,52 @@ export default function AppPage() {
     }
   }
 
+  // Show loading screen first
+  if (isLoading) {
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
+        <OrbCanvas />
+        
+        {/* Overlay with floating sidebar */}
+        <div
+          style={{
+            position: 'fixed',
+            left: 24,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 100,
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 16,
+              padding: '20px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              minWidth: 160,
+            }}
+          >
+            <div style={{ padding: '0 8px 16px', borderBottom: '1px solid rgba(180,200,255,0.08)', marginBottom: 8 }}>
+              <p style={{ fontFamily: monoFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', color: CYAN, margin: 0 }}>
+                <span style={{ color: '#fff' }}>Predict</span> Station
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <LoadingScreen onComplete={() => setIsLoading(false)} />
+      </div>
+    )
+  }
+
+  // Show dashboard with floating UI
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
-      {/* Floating Top Navbar */}
+      {/* Floating Top Navbar - Top Right */}
       <TopNavBar />
 
       {/* Floating Sidebar - Left */}
@@ -58,7 +104,6 @@ export default function AppPage() {
           zIndex: 100,
         }}
       >
-        {/* Floating Modal */}
         <div
           style={{
             background: 'rgba(255,255,255,0.04)',
