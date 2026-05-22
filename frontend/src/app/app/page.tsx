@@ -47,42 +47,103 @@ export default function AppPage() {
     }
   }
 
+  // Full sidebar component (reused)
+  const Sidebar = () => (
+    <div
+      style={{
+        position: 'fixed',
+        left: 24,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 100,
+      }}
+    >
+      <div
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(180,200,255,0.12)',
+          borderRadius: 16,
+          padding: '20px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          minWidth: 160,
+        }}
+      >
+        <div 
+          onClick={() => !isLoading && router.push('/')}
+          style={{ 
+            padding: '0 8px 16px', 
+            borderBottom: '1px solid rgba(180,200,255,0.08)',
+            marginBottom: 8,
+            cursor: isLoading ? 'default' : 'pointer',
+            opacity: isLoading ? 0.5 : 1,
+          }}
+        >
+          <p style={{ fontFamily: monoFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', color: CYAN, margin: 0 }}>
+            <span style={{ color: '#fff' }}>Predict</span> Station
+          </p>
+        </div>
+
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => !isLoading && setActiveNav(item.id)}
+            disabled={isLoading}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '10px 12px',
+              background: activeNav === item.id ? 'rgba(62,196,192,0.15)' : 'transparent',
+              border: activeNav === item.id ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
+              borderRadius: 10,
+              cursor: isLoading ? 'default' : 'pointer',
+              width: '100%',
+              transition: 'all 0.2s ease',
+              opacity: isLoading ? 0.3 : 1,
+            }}
+          >
+            <span style={{ 
+              fontFamily: sansFont, 
+              fontSize: 12, 
+              fontWeight: activeNav === item.id ? 600 : 400,
+              color: activeNav === item.id ? CYAN : 'rgba(180,200,255,0.6)',
+              letterSpacing: '0.02em',
+            }}>
+              {item.label}
+            </span>
+            {item.id === 'agents' && agents.length > 0 && (
+              <span
+                style={{
+                  background: activeNav === item.id ? CYAN : 'rgba(62,196,192,0.25)',
+                  color: activeNav === item.id ? NAVY : CYAN,
+                  fontFamily: monoFont,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: 8,
+                }}
+              >
+                {agents.length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
   // Show loading screen first
   if (isLoading) {
     return (
       <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
         <OrbCanvas />
         
-        {/* Overlay with floating sidebar */}
-        <div
-          style={{
-            position: 'fixed',
-            left: 24,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 100,
-          }}
-        >
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 16,
-              padding: '20px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              minWidth: 160,
-            }}
-          >
-            <div style={{ padding: '0 8px 16px', borderBottom: '1px solid rgba(180,200,255,0.08)', marginBottom: 8 }}>
-              <p style={{ fontFamily: monoFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', color: CYAN, margin: 0 }}>
-                <span style={{ color: '#fff' }}>Predict</span> Station
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Full sidebar visible during loading */}
+        <Sidebar />
 
         <LoadingScreen onComplete={() => setIsLoading(false)} />
       </div>
@@ -95,97 +156,8 @@ export default function AppPage() {
       {/* Floating Top Navbar - Top Right */}
       <TopNavBar />
 
-      {/* Floating Sidebar - Left */}
-      <div
-        style={{
-          position: 'fixed',
-          left: 24,
-          top: 80,
-          zIndex: 100,
-        }}
-      >
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(180,200,255,0.12)',
-            borderRadius: 16,
-            padding: '20px 12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            minWidth: 160,
-          }}
-        >
-          {/* Logo/Brand - Clickable to go back */}
-          <div 
-            onClick={() => router.push('/')}
-            style={{ 
-              padding: '0 8px 16px', 
-              borderBottom: '1px solid rgba(180,200,255,0.08)',
-              marginBottom: 8,
-              cursor: 'pointer'
-            }}
-          >
-            <p style={{ 
-              fontFamily: monoFont, 
-              fontWeight: 700, 
-              fontSize: 12, 
-              letterSpacing: '0.06em', 
-              color: CYAN, 
-              margin: 0 
-            }}>
-              <span style={{ color: '#fff' }}>Predict</span> Station
-            </p>
-          </div>
-
-          {/* Navigation */}
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveNav(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '10px 12px',
-                background: activeNav === item.id ? 'rgba(62,196,192,0.15)' : 'transparent',
-                border: activeNav === item.id ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
-                borderRadius: 10,
-                cursor: 'pointer',
-                width: '100%',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span style={{ 
-                fontFamily: sansFont, 
-                fontSize: 12, 
-                fontWeight: activeNav === item.id ? 600 : 400,
-                color: activeNav === item.id ? CYAN : 'rgba(180,200,255,0.6)',
-                letterSpacing: '0.02em',
-              }}>
-                {item.label}
-              </span>
-              {item.id === 'agents' && agents.length > 0 && (
-                <span
-                  style={{
-                    background: activeNav === item.id ? CYAN : 'rgba(62,196,192,0.25)',
-                    color: activeNav === item.id ? NAVY : CYAN,
-                    fontFamily: monoFont,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: 8,
-                  }}
-                >
-                  {agents.length}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Full Sidebar - Left */}
+      <Sidebar />
 
       {/* Main Content */}
       <main style={{ minHeight: '100vh' }}>
