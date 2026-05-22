@@ -22,6 +22,14 @@
   - Placeholder pages for Agents/Markets/Settings
   - Content switching based on sidebar navigation
 - Components: Sidebar, TopNavBar, OrbCanvas, Wordmark, StatusDot, PlaceholderPage
+- **HTTP API Server** (Express on port 3001):
+  - Models API (list, load, unload, status)
+  - Chat API with SSE streaming
+  - Agents API (CRUD)
+  - Sessions API (CRUD, messages)
+  - Tools API (list, toggle)
+  - Sui wallet placeholder tools (getAddress, getBalance, getObjects)
+- **Frontend API Client** (`frontend/src/lib/api.js`)
 - Git repository initialized
 
 ## App Layout ✅
@@ -33,11 +41,14 @@
 ```
 
 ## What's Left to Build 🚧
-- [ ] Backend/API routes
+- [ ] Backend/API routes (DONE - HTTP API now)
 - [ ] Connect to local AI (ollama integration)
 - [ ] Prediction market integration
 - [ ] Wallet connection functionality
 - [ ] Full Agents/Markets/Settings pages (not just placeholders)
+- [ ] QVAC SDK integration for actual AI model loading
+- [ ] Update frontend to use HTTP API (LoadingScreen, MainScreen)
+- [ ] Sui-specific tools implementation (real wallet integration)
 
 ## Migration Status
 Electron app successfully migrated to Next.js:
@@ -48,7 +59,10 @@ Electron app successfully migrated to Next.js:
 - Placeholder pages for remaining sections
 - Design tokens preserved (CYAN, NAVY, BLUE, MUTED)
 - Glassmorphism styling on all interactive elements
+- **NEW**: HTTP API backend with Express (port 3001)
 
 ## Known Issues
 - Next.js 14.2.0 has a security vulnerability - consider upgrading
 - Framer Motion removed (using CSS transitions instead)
+- QVAC SDK not installed (placeholder AI service for now)
+- Frontend not yet connected to HTTP API
