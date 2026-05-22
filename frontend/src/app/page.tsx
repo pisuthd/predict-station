@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import LandingPage from '../pages/LandingPage'
 import LoadingScreen from '../pages/LoadingScreen'
 import AgentSelector from '../pages/AgentSelector'
 import MainLayout from '../components/MainLayout'
@@ -14,9 +15,13 @@ interface Agent {
 }
 
 export default function Home() {
-  const [appState, setAppState] = useState<'loading' | 'agent' | 'main'>('loading')
+  const [appState, setAppState] = useState<'landing' | 'loading' | 'agent' | 'main'>('landing')
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
+
+  const handleEnterApp = useCallback(() => {
+    setAppState('loading')
+  }, [])
 
   const handleLoadingComplete = useCallback(() => {
     setAppState('agent')
@@ -43,6 +48,8 @@ export default function Home() {
 
   return (
     <>
+      {appState === 'landing' && <LandingPage onEnter={handleEnterApp} />}
+      
       {appState === 'loading' && <LoadingScreen onComplete={handleLoadingComplete} />}
       
       {appState === 'agent' && (
