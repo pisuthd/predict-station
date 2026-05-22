@@ -134,23 +134,16 @@ export default function AgentSelector({ agents, onSelect, onCreateAgent, onConti
         background: NAVY,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
         paddingLeft: 56,
         paddingBottom: 52,
         position: 'relative',
         overflow: 'hidden',
         fontFamily: sansFont,
       }}
-    >
-      <OrbCanvas />
+    > 
 
-      {/* Teal left-edge accent */}
-      <div style={{
-        position: 'absolute',
-        bottom: 52, left: 0,
-        width: 4, height: 80,
-        background: CYAN, zIndex: 5,
-      }} />
+      
 
       {/* Card */}
       <div

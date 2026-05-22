@@ -2,6 +2,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
+import { startServer } from './server.js';
 
 const program = new Command();
 
@@ -25,6 +26,30 @@ program
   .action(() => {
     console.log(chalk.blue('🚀 Starting Predict Station frontend...'));
     console.log(chalk.gray('Run cd frontend && npm run dev to start the development server.'));
+  });
+
+program
+  .command('dev')
+  .description('Start both the HTTP API server and frontend')
+  .action(async () => {
+    console.log(chalk.blue('🎯 Starting Predict Station...'));
+    
+    // Start HTTP API server
+    console.log(chalk.cyan('  → Starting HTTP API server on port 3001...'));
+    await startServer(3001);
+    console.log(chalk.green('  ✓ HTTP API server running on http://localhost:3001'));
+    
+    console.log(chalk.gray('\nPress Ctrl+C to stop the server.\n'));
+  });
+
+program
+  .command('server')
+  .description('Start just the HTTP API server')
+  .action(async () => {
+    console.log(chalk.blue('🔌 Starting HTTP API server...'));
+    await startServer(3001);
+    console.log(chalk.green('Server running on http://localhost:3001'));
+    console.log(chalk.gray('\nPress Ctrl+C to stop.\n'));
   });
 
 program.parse(process.argv);
