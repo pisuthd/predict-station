@@ -12,56 +12,55 @@ export default function TopNavBar() {
     <div
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99,
-        padding: '16px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'rgba(0,0,0,0.3)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(180,200,255,0.08)',
+        top: 24,
+        right: 24,
+        zIndex: 100,
       }}
     >
-      {/* Left: Connect Wallet - Glassmorphism */}
-      <button
+      {/* Glass floating card */}
+      <div
         style={{
-          padding: '10px 20px',
           background: 'rgba(255,255,255,0.04)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 10,
-          fontFamily: monoFont,
-          fontSize: 12,
-          fontWeight: 700,
-          color: CYAN,
-          cursor: 'pointer',
-          letterSpacing: '0.08em',
+          borderRadius: 12,
+          padding: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
         }}
       >
-        CONNECT WALLET
-      </button>
+        {/* Connect Wallet */}
+        <button
+          style={{
+            padding: '10px 16px',
+            background: 'rgba(62,196,192,0.15)',
+            border: '1px solid rgba(62,196,192,0.3)',
+            borderRadius: 8,
+            fontFamily: monoFont,
+            fontSize: 11,
+            fontWeight: 700,
+            color: CYAN,
+            cursor: 'pointer',
+            letterSpacing: '0.06em',
+          }}
+        >
+          CONNECT WALLET
+        </button>
 
-      {/* Right: Network Dropdown - Glassmorphism */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: monoFont, fontSize: 11, color: 'rgba(180,200,255,0.5)', letterSpacing: '0.08em' }}>
-          NETWORK
-        </span>
+        {/* Network Dropdown */}
         <div style={{ position: 'relative' }}>
           <select
             value={network}
             onChange={(e) => setNetwork(e.target.value as Network)}
             style={{
               appearance: 'none',
-              padding: '10px 40px 10px 16px',
-              background: 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(20px)',
+              padding: '10px 32px 10px 12px',
+              background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 10,
+              borderRadius: 8,
               fontFamily: monoFont,
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               color: network === 'testnet' ? CYAN : 'rgba(180,200,255,0.5)',
               cursor: network === 'testnet' ? 'pointer' : 'not-allowed',
@@ -73,7 +72,7 @@ export default function TopNavBar() {
           <span
             style={{
               position: 'absolute',
-              right: 12,
+              right: 10,
               top: '50%',
               transform: 'translateY(-50%)',
               pointerEvents: 'none',

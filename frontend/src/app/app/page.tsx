@@ -143,7 +143,7 @@ export default function AppPage() {
       </div>
 
       {/* Main Content */}
-      <main style={{ paddingTop: 80, minHeight: '100vh' }}>
+      <main style={{ minHeight: '100vh' }}>
         {renderContent()}
       </main>
     </div>
