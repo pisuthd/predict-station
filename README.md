@@ -1,7 +1,7 @@
 # Predict Station
 
 A monorepo containing:
-- **bot/** - CLI tool (published on NPM)
+- **CLI** (root) - Published on NPM as `predict-station`
 - **frontend/** - Next.js web application
 
 ## CLI Usage

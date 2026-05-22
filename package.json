@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "CLI for Predict Station",
   "bin": {
-    "predict-station": "./bin/cli.js"
+    "predict-station": "./src/cli.js"
   },
   "scripts": {
-    "start": "node ./bin/cli.js"
+    "start": "node ./src/cli.js"
   },
   "keywords": [
     "cli",
