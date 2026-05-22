@@ -230,25 +230,13 @@ export default function LandingPage() {
             </p>
 
             {/* Copyable Command Textbox */}
-            <span
-              style={{
-                fontFamily: monoFont,
-                fontSize: '12px',
-                color: CYAN,
-                letterSpacing: '0.04em',
-                marginBottom: '8px',
-                display: 'block',
-              }}
-            >
-              Run with
-            </span>
             <div
               onClick={handleCopy}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '16px',
+                gap: '12px',
                 padding: '16px 20px',
                 background: 'rgba(255,255,255,0.04)',
                 backdropFilter: 'blur(20px)',
@@ -267,22 +255,64 @@ export default function LandingPage() {
                 e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
               }}
             >
-              <code
-                style={{
-                  fontFamily: monoFont,
-                  fontSize: '14px',
-                  color: '#fff',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                npx predict-station init
-              </code>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontFamily: monoFont,
+                    fontSize: '13px',
+                    color: CYAN,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  Run with
+                </span>
+                <code
+                  style={{
+                    fontFamily: monoFont,
+                    fontSize: '14px',
+                    color: '#fff',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  npx predict-station init
+                </code>
+              </div>
               {copied ? (
                 <Check size={18} color={CYAN} />
               ) : (
                 <Copy size={18} color="rgba(180,200,255,0.5)" />
               )}
             </div>
+
+            {/* CTA Button */}
+            <button
+              onClick={() => router.push('/app')}
+              style={{
+                marginTop: '16px',
+                padding: '12px 24px',
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(180,200,255,0.12)',
+                borderRadius: 12,
+                fontFamily: monoFont,
+                fontSize: 12,
+                fontWeight: 700,
+                color: CYAN,
+                cursor: 'pointer',
+                letterSpacing: '0.08em',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
+                e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+              }}
+            >
+              ENTER COMMAND CENTER →
+            </button>
           </div>
         </div>
 
