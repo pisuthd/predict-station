@@ -6,11 +6,10 @@ import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
 import TopNavBar from './components/TopNavBar'
 import MainScreen from '../../pages/MainScreen'
 import PlaceholderPage from './components/PlaceholderPage'
-import LoadingScreen from '../../pages/LoadingScreen'
-import AgentSelector from '../../pages/AgentSelector'
 import OrbCanvas from '../../components/OrbCanvas'
 import ServerSelector from '../../pages/ServerSelector'
 import ModelSelector from '../../pages/ModelSelector'
+import { setServerUrl, getServerUrlStored } from '../../lib/api'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -21,18 +20,15 @@ interface Agent {
   createdAt: string
 }
 
-type AppStep = 'server' | 'model' | 'agents' | 'main'
-
 export default function AppPage() {
   const router = useRouter()
-  const [step, setStep] = useState<AppStep>('server')
-  const [serverUrl, setServerUrl] = useState<string>('')
+  const [serverUrl, setServerUrlState] = useState<string>(getServerUrlStored() || '')
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
-  const [isAgentsLoading, setIsAgentsLoading] = useState(false)
-  const [showAgentSelector, setShowAgentSelector] = useState(false)
+  const [showServerSelector, setShowServerSelector] = useState(false)
+  const [showModelSelector, setShowModelSelector] = useState(false)
 
   const navItems: { id: NavItem; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -41,30 +37,30 @@ export default function AppPage() {
     { id: 'settings', label: 'Settings' },
   ]
 
+  // Handle navigation - Agents shows server selector every time
+  const handleNavClick = (navId: NavItem) => {
+    if (navId === 'agents') {
+      setActiveNav('agents')
+      setShowServerSelector(true)
+    } else {
+      setActiveNav(navId)
+      setShowServerSelector(false)
+      setShowModelSelector(false)
+    }
+  }
+
   // Handle server connection
   const handleServerConnect = (url: string) => {
-    setServerUrl(url)
-    setStep('model')
+    setServerUrl(url) // Save to localStorage
+    setServerUrlState(url)
+    setShowServerSelector(false)
+    setShowModelSelector(true)
   }
 
   // Handle model selection
   const handleModelSelect = (modelType: string) => {
     setSelectedModel(modelType)
-    setStep('main')
-  }
-
-  // Handle navigation with loading for agents page
-  const handleNavClick = (navId: NavItem) => {
-    if (navId === 'agents' && activeNav !== 'agents') {
-      setActiveNav('agents') // Set active immediately
-      setIsAgentsLoading(true)
-      setTimeout(() => {
-        setIsAgentsLoading(false)
-        setShowAgentSelector(true)
-      }, 2500) // Match LoadingScreen duration
-    } else {
-      setActiveNav(navId)
-    }
+    setShowModelSelector(false)
   }
 
   // Handle agent selection
@@ -84,13 +80,7 @@ export default function AppPage() {
     setSelectedAgent(newAgent)
   }
 
-  // Handle continue from agent selector
-  const handleContinue = () => {
-    setShowAgentSelector(false)
-    setActiveNav('agents')
-  }
-
-  // Full sidebar component (reused)
+  // Full sidebar component
   const Sidebar = () => (
     <div
       style={{
@@ -192,59 +182,47 @@ export default function AppPage() {
     }
   }
 
-  // Server selector step
-  if (step === 'server') {
+  // Show server selector when clicking Agents
+  if (showServerSelector) {
     return (
       <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
         <OrbCanvas />
-        <ServerSelector onConnect={handleServerConnect} />
-      </div>
-    )
-  }
-
-  // Model selector step
-  if (step === 'model') {
-    return (
-      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
-        <OrbCanvas />
-        <ModelSelector 
-          serverUrl={serverUrl} 
-          onSelect={handleModelSelect}
-          onBack={() => setStep('server')}
-        />
-      </div>
-    )
-  }
-
-  // Show loading screen for agents
-  if (isAgentsLoading) {
-    return (
-      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
-        <OrbCanvas />
-        
-        {/* Full sidebar visible during loading */}
         <Sidebar />
-
-        <LoadingScreen onComplete={() => {}} />
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          minHeight: '100vh',
+          paddingLeft: 200,
+        }}>
+          <ServerSelector onConnect={handleServerConnect} />
+        </div>
       </div>
     )
   }
 
-  // Show agent selector
-  if (showAgentSelector) {
+  // Show model selector after server selection
+  if (showModelSelector) {
     return (
       <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
         <OrbCanvas />
-        
-        {/* Full sidebar visible */}
         <Sidebar />
-
-        <AgentSelector
-          agents={agents}
-          onSelect={handleSelectAgent}
-          onCreateAgent={handleCreateAgent}
-          onContinue={handleContinue}
-        />
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          minHeight: '100vh',
+          paddingLeft: 200,
+        }}>
+          <ModelSelector 
+            serverUrl={serverUrl} 
+            onSelect={handleModelSelect}
+            onBack={() => {
+              setShowModelSelector(false)
+              setShowServerSelector(true)
+            }}
+          />
+        </div>
       </div>
     )
   }
