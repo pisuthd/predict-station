@@ -11,15 +11,6 @@ program
   .description('CLI for Predict Station')
   .version('0.1.0');
 
-// Default: start server
-program
-  .command('')
-  .action(async () => {
-    console.log(chalk.blue('🚀 Starting Predict Station Agent Node...'));
-    console.log(chalk.cyan('  → Listening on http://localhost:3001'));
-    await startServer(3001);
-  });
-
 // Wallet command
 program
   .command('wallet')
@@ -43,4 +34,12 @@ program
     await startServer(3001);
   });
 
-program.parse(process.argv);
+// Default action when no command is specified
+const args = process.argv.slice(2);
+if (args.length === 0) {
+  console.log(chalk.blue('🚀 Starting Predict Station Agent Node...'));
+  console.log(chalk.cyan('  → Listening on http://localhost:3001'));
+  startServer(3001);
+} else {
+  program.parse(process.argv);
+}
