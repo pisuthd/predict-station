@@ -234,9 +234,12 @@ export default function LandingPage() {
             width: '50%',
             height: '100%',
             position: 'relative',
+            background: 'rgba(0,0,0,0.3)',
           }}
         >
-          <OrbCanvas />
+          <div style={{ position: 'absolute', inset: 0 }}>
+            <OrbCanvas />
+          </div>
         </div>
       </div>
 
