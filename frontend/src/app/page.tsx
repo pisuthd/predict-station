@@ -7,7 +7,6 @@ import OrbCanvas from '../components/OrbCanvas'
 
 export default function LandingPage() {
   const router = useRouter()
-  const [isHovered, setIsHovered] = useState(false)
 
   const features = [
     {
@@ -54,13 +53,13 @@ export default function LandingPage() {
         overflow: 'hidden',
       }}
     >
-      {/* Animated Orbs - Right Side */}
+      {/* Animated Orbs - Center Background */}
       <div
         style={{
           position: 'fixed',
-          right: 0,
+          left: '20%',
           top: 0,
-          width: '55%',
+          width: '60%',
           height: '100vh',
           zIndex: 1,
         }}
@@ -68,7 +67,7 @@ export default function LandingPage() {
         <OrbCanvas />
       </div>
 
-      {/* Content - Left Side */}
+      {/* Content */}
       <div
         style={{
           position: 'relative',
@@ -87,14 +86,15 @@ export default function LandingPage() {
             alignItems: 'center',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Branding - Larger & Clearer */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
             <span
               style={{
                 fontFamily: monoFont,
-                fontSize: 12,
+                fontSize: 24,
                 fontWeight: 700,
                 color: CYAN,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.04em',
               }}
             >
               PREDICT
@@ -102,9 +102,10 @@ export default function LandingPage() {
             <span
               style={{
                 fontFamily: monoFont,
-                fontSize: 9,
-                letterSpacing: '0.1em',
-                color: 'rgba(180,200,255,0.4)',
+                fontSize: 16,
+                fontWeight: 400,
+                letterSpacing: '0.12em',
+                color: 'rgba(180,200,255,0.6)',
               }}
             >
               STATION
@@ -114,8 +115,6 @@ export default function LandingPage() {
           {/* Enter App Button - Glassmorphism */}
           <button
             onClick={() => router.push('/app')}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             style={{
               padding: '12px 28px',
               background: 'rgba(255,255,255,0.04)',
@@ -130,22 +129,40 @@ export default function LandingPage() {
               letterSpacing: '0.08em',
               transition: 'all 0.3s ease',
             }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+              e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+            }}
           >
             ENTER APP →
           </button>
         </nav>
 
-        {/* Hero Section */}
+        {/* Hero Section - Glass Container */}
         <div
           style={{
             flex: 1,
             display: 'flex',
             alignItems: 'center',
-            paddingLeft: '56px',
-            paddingRight: '55%',
+            justifyContent: 'center',
+            padding: '0 56px',
           }}
         >
-          <div>
+          {/* Glass Card for Hero */}
+          <div
+            style={{
+              maxWidth: '560px',
+              padding: '48px',
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 24,
+            }}
+          >
             {/* Label */}
             <p
               style={{
@@ -184,7 +201,6 @@ export default function LandingPage() {
                 color: 'rgba(180,200,255,0.6)',
                 lineHeight: 1.6,
                 marginBottom: '40px',
-                maxWidth: '420px',
               }}
             >
               Deploy AI agents to monitor and trade on decentralized prediction markets. 
