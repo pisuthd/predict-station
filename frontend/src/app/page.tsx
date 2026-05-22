@@ -118,12 +118,10 @@ export default function LandingPage() {
             onMouseLeave={() => setIsHovered(false)}
             style={{
               padding: '12px 28px',
-              background: isHovered 
-                ? 'rgba(62,196,192,0.25)' 
-                : 'rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.04)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(62,196,192,0.4)',
-              borderRadius: 12,
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 16,
               fontFamily: monoFont,
               fontSize: 12,
               fontWeight: 700,
@@ -131,9 +129,6 @@ export default function LandingPage() {
               cursor: 'pointer',
               letterSpacing: '0.08em',
               transition: 'all 0.3s ease',
-              boxShadow: isHovered 
-                ? '0 8px 32px rgba(62,196,192,0.2), inset 0 1px 0 rgba(255,255,255,0.1)' 
-                : '0 4px 16px rgba(0,0,0,0.2)',
             }}
           >
             ENTER APP →
@@ -196,17 +191,16 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Glassmorphism */}
             <div style={{ display: 'flex', gap: '16px' }}>
-              {/* Get Started - Glassmorphism */}
               <button
                 onClick={() => router.push('/app')}
                 style={{
                   padding: '16px 32px',
-                  background: 'rgba(62,196,192,0.15)',
+                  background: 'rgba(255,255,255,0.04)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(62,196,192,0.4)',
-                  borderRadius: 12,
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 16,
                   fontFamily: monoFont,
                   fontSize: 13,
                   fontWeight: 700,
@@ -214,17 +208,14 @@ export default function LandingPage() {
                   cursor: 'pointer',
                   letterSpacing: '0.1em',
                   transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 24px rgba(62,196,192,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(62,196,192,0.25)'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(62,196,192,0.25), inset 0 1px 0 rgba(255,255,255,0.15)'
+                  e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
+                  e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 24px rgba(62,196,192,0.15), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
                 }}
               >
                 GET STARTED
@@ -233,10 +224,10 @@ export default function LandingPage() {
               <button
                 style={{
                   padding: '16px 32px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'rgba(255,255,255,0.04)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.15)',
-                  borderRadius: 12,
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 16,
                   fontFamily: monoFont,
                   fontSize: 13,
                   fontWeight: 700,
@@ -246,12 +237,10 @@ export default function LandingPage() {
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.3)'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.15)'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
                 }}
               >
                 LEARN MORE
@@ -280,20 +269,18 @@ export default function LandingPage() {
                 key={index}
                 style={{
                   padding: '24px',
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'rgba(255,255,255,0.04)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.08)',
+                  border: '1px solid rgba(180,200,255,0.12)',
                   borderRadius: 16,
                   transition: 'all 0.3s ease',
                   cursor: 'default',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-                  e.currentTarget.style.borderColor = 'rgba(62,196,192,0.2)'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.08)'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
                 }}
               >
                 <div
@@ -436,10 +423,10 @@ export default function LandingPage() {
             onClick={() => router.push('/app')}
             style={{
               padding: '16px 48px',
-              background: 'rgba(62,196,192,0.15)',
+              background: 'rgba(255,255,255,0.04)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(62,196,192,0.4)',
-              borderRadius: 12,
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 16,
               fontFamily: monoFont,
               fontSize: 14,
               fontWeight: 700,
@@ -447,17 +434,14 @@ export default function LandingPage() {
               cursor: 'pointer',
               letterSpacing: '0.1em',
               transition: 'all 0.3s ease',
-              boxShadow: '0 4px 24px rgba(62,196,192,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(62,196,192,0.25)'
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 8px 32px rgba(62,196,192,0.25), inset 0 1px 0 rgba(255,255,255,0.15)'
+              e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
+              e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 4px 24px rgba(62,196,192,0.15), inset 0 1px 0 rgba(255,255,255,0.1)'
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
             }}
           >
             LAUNCH APP →
