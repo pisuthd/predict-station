@@ -230,6 +230,17 @@ export default function LandingPage() {
             </p>
 
             {/* Copyable Command Textbox */}
+            <p
+              style={{
+                fontFamily: monoFont,
+                fontSize: '12px',
+                color: 'rgba(180,200,255,0.5)',
+                letterSpacing: '0.04em',
+                marginBottom: '12px',
+              }}
+            >
+              Run agent with local, private AI with
+            </p>
             <div
               onClick={handleCopy}
               style={{
@@ -257,7 +268,7 @@ export default function LandingPage() {
             >
               <code
                 style={{
-                  fontFamily: 'monospace',
+                  fontFamily: monoFont,
                   fontSize: '14px',
                   color: '#fff',
                   letterSpacing: '0.02em',

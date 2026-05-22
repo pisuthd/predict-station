@@ -3,47 +3,49 @@
 ## Current Work Focus
 Next.js routing with landing page at / and app pages at /app
 
-## App Routes (Refactored)
+## Landing Page Structure
 ```
 / → Landing page
+  - Nav with wordmark + ENTER APP button
+  - Hero section with headline + copyable CLI command (textbox style)
+  - Supported Models ticker (animated, sliding left)
+  - How It Works steps section
+  - Footer CTA + Footer
+  - Animated orbs (right side, fade on scroll)
+
 /app → redirects to /app/loading
 /app/loading → LoadingScreen component
 /app/agent → AgentSelector component (state via sessionStorage)
 /app/main → MainLayout + MainScreen (reads state from sessionStorage)
 ```
 
-## App Flow
-```
-/ (Landing) → /app (redirect) → /app/loading (Loading) → /app/agent (Select Agent) → /app/main (Dashboard)
-```
-
 ## Design Elements
 - Orbs fixed position on right side, fade on scroll
-- Hero content transparent (no glass), CTA buttons use glassmorphism
+- Hero content transparent (no glass), CTA uses glassmorphism
+- Copyable CLI command as textbox with Copy/Check icons from lucide-react
 - Glassmorphism buttons: background rgba(255,255,255,0.04), backdropFilter blur(20px), border rgba(180,200,255,0.12)
 - Same color scheme: CYAN (#3EC4C0), NAVY (#03063a), BLUE (#1A1AE8)
 - Space Mono for headings, DM Sans for body
-- Wordmark: "Predict Station" (CYAN + white)
+
+## Key UI Components
+- Copyable command textbox: `npx predict-station init` with lucide-react icons
+- Model ticker: Qwen3.2-1.6B, Qwen3.2-4B, 100% Local, Privacy First, On-Device AI
+- Step numbers (01, 02, 03) in CYAN without opacity
 
 ## Routes
 - `/` - Landing page (src/app/page.tsx)
 - `/app` - redirects to /app/loading
-- `/app/loading` - Loading screen (src/app/app/loading/page.tsx)
-- `/app/agent` - Agent selection (src/app/app/agent/page.tsx)
-- `/app/main` - Main dashboard (src/app/app/main/page.tsx)
+- `/app/loading` - Loading screen
+- `/app/agent` - Agent selection
+- `/app/main` - Main dashboard
 
 ## State Management
 - Agents and selectedAgent stored in sessionStorage
 - Passed between /app/agent and /app/main pages
-
-## Current State
-- Landing page with full design implemented
-- App flow with 3 distinct pages
-- Components: Sidebar, OrbCanvas, Wordmark, StatusDot, MainLayout
 
 ## Important Patterns
 - Use 'use client' for interactive components
 - Keep components in src/components/
 - Pages in src/app/
 - Theme constants in src/theme.ts
-- State shared via sessionStorage between app routes
+- lucide-react for icons
