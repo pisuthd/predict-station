@@ -50,47 +50,25 @@ export default function LandingPage() {
         background: NAVY,
         position: 'relative',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {/* Animated Orbs - Center Background */}
-      <div
+      {/* Navigation - with max-width container */}
+      <nav
         style={{
-          position: 'fixed',
-          left: '20%',
-          top: 0,
-          width: '60%',
-          height: '100vh',
-          zIndex: 1,
-        }}
-      >
-        <OrbCanvas />
-      </div>
-
-      {/* Content */}
-      <div
-        style={{
+          padding: '24px 56px',
           position: 'relative',
           zIndex: 10,
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
         }}
       >
-        {/* Navigation */}
-        <nav
-          style={{
-            padding: '24px 56px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          {/* Wordmark - Similar to Loading Screen */}
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Wordmark - Smaller */}
           <p
             style={{
               fontFamily: monoFont,
               fontWeight: 700,
-              fontSize: 20,
+              fontSize: 16,
               letterSpacing: '0.06em',
               color: CYAN,
               margin: 0,
@@ -127,18 +105,26 @@ export default function LandingPage() {
           >
             ENTER APP →
           </button>
-        </nav>
+        </div>
+      </nav>
 
-        {/* Hero Section - No Glass, Just Text */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 56px',
-          }}
-        >
+      {/* Hero Section with Orbs - Orbs moved to right side */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        {/* Hero Content - Left Side */}
+        <div style={{ 
+          flex: 1, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          padding: '0 56px',
+        }}>
           <div style={{ maxWidth: '560px' }}>
             {/* Label */}
             <p
@@ -242,19 +228,32 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Features Section */}
+        {/* Animated Orbs - Right Side of Hero */}
         <div
           style={{
-            padding: '80px 56px',
-            borderTop: '1px solid rgba(180,200,255,0.08)',
+            width: '50%',
+            height: '100%',
+            position: 'relative',
           }}
         >
+          <OrbCanvas />
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div
+        style={{
+          padding: '80px 56px',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '32px',
-              maxWidth: '900px',
             }}
           >
             {features.map((feature, index) => (
@@ -309,14 +308,18 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* How It Works Section */}
-        <div
-          style={{
-            padding: '80px 56px',
-            background: 'rgba(0,0,0,0.2)',
-          }}
-        >
+      {/* How It Works Section */}
+      <div
+        style={{
+          padding: '80px 56px',
+          background: 'rgba(0,0,0,0.2)',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <p
             style={{
               fontFamily: monoFont,
@@ -348,7 +351,6 @@ export default function LandingPage() {
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '32px',
-              maxWidth: '900px',
             }}
           >
             {steps.map((step, index) => (
@@ -390,65 +392,100 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Footer CTA */}
-        <div
+      {/* Footer CTA */}
+      <div
+        style={{
+          padding: '64px 56px',
+          textAlign: 'center',
+          borderTop: '1px solid rgba(180,200,255,0.08)',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        <h2
           style={{
-            padding: '64px 56px',
-            textAlign: 'center',
-            borderTop: '1px solid rgba(180,200,255,0.08)',
+            fontFamily: sansFont,
+            fontSize: '28px',
+            fontWeight: 300,
+            color: '#fff',
+            marginBottom: '24px',
           }}
         >
-          <h2
-            style={{
-              fontFamily: sansFont,
-              fontSize: '28px',
-              fontWeight: 300,
-              color: '#fff',
-              marginBottom: '24px',
-            }}
-          >
-            Ready to start your <strong style={{ fontWeight: 500 }}>mission</strong>?
-          </h2>
+          Ready to start your <strong style={{ fontWeight: 500 }}>mission</strong>?
+        </h2>
 
-          {/* Launch App - Glassmorphism */}
-          <button
-            onClick={() => router.push('/app')}
-            style={{
-              padding: '16px 48px',
-              background: 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 16,
-              fontFamily: monoFont,
-              fontSize: 14,
-              fontWeight: 700,
-              color: CYAN,
-              cursor: 'pointer',
-              letterSpacing: '0.1em',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-              e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-              e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
-            }}
-          >
-            LAUNCH APP →
-          </button>
-        </div>
-
-        {/* Bottom Teal Accent Bar */}
-        <div
+        {/* Launch App - Glassmorphism */}
+        <button
+          onClick={() => router.push('/app')}
           style={{
-            height: 4,
-            background: CYAN,
+            padding: '16px 48px',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(180,200,255,0.12)',
+            borderRadius: 16,
+            fontFamily: monoFont,
+            fontSize: 14,
+            fontWeight: 700,
+            color: CYAN,
+            cursor: 'pointer',
+            letterSpacing: '0.1em',
+            transition: 'all 0.3s ease',
           }}
-        />
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
+            e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+            e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+          }}
+        >
+          LAUNCH APP →
+        </button>
       </div>
+
+      {/* Footer */}
+      <footer
+        style={{
+          padding: '24px 56px',
+          borderTop: '1px solid rgba(180,200,255,0.08)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p
+            style={{
+              fontFamily: monoFont,
+              fontSize: 12,
+              color: MUTED,
+              margin: 0,
+            }}
+          >
+            <span style={{ color: '#fff' }}>Predict</span> Station © 2026
+          </p>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Privacy</span>
+            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Terms</span>
+            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Contact</span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Bottom Teal Accent Bar */}
+      <div
+        style={{
+          height: 4,
+          background: CYAN,
+          position: 'relative',
+          zIndex: 10,
+        }}
+      />
 
       {/* Cyan Left Edge Accent */}
       <div
