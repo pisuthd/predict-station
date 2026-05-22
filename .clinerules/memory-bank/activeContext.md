@@ -3,7 +3,7 @@
 ## Current Work Focus
 Next.js routing with landing page at / and app pages at /app
 
-## Landing Page Structure (Updated)
+## Landing Page Structure
 ```
 / → Landing page
   - Nav with wordmark + ENTER APP button
@@ -14,10 +14,10 @@ Next.js routing with landing page at / and app pages at /app
   - Footer CTA + Footer
   - Animated orbs (right side, fade on scroll)
 
-/app → redirects to /app/loading
-/app/loading → LoadingScreen component
-/app/agent → AgentSelector component (state via sessionStorage)
-/app/main → MainLayout + MainScreen (reads state from sessionStorage)
+/app → Main App Screen
+  - AppHeader (wordmark + agent count)
+  - AppSidebar (Dashboard, Agents, Markets, Settings tabs)
+  - MainScreen (from /src/pages/MainScreen.tsx)
 ```
 
 ## Design Elements
@@ -43,18 +43,15 @@ Next.js routing with landing page at / and app pages at /app
 
 ## Routes
 - `/` - Landing page (src/app/page.tsx)
-- `/app` - redirects to /app/loading
-- `/app/loading` - Loading screen
-- `/app/agent` - Agent selection
-- `/app/main` - Main dashboard
+- `/app` - Main app (AppHeader + AppSidebar + MainScreen)
 
 ## State Management
-- Agents and selectedAgent stored in sessionStorage
-- Passed between /app/agent and /app/main pages
+- Agents stored in state
+- Passed to MainScreen component
 
 ## Important Patterns
 - Use 'use client' for interactive components
-- Keep components in src/components/
+- Keep components in src/components/landing/
 - Pages in src/app/
 - Theme constants in src/theme.ts
 - lucide-react for icons
