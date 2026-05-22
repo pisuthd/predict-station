@@ -75,8 +75,9 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           flex: 1,
           display: 'flex',
           alignItems: 'center',
-          paddingLeft: '56px',
+          paddingLeft: '240px',
           paddingBottom: '52px',
+          maxWidth: '600px',
         }}
       >
         <div>
