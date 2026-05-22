@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
@@ -142,7 +141,7 @@ export default function LandingPage() {
           </button>
         </nav>
 
-        {/* Hero Section - Glass Container */}
+        {/* Hero Section - No Glass, Just Text */}
         <div
           style={{
             flex: 1,
@@ -152,17 +151,7 @@ export default function LandingPage() {
             padding: '0 56px',
           }}
         >
-          {/* Glass Card for Hero */}
-          <div
-            style={{
-              maxWidth: '560px',
-              padding: '48px',
-              background: 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 24,
-            }}
-          >
+          <div style={{ maxWidth: '560px' }}>
             {/* Label */}
             <p
               style={{
@@ -207,7 +196,7 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* CTA Buttons - Glassmorphism */}
+            {/* CTA Buttons - Glassmorphism Only */}
             <div style={{ display: 'flex', gap: '16px' }}>
               <button
                 onClick={() => router.push('/app')}
