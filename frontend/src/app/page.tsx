@@ -229,79 +229,22 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* Copyable Command Textbox + CTA */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div
-                onClick={handleCopy}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  padding: '16px 20px',
-                  background: 'rgba(255,255,255,0.04)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.12)',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  flex: 1,
-                  maxWidth: '360px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                  e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span
-                    style={{
-                      fontFamily: monoFont,
-                      fontSize: '13px',
-                      color: CYAN,
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    Run with
-                  </span>
-                  <code
-                    style={{
-                      fontFamily: monoFont,
-                      fontSize: '14px',
-                      color: '#fff',
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    npx predict-station init
-                  </code>
-                </div>
-                {copied ? (
-                  <Check size={18} color={CYAN} />
-                ) : (
-                  <Copy size={18} color="rgba(180,200,255,0.5)" />
-                )}
-              </div>
-
-              {/* CTA Button */}
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', gap: '16px' }}>
               <button
                 onClick={() => router.push('/app')}
                 style={{
-                  padding: '16px 24px',
+                  padding: '16px 32px',
                   background: CYAN,
                   border: 'none',
                   borderRadius: 12,
                   fontFamily: monoFont,
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   color: '#000',
                   cursor: 'pointer',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.1em',
                   transition: 'all 0.3s ease',
-                  whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(62,196,192,0.8)'
@@ -310,7 +253,32 @@ export default function LandingPage() {
                   e.currentTarget.style.background = CYAN
                 }}
               >
-                ENTER APP →
+                GET STARTED
+              </button>
+
+              <button
+                style={{
+                  padding: '16px 32px',
+                  background: 'rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 12,
+                  fontFamily: monoFont,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#fff',
+                  cursor: 'pointer',
+                  letterSpacing: '0.1em',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                }}
+              >
+                LEARN MORE
               </button>
             </div>
           </div>
@@ -518,6 +486,101 @@ export default function LandingPage() {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CLI Commands Section */}
+        <div
+          style={{
+            padding: '80px 56px',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <span
+              style={{
+                fontFamily: monoFont,
+                fontSize: '12px',
+                color: CYAN,
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+                display: 'block',
+              }}
+            >
+              Run Agent With
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div
+                onClick={handleCopy}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  padding: '16px 20px',
+                  background: 'rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  flex: 1,
+                  maxWidth: '360px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                  e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+                }}
+              >
+                <code
+                  style={{
+                    fontFamily: monoFont,
+                    fontSize: '14px',
+                    color: '#fff',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  npx predict-station init
+                </code>
+                {copied ? (
+                  <Check size={18} color={CYAN} />
+                ) : (
+                  <Copy size={18} color="rgba(180,200,255,0.5)" />
+                )}
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => router.push('/app')}
+                style={{
+                  padding: '16px 24px',
+                  background: CYAN,
+                  border: 'none',
+                  borderRadius: 12,
+                  fontFamily: monoFont,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#000',
+                  cursor: 'pointer',
+                  letterSpacing: '0.08em',
+                  transition: 'all 0.3s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(62,196,192,0.8)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = CYAN
+                }}
+              >
+                ENTER APP →
+              </button>
             </div>
           </div>
         </div>
