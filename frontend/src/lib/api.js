@@ -25,7 +25,9 @@ export function getServerUrlStored() {
 
 async function fetchAPI(endpoint, options = {}) {
   const serverUrl = getServerUrl();
-  const url = `${serverUrl}${endpoint}`;
+  // Ensure we have /api in the path
+  const baseUrl = serverUrl.endsWith('/api') ? serverUrl : `${serverUrl}/api`;
+  const url = `${baseUrl}${endpoint}`;
   
   const config = {
     ...options,
@@ -64,7 +66,8 @@ export const api = {
   // Chat (streaming)
   chat: async (message, history = [], agentSlug, onToken, onThinking, onToolCall) => {
     const serverUrl = getServerUrl();
-    const response = await fetch(`${serverUrl}/chat`, {
+    const baseUrl = serverUrl.endsWith('/api') ? serverUrl : `${serverUrl}/api`;
+    const response = await fetch(`${baseUrl}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, history, agentSlug }),
