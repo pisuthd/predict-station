@@ -62,12 +62,12 @@ export default function HeroSection() {
           <button
             onClick={() => router.push('/app')}
             style={{
-              padding: '10px 20px',
+              padding: '12px 28px',
               background: CYAN,
               border: 'none',
-              borderRadius: 8,
+              borderRadius: 12,
               fontFamily: monoFont,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               color: '#000',
               cursor: 'pointer',
@@ -86,13 +86,13 @@ export default function HeroSection() {
 
           <button
             style={{
-              padding: '10px 20px',
+              padding: '12px 28px',
               background: 'rgba(255,255,255,0.04)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 8,
+              borderRadius: 12,
               fontFamily: monoFont,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               color: '#fff',
               cursor: 'pointer',
