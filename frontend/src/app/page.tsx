@@ -13,6 +13,24 @@ const models = [
   { name: 'On-Device AI', desc: 'Run Anywhere' },
 ]
 
+const steps = [
+  {
+    number: '01',
+    title: 'Create AI Agent',
+    description: 'Set up your personal AI agent with custom settings',
+  },
+  {
+    number: '02',
+    title: 'Configure Markets',
+    description: 'Select prediction markets to monitor and trade',
+  },
+  {
+    number: '03',
+    title: 'Deploy & Monitor',
+    description: 'Let your agent analyze and make predictions',
+  },
+]
+
 export default function LandingPage() {
   const router = useRouter()
   const [scrollY, setScrollY] = useState(0)
@@ -30,17 +48,11 @@ export default function LandingPage() {
   // Animate the ticker (slide left continuously)
   useEffect(() => {
     let animationId: number
-    let lastTime = 0
     const speed = 0.3 // pixels per frame
 
-    const animate = (timestamp: number) => {
-      if (!lastTime) lastTime = timestamp
-      const delta = timestamp - lastTime
-      lastTime = timestamp
-
+    const animate = () => {
       setTranslateX(prev => {
-        const containerWidth = containerRef.current?.offsetWidth || 800
-        const totalWidth = models.length * 300 // approximate item width
+        const totalWidth = models.length * 244 // item width + gap
         if (prev <= -totalWidth) {
           return 0
         }
@@ -262,12 +274,11 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
- 
-        {/* Supported Models Section */}
+
+        {/* Supported Models - Same background as hero (transparent) */}
         <div
           style={{
             padding: '80px 56px',
-            background: 'rgba(0,0,0,0.2)',
             position: 'relative',
             zIndex: 10,
             overflow: 'hidden',
@@ -279,7 +290,7 @@ export default function LandingPage() {
                 fontFamily: monoFont,
                 fontSize: '11px',
                 letterSpacing: '0.18em',
-                color: MUTED,
+                color: CYAN,
                 textTransform: 'uppercase',
                 marginBottom: '8px',
               }}
@@ -339,7 +350,7 @@ export default function LandingPage() {
                   style={{
                     fontFamily: sansFont,
                     fontSize: '13px',
-                    color: MUTED,
+                    color: 'rgba(180,200,255,0.6)',
                   }}
                 >
                   {model.desc}
@@ -377,13 +388,96 @@ export default function LandingPage() {
                   style={{
                     fontFamily: sansFont,
                     fontSize: '13px',
-                    color: MUTED,
+                    color: 'rgba(180,200,255,0.6)',
                   }}
                 >
                   {model.desc}
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* How It Works Section */}
+        <div
+          style={{
+            padding: '80px 56px',
+            background: 'rgba(0,0,0,0.2)',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <p
+              style={{
+                fontFamily: monoFont,
+                fontSize: '11px',
+                letterSpacing: '0.18em',
+                color: CYAN,
+                textTransform: 'uppercase',
+                marginBottom: '16px',
+              }}
+            >
+              How It Works
+            </p>
+
+            <h2
+              style={{
+                fontFamily: sansFont,
+                fontSize: '32px',
+                fontWeight: 300,
+                color: '#fff',
+                marginBottom: '48px',
+                lineHeight: 1.2,
+              }}
+            >
+              <strong style={{ fontWeight: 500 }}>Three</strong> simple steps
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '32px',
+              }}
+            >
+              {steps.map((step, index) => (
+                <div key={index}>
+                  <div
+                    style={{
+                      fontFamily: monoFont,
+                      fontSize: '48px',
+                      fontWeight: 700,
+                      color: CYAN,
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {step.number}
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      color: '#fff',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {step.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '14px',
+                      color: 'rgba(180,200,255,0.6)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -455,16 +549,16 @@ export default function LandingPage() {
               style={{
                 fontFamily: monoFont,
                 fontSize: 12,
-                color: MUTED,
+                color: 'rgba(180,200,255,0.5)',
                 margin: 0,
               }}
             >
               <span style={{ color: '#fff' }}>Predict</span> Station © 2026
             </p>
             <div style={{ display: 'flex', gap: '24px' }}>
-              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Privacy</span>
-              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Terms</span>
-              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Contact</span>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: 'rgba(180,200,255,0.5)', cursor: 'pointer' }}>Privacy</span>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: 'rgba(180,200,255,0.5)', cursor: 'pointer' }}>Terms</span>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: 'rgba(180,200,255,0.5)', cursor: 'pointer' }}>Contact</span>
             </div>
           </div>
         </footer>
