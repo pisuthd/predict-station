@@ -1,28 +1,30 @@
 # Progress
 
 ## What Works ✅
-- Monorepo structure created
-- CLI package with init/start commands
-- Next.js frontend with TypeScript + Tailwind
+- Monorepo structure with CLI and frontend
+- CLI with init/start commands
+- Next.js frontend running
+- All UI screens from Electron migrated:
+  - LoadingScreen with animated progress
+  - AgentSelector with create/select agents
+  - MainScreen with dashboard
+- Components: Sidebar, OrbCanvas, Wordmark, StatusDot
 - Git repository initialized
-- Dependencies installed
 
 ## What's Left to Build 🚧
-- [ ] Migrate Electron app features to Next.js
-- [ ] Set up data models and database
-- [ ] Implement user authentication
-- [ ] Build prediction creation UI
-- [ ] Create prediction visualization
-- [ ] Add AI/ML prediction backend
+- [ ] Test that frontend runs without errors
+- [ ] Add backend/API routes
+- [ ] Connect to local AI (ollama integration)
+- [ ] Prediction market integration
+- [ ] Wallet connection
 
-## Current Status
-Initial setup complete. Project is ready for active development.
+## Migration Status
+Electron app successfully migrated to Next.js:
+- All pages converted (LoadingScreen, AgentSelector, MainScreen)
+- All components preserved (OrbCanvas, Sidebar, etc.)
+- Design tokens preserved (CYAN, NAVY, BLUE, MUTED)
+- State management preserved (agents list, selected agent)
 
 ## Known Issues
 - Next.js 14.2.0 has a security vulnerability - consider upgrading
-- TypeScript errors will resolve after npm install
-
-## Evolution of Decisions
-1. Chose monorepo structure to separate CLI and frontend concerns
-2. Used App Router over Pages Router for future-proofing
-3. Kept CLI minimal since focus is on frontend migration
+- Framer Motion removed (using CSS transitions instead)

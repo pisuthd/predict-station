@@ -1,20 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  --cyan: #3EC4C0;
+  --navy: #03063a;
+  --blue: #1A1AE8;
+  --muted: rgba(180,200,255,0.5);
+  --mono-font: 'Space Mono', monospace;
+  --sans-font: 'DM Sans', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 0, 0, 0;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  background: var(--navy);
+  font-family: var(--sans-font);
+  color: #fff;
+  min-height: 100vh;
+}
+
+input, button, select {
+  font-family: inherit;
 }
