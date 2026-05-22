@@ -1,9 +1,31 @@
 // Frontend API Client for Predict Station
+// Supports custom server URL via localStorage
 
-const API_BASE = 'http://localhost:3001/api';
+const DEFAULT_SERVER = 'http://localhost:3001/api';
+
+function getServerUrl() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('predict-station-server') || DEFAULT_SERVER;
+  }
+  return DEFAULT_SERVER;
+}
+
+export function setServerUrl(url) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('predict-station-server', url);
+  }
+}
+
+export function getServerUrlStored() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('predict-station-server') || null;
+  }
+  return null;
+}
 
 async function fetchAPI(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`;
+  const serverUrl = getServerUrl();
+  const url = `${serverUrl}${endpoint}`;
   
   const config = {
     ...options,
@@ -41,7 +63,8 @@ export const api = {
   
   // Chat (streaming)
   chat: async (message, history = [], agentSlug, onToken, onThinking, onToolCall) => {
-    const response = await fetch(`${API_BASE}/chat`, {
+    const serverUrl = getServerUrl();
+    const response = await fetch(`${serverUrl}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, history, agentSlug }),

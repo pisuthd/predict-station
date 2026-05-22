@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
 import TopNavBar from './components/TopNavBar'
@@ -9,6 +9,9 @@ import PlaceholderPage from './components/PlaceholderPage'
 import LoadingScreen from '../../pages/LoadingScreen'
 import AgentSelector from '../../pages/AgentSelector'
 import OrbCanvas from '../../components/OrbCanvas'
+import ServerSelector from '../../pages/ServerSelector'
+import ModelSelector from '../../pages/ModelSelector'
+import { getServerUrlStored } from '../../lib/api'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -19,8 +22,13 @@ interface Agent {
   createdAt: string
 }
 
+type AppStep = 'server' | 'model' | 'agents' | 'main'
+
 export default function AppPage() {
   const router = useRouter()
+  const [step, setStep] = useState<AppStep>('server')
+  const [serverUrl, setServerUrl] = useState<string>('')
+  const [selectedModel, setSelectedModel] = useState<string>('')
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
@@ -33,6 +41,27 @@ export default function AppPage() {
     { id: 'markets', label: 'Markets' },
     { id: 'settings', label: 'Settings' },
   ]
+
+  // Check if we already have a server configured
+  useEffect(() => {
+    const storedUrl = getServerUrlStored()
+    if (storedUrl) {
+      setServerUrl(storedUrl)
+      setStep('model')
+    }
+  }, [])
+
+  // Handle server connection
+  const handleServerConnect = (url: string) => {
+    setServerUrl(url)
+    setStep('model')
+  }
+
+  // Handle model selection
+  const handleModelSelect = (modelType: string) => {
+    setSelectedModel(modelType)
+    setStep('main')
+  }
 
   // Handle navigation with loading for agents page
   const handleNavClick = (navId: NavItem) => {
@@ -171,6 +200,30 @@ export default function AppPage() {
       default:
         return <MainScreen agents={agents} selectedAgent={selectedAgent} />
     }
+  }
+
+  // Server selector step
+  if (step === 'server') {
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
+        <OrbCanvas />
+        <ServerSelector onConnect={handleServerConnect} />
+      </div>
+    )
+  }
+
+  // Model selector step
+  if (step === 'model') {
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
+        <OrbCanvas />
+        <ModelSelector 
+          serverUrl={serverUrl} 
+          onSelect={handleModelSelect}
+          onBack={() => setStep('server')}
+        />
+      </div>
+    )
   }
 
   // Show loading screen for agents
