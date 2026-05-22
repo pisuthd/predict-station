@@ -170,16 +170,17 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Cyan Left Edge Accent */}
+        {/* Cyan Left Edge Accent - moves with scroll */}
         <div
           style={{
             position: 'fixed',
             left: 0,
-            bottom: '52px',
+            bottom: Math.max(24, 52 - scrollY * 0.5),
             width: 4,
             height: 80,
             background: CYAN,
             zIndex: 15,
+            transition: 'bottom 0.1s ease-out',
           }}
         />
       </div>
