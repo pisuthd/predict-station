@@ -18,7 +18,7 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
     setError('')
     
     const url = serverType === 'default' 
-      ? 'http://localhost:3001' 
+      ? 'http://localhost:3001/api' 
       : customUrl.trim()
     
     if (serverType === 'custom' && !url) {
@@ -87,15 +87,16 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
             Choose your Agent Node endpoint
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+          {/* 2-column layout for options */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: serverType === 'custom' ? 8 : 24 }}>
             {/* Default server */}
             <button
               onClick={() => setServerType('default')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 14,
-                padding: '12px 14px',
+                gap: 10,
+                padding: '12px 12px',
                 background: serverType === 'default' ? 'rgba(62,196,192,0.15)' : 'rgba(255,255,255,0.05)',
                 border: `1px solid ${serverType === 'default' ? 'rgba(62,196,192,0.4)' : 'rgba(180,200,255,0.12)'}`,
                 borderRadius: 6,
@@ -106,8 +107,8 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
               }}
             >
               <div style={{
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 borderRadius: '50%',
                 border: `2px solid ${serverType === 'default' ? CYAN : MUTED}`,
                 display: 'flex',
@@ -117,19 +118,19 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
               }}>
                 {serverType === 'default' && (
                   <div style={{
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
                     background: CYAN,
                   }} />
                 )}
               </div>
               <div>
-                <span style={{ display: 'block', fontFamily: sansFont, fontSize: 14, fontWeight: 500, color: '#fff' }}>
-                  localhost:3001
+                <span style={{ display: 'block', fontFamily: sansFont, fontSize: 12, fontWeight: 500, color: '#fff' }}>
+                  localhost
                 </span>
-                <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED }}>
-                  Default local server
+                <span style={{ fontFamily: monoFont, fontSize: 9, color: MUTED }}>
+                  Default
                 </span>
               </div>
             </button>
@@ -140,8 +141,8 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 14,
-                padding: '12px 14px',
+                gap: 10,
+                padding: '12px 12px',
                 background: serverType === 'custom' ? 'rgba(62,196,192,0.15)' : 'rgba(255,255,255,0.05)',
                 border: `1px solid ${serverType === 'custom' ? 'rgba(62,196,192,0.4)' : 'rgba(180,200,255,0.12)'}`,
                 borderRadius: 6,
@@ -152,8 +153,8 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
               }}
             >
               <div style={{
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 borderRadius: '50%',
                 border: `2px solid ${serverType === 'custom' ? CYAN : MUTED}`,
                 display: 'flex',
@@ -163,48 +164,53 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
               }}>
                 {serverType === 'custom' && (
                   <div style={{
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     borderRadius: '50%',
                     background: CYAN,
                   }} />
                 )}
               </div>
-              <span style={{ fontFamily: sansFont, fontSize: 14, fontWeight: 500, color: '#fff' }}>
-                Custom URL
-              </span>
-            </button>
-
-            {/* Custom URL input */}
-            {serverType === 'custom' && (
-              <div style={{ paddingLeft: 34, marginTop: -4 }}>
-                <input
-                  type="text"
-                  value={customUrl}
-                  onChange={e => setCustomUrl(e.target.value)}
-                  placeholder="http://localhost:3001"
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '11px 14px',
-                    background: 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${error ? 'rgba(255,100,100,0.6)' : 'rgba(180,200,255,0.2)'}`,
-                    borderRadius: 6,
-                    fontFamily: sansFont,
-                    fontSize: 14,
-                    color: '#fff',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-                {error && (
-                  <p style={{ fontFamily: monoFont, fontSize: 11, color: 'rgba(255,100,100,0.8)', marginTop: 6 }}>
-                    {error}
-                  </p>
-                )}
+              <div>
+                <span style={{ display: 'block', fontFamily: sansFont, fontSize: 12, fontWeight: 500, color: '#fff' }}>
+                  Custom
+                </span>
+                <span style={{ fontFamily: monoFont, fontSize: 9, color: MUTED }}>
+                  Enter URL
+                </span>
               </div>
-            )}
+            </button>
           </div>
+
+          {/* Custom URL input - full width when custom selected */}
+          {serverType === 'custom' && (
+            <div style={{ marginBottom: 24 }}>
+              <input
+                type="text"
+                value={customUrl}
+                onChange={e => setCustomUrl(e.target.value)}
+                placeholder="http://localhost:3001/api"
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  background: 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${error ? 'rgba(255,100,100,0.6)' : 'rgba(180,200,255,0.2)'}`,
+                  borderRadius: 6,
+                  fontFamily: sansFont,
+                  fontSize: 14,
+                  color: '#fff',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              {error && (
+                <p style={{ fontFamily: monoFont, fontSize: 11, color: 'rgba(255,100,100,0.8)', marginTop: 6 }}>
+                  {error}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Connect */}
           <button

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
 import TopNavBar from './components/TopNavBar'
@@ -11,7 +11,6 @@ import AgentSelector from '../../pages/AgentSelector'
 import OrbCanvas from '../../components/OrbCanvas'
 import ServerSelector from '../../pages/ServerSelector'
 import ModelSelector from '../../pages/ModelSelector'
-import { getServerUrlStored } from '../../lib/api'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -41,15 +40,6 @@ export default function AppPage() {
     { id: 'markets', label: 'Markets' },
     { id: 'settings', label: 'Settings' },
   ]
-
-  // Check if we already have a server configured
-  useEffect(() => {
-    const storedUrl = getServerUrlStored()
-    if (storedUrl) {
-      setServerUrl(storedUrl)
-      setStep('model')
-    }
-  }, [])
 
   // Handle server connection
   const handleServerConnect = (url: string) => {
