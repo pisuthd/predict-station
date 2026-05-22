@@ -1,0 +1,24 @@
+{
+  "name": "predict-station",
+  "version": "0.1.0",
+  "description": "CLI for Predict Station",
+  "bin": {
+    "predict-station": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node ./bin/cli.js"
+  },
+  "keywords": [
+    "cli",
+    "predict-station"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0"
+  }
+}
