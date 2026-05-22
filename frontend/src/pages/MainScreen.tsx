@@ -27,6 +27,7 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
         background: NAVY,
         fontFamily: sansFont,
         padding: 24,
+        paddingLeft: 240,
         boxSizing: 'border-box',
       }}
     >
@@ -35,12 +36,31 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           gap: 12,
           marginBottom: 32,
         }}
       >
-        {/* Left: Network Dropdown */}
+        {/* Left: Connect Wallet - Glassmorphism */}
+        <button
+          style={{
+            padding: '10px 20px',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(180,200,255,0.12)',
+            borderRadius: 10,
+            fontFamily: monoFont,
+            fontSize: 12,
+            fontWeight: 700,
+            color: CYAN,
+            cursor: 'pointer',
+            letterSpacing: '0.08em',
+          }}
+        >
+          CONNECT WALLET
+        </button>
+
+        {/* Right: Network Dropdown - Glassmorphism */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontFamily: monoFont, fontSize: 11, color: MUTED, letterSpacing: '0.08em' }}>
             NETWORK
@@ -56,17 +76,15 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
               style={{
                 appearance: 'none',
                 padding: '10px 40px 10px 16px',
-                background: network === 'testnet' 
-                  ? 'rgba(62,196,192,0.15)' 
-                  : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${network === 'testnet' ? 'rgba(62,196,192,0.4)' : 'rgba(180,200,255,0.12)'}`,
-                borderRadius: 8,
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(180,200,255,0.12)',
+                borderRadius: 10,
                 fontFamily: monoFont,
                 fontSize: 12,
                 fontWeight: 700,
                 color: network === 'testnet' ? CYAN : MUTED,
                 cursor: network === 'testnet' ? 'pointer' : 'not-allowed',
-                opacity: network === 'testnet' ? 1 : 0.5,
               }}
             >
               <option value="testnet">TESTNET</option>
@@ -87,24 +105,6 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
             </span>
           </div>
         </div>
-
-        {/* Right: Connect Wallet */}
-        <button
-          style={{
-            padding: '10px 20px',
-            background: 'rgba(62,196,192,0.15)',
-            border: '1px solid rgba(62,196,192,0.4)',
-            borderRadius: 8,
-            fontFamily: monoFont,
-            fontSize: 12,
-            fontWeight: 700,
-            color: CYAN,
-            cursor: 'pointer',
-            letterSpacing: '0.08em',
-          }}
-        >
-          CONNECT WALLET
-        </button>
       </div>
 
       {/* Main Title */}
