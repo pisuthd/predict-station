@@ -9,7 +9,7 @@ import PlaceholderPage from './components/PlaceholderPage'
 import OrbCanvas from '../../components/OrbCanvas'
 import ServerSelector from '../../pages/ServerSelector'
 import ModelSelector from '../../pages/ModelSelector'
-import { setServerUrl, getServerUrlStored } from '../../lib/api'
+import { setServerUrl } from '../../lib/api'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -22,7 +22,7 @@ interface Agent {
 
 export default function AppPage() {
   const router = useRouter()
-  const [serverUrl, setServerUrlState] = useState<string>(getServerUrlStored() || '')
+  const [serverUrl, setServerUrlState] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
@@ -37,11 +37,18 @@ export default function AppPage() {
     { id: 'settings', label: 'Settings' },
   ]
 
-  // Handle navigation - Agents shows server selector every time
+  // Handle navigation - Agents shows server/model selector if not configured
   const handleNavClick = (navId: NavItem) => {
     if (navId === 'agents') {
       setActiveNav('agents')
-      setShowServerSelector(true)
+      // If server is not set or user wants to change, show server selector
+      if (!serverUrl) {
+        setShowServerSelector(true)
+      } else if (!selectedModel) {
+        // Server set but model not selected
+        setShowModelSelector(true)
+      }
+      // If both are set, just show the agents page content
     } else {
       setActiveNav(navId)
       setShowServerSelector(false)
