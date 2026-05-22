@@ -230,12 +230,25 @@ export default function LandingPage() {
             </p>
 
             {/* Copyable Command Textbox */}
+            <span
+              style={{
+                fontFamily: monoFont,
+                fontSize: '12px',
+                color: CYAN,
+                letterSpacing: '0.04em',
+                marginBottom: '8px',
+                display: 'block',
+              }}
+            >
+              Run with
+            </span>
             <div
               onClick={handleCopy}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                justifyContent: 'space-between',
+                gap: '16px',
                 padding: '16px 20px',
                 background: 'rgba(255,255,255,0.04)',
                 backdropFilter: 'blur(20px)',
@@ -254,16 +267,6 @@ export default function LandingPage() {
                 e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
               }}
             >
-              <span
-                style={{
-                  fontFamily: monoFont,
-                  fontSize: '14px',
-                  color: CYAN,
-                  letterSpacing: '0.02em',
-                }}
-              >
-                Run with
-              </span>
               <code
                 style={{
                   fontFamily: monoFont,
