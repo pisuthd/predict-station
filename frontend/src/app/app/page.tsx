@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { NAVY, CYAN, MUTED, monoFont, sansFont } from '../../theme'
+import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
+import TopNavBar from './components/TopNavBar'
 import MainScreen from '../../pages/MainScreen'
+import PlaceholderPage from './components/PlaceholderPage'
 
 type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
 
@@ -26,15 +28,33 @@ export default function AppPage() {
     { id: 'settings', label: 'Settings' },
   ]
 
+  // Render content based on active nav
+  const renderContent = () => {
+    switch (activeNav) {
+      case 'dashboard':
+        return <MainScreen agents={agents} selectedAgent={null} />
+      case 'agents':
+        return <PlaceholderPage title="Agents" />
+      case 'markets':
+        return <PlaceholderPage title="Markets" />
+      case 'settings':
+        return <PlaceholderPage title="Settings" />
+      default:
+        return <MainScreen agents={agents} selectedAgent={null} />
+    }
+  }
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
-      {/* Floating Sidebar */}
+      {/* Floating Top Navbar */}
+      <TopNavBar />
+
+      {/* Floating Sidebar - Left */}
       <div
         style={{
           position: 'fixed',
           left: 24,
-          top: '50%',
-          transform: 'translateY(-50%)',
+          top: 80,
           zIndex: 100,
         }}
       >
@@ -119,13 +139,12 @@ export default function AppPage() {
               )}
             </button>
           ))}
-
         </div>
       </div>
 
       {/* Main Content */}
-      <main style={{ minHeight: '100vh' }}>
-        <MainScreen agents={agents} selectedAgent={null} />
+      <main style={{ paddingTop: 80, minHeight: '100vh' }}>
+        {renderContent()}
       </main>
     </div>
   )

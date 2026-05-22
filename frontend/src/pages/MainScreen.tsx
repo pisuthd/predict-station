@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import StatusDot from '../components/StatusDot'
 
@@ -16,97 +15,16 @@ interface MainScreenProps {
   selectedAgent: Agent | null
 }
 
-type Network = 'testnet' | 'mainnet'
-
 export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
-  const [network, setNetwork] = useState<Network>('testnet')
-
   return (
     <div
       style={{
         background: NAVY,
         fontFamily: sansFont,
         padding: 24,
-        paddingLeft: 240,
         boxSizing: 'border-box',
       }}
     >
-      {/* Header Bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        {/* Left: Connect Wallet - Glassmorphism */}
-        <button
-          style={{
-            padding: '10px 20px',
-            background: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(180,200,255,0.12)',
-            borderRadius: 10,
-            fontFamily: monoFont,
-            fontSize: 12,
-            fontWeight: 700,
-            color: CYAN,
-            cursor: 'pointer',
-            letterSpacing: '0.08em',
-          }}
-        >
-          CONNECT WALLET
-        </button>
-
-        {/* Right: Network Dropdown - Glassmorphism */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontFamily: monoFont, fontSize: 11, color: MUTED, letterSpacing: '0.08em' }}>
-            NETWORK
-          </span>
-          <div
-            style={{
-              position: 'relative',
-            }}
-          >
-            <select
-              value={network}
-              onChange={(e) => setNetwork(e.target.value as Network)}
-              style={{
-                appearance: 'none',
-                padding: '10px 40px 10px 16px',
-                background: 'rgba(255,255,255,0.04)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(180,200,255,0.12)',
-                borderRadius: 10,
-                fontFamily: monoFont,
-                fontSize: 12,
-                fontWeight: 700,
-                color: network === 'testnet' ? CYAN : MUTED,
-                cursor: network === 'testnet' ? 'pointer' : 'not-allowed',
-              }}
-            >
-              <option value="testnet">TESTNET</option>
-              <option value="mainnet" disabled>MAINNET</option>
-            </select>
-            <span
-              style={{
-                position: 'absolute',
-                right: 12,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: network === 'testnet' ? CYAN : MUTED,
-                fontSize: 10,
-              }}
-            >
-              ▾
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Title */}
       <div style={{ marginBottom: 32 }}>
         <p style={{ 
