@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Copy, Check } from 'lucide-react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
 
@@ -228,20 +229,22 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* Copyable Command Block */}
+            {/* Copyable Command Textbox */}
             <div
               onClick={handleCopy}
               style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 gap: '16px',
-                padding: '16px 24px',
+                padding: '16px 20px',
                 background: 'rgba(255,255,255,0.04)',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(180,200,255,0.12)',
-                borderRadius: 16,
+                borderRadius: 12,
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
+                maxWidth: '400px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
@@ -252,26 +255,21 @@ export default function LandingPage() {
                 e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
               }}
             >
-              <span
+              <code
                 style={{
                   fontFamily: 'monospace',
-                  fontSize: '16px',
+                  fontSize: '14px',
                   color: '#fff',
                   letterSpacing: '0.02em',
                 }}
               >
                 npx predict-station init
-              </span>
-              <span
-                style={{
-                  fontFamily: monoFont,
-                  fontSize: '12px',
-                  color: copied ? CYAN : 'rgba(180,200,255,0.5)',
-                  transition: 'color 0.3s ease',
-                }}
-              >
-                {copied ? '✓ COPIED' : 'COPY'}
-              </span>
+              </code>
+              {copied ? (
+                <Check size={18} color={CYAN} />
+              ) : (
+                <Copy size={18} color="rgba(180,200,255,0.5)" />
+              )}
             </div>
           </div>
         </div>
