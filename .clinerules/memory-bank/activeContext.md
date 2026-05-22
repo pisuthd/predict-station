@@ -6,7 +6,7 @@ Setting up Next.js routing with landing page at / and app pages at /app
 ## Recent Changes
 - Landing page at / (src/app/page.tsx)
 - App flow at /app (src/app/app/page.tsx)
-- All buttons use glassmorphism styling with backdrop-filter: blur(20px)
+- Hero content is transparent (no glass), CTA buttons use glassmorphism
 - Using Next.js useRouter for navigation
 - Features section with 3 cards (AI Agents, Real-time Data, Private & Local)
 - "How It Works" section with 3 steps
@@ -17,8 +17,9 @@ Setting up Next.js routing with landing page at / and app pages at /app
 ```
 
 ## Design Elements
-- Split layout: Text on left (45%), orbs on right (55%)
-- Glassmorphism buttons: background with rgba, backdropFilter blur, subtle border
+- Orbs centered in background (20% to 80% width)
+- Hero text content is transparent/clear
+- Glassmorphism buttons: background rgba(255,255,255,0.04), backdropFilter blur(20px), border rgba(180,200,255,0.12)
 - Same color scheme: CYAN (#3EC4C0), NAVY (#03063a), BLUE (#1A1AE8)
 - Space Mono for headings, DM Sans for body
 

@@ -85,31 +85,19 @@ export default function LandingPage() {
             alignItems: 'center',
           }}
         >
-          {/* Branding - Larger & Clearer */}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-            <span
-              style={{
-                fontFamily: monoFont,
-                fontSize: 24,
-                fontWeight: 700,
-                color: CYAN,
-                letterSpacing: '0.04em',
-              }}
-            >
-              PREDICT
-            </span>
-            <span
-              style={{
-                fontFamily: monoFont,
-                fontSize: 16,
-                fontWeight: 400,
-                letterSpacing: '0.12em',
-                color: 'rgba(180,200,255,0.6)',
-              }}
-            >
-              STATION
-            </span>
-          </div>
+          {/* Wordmark - Similar to Loading Screen */}
+          <p
+            style={{
+              fontFamily: monoFont,
+              fontWeight: 700,
+              fontSize: 20,
+              letterSpacing: '0.06em',
+              color: CYAN,
+              margin: 0,
+            }}
+          >
+            <span style={{ color: '#fff' }}>Predict</span> Station
+          </p>
 
           {/* Enter App Button - Glassmorphism */}
           <button
