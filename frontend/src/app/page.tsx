@@ -1,11 +1,24 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
 
 export default function LandingPage() {
   const router = useRouter()
+  const [scrollY, setScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Calculate fade based on scroll (fades out after 200px scroll)
+  const orbOpacity = Math.max(0, 1 - scrollY / 400)
 
   const features = [
     {
@@ -54,79 +67,104 @@ export default function LandingPage() {
         flexDirection: 'column',
       }}
     >
-      {/* Navigation - with max-width container */}
-      <nav
-        style={{
-          padding: '24px 56px',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Wordmark - Smaller */}
-          <p
-            style={{
-              fontFamily: monoFont,
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: '0.06em',
-              color: CYAN,
-              margin: 0,
-            }}
-          >
-            <span style={{ color: '#fff' }}>Predict</span> Station
-          </p>
-
-          {/* Enter App Button - Glassmorphism */}
-          <button
-            onClick={() => router.push('/app')}
-            style={{
-              padding: '12px 28px',
-              background: 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(180,200,255,0.12)',
-              borderRadius: 16,
-              fontFamily: monoFont,
-              fontSize: 12,
-              fontWeight: 700,
-              color: CYAN,
-              cursor: 'pointer',
-              letterSpacing: '0.08em',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-              e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-              e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
-            }}
-          >
-            ENTER APP →
-          </button>
-        </div>
-      </nav>
-
-      {/* Hero Section with Orbs - Orbs moved to right side */}
+      {/* Fixed Animated Orbs - Right Side, fades on scroll */}
       <div
         style={{
-          flex: 1,
-          display: 'flex',
-          position: 'relative',
-          zIndex: 10,
+          position: 'fixed',
+          right: 0,
+          top: 0,
+          width: '50%',
+          height: '100vh',
+          opacity: orbOpacity,
+          transition: 'opacity 0.3s ease-out',
+          pointerEvents: orbOpacity > 0.1 ? 'auto' : 'none',
         }}
       >
-        {/* Hero Content - Left Side */}
-        <div style={{ 
-          flex: 1, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          padding: '0 56px',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.5))',
+          }}
+        />
+        <OrbCanvas />
+      </div>
+
+      {/* Content */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Navigation */}
+        <nav
+          style={{
+            padding: '24px 56px',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Wordmark */}
+            <p
+              style={{
+                fontFamily: monoFont,
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: '0.06em',
+                color: CYAN,
+                margin: 0,
+              }}
+            >
+              <span style={{ color: '#fff' }}>Predict</span> Station
+            </p>
+
+            {/* Enter App Button */}
+            <button
+              onClick={() => router.push('/app')}
+              style={{
+                padding: '12px 28px',
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(180,200,255,0.12)',
+                borderRadius: 16,
+                fontFamily: monoFont,
+                fontSize: 12,
+                fontWeight: 700,
+                color: CYAN,
+                cursor: 'pointer',
+                letterSpacing: '0.08em',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+              }}
+            >
+              ENTER APP →
+            </button>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 56px',
+          }}
+        >
           <div style={{ maxWidth: '560px' }}>
-            {/* Label */}
             <p
               style={{
                 fontSize: '11px',
@@ -140,7 +178,6 @@ export default function LandingPage() {
               Private & On-Device AI
             </p>
 
-            {/* Main Title */}
             <h1
               style={{
                 fontSize: '48px',
@@ -156,7 +193,6 @@ export default function LandingPage() {
               for Prediction Markets
             </h1>
 
-            {/* Description */}
             <p
               style={{
                 fontFamily: sansFont,
@@ -170,7 +206,7 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* CTA Buttons - Glassmorphism Only */}
+            {/* CTA Buttons */}
             <div style={{ display: 'flex', gap: '16px' }}>
               <button
                 onClick={() => router.push('/app')}
@@ -228,280 +264,265 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Animated Orbs - Right Side of Hero */}
+        {/* Features Section */}
         <div
           style={{
-            width: '50%',
-            height: '100%',
+            padding: '80px 56px',
             position: 'relative',
-            background: 'rgba(0,0,0,0.3)',
+            zIndex: 10,
           }}
         >
-          <div style={{ position: 'absolute', inset: 0 }}>
-            <OrbCanvas />
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div
-        style={{
-          padding: '80px 56px',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '32px',
-            }}
-          >
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: '24px',
-                  background: 'rgba(255,255,255,0.04)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.12)',
-                  borderRadius: 16,
-                  transition: 'all 0.3s ease',
-                  cursor: 'default',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                }}
-              >
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '32px',
+              }}
+            >
+              {features.map((feature, index) => (
                 <div
+                  key={index}
                   style={{
-                    fontSize: '32px',
-                    marginBottom: '16px',
+                    padding: '24px',
+                    background: 'rgba(255,255,255,0.04)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(180,200,255,0.12)',
+                    borderRadius: 16,
+                    transition: 'all 0.3s ease',
+                    cursor: 'default',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
                   }}
                 >
-                  {feature.icon}
+                  <div
+                    style={{
+                      fontSize: '32px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {feature.icon}
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#fff',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '13px',
+                      color: MUTED,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {feature.description}
+                  </p>
                 </div>
-                <h3
-                  style={{
-                    fontFamily: sansFont,
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#fff',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {feature.title}
-                </h3>
-                <p
-                  style={{
-                    fontFamily: sansFont,
-                    fontSize: '13px',
-                    color: MUTED,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* How It Works Section */}
-      <div
-        style={{
-          padding: '80px 56px',
-          background: 'rgba(0,0,0,0.2)',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <p
-            style={{
-              fontFamily: monoFont,
-              fontSize: '11px',
-              letterSpacing: '0.18em',
-              color: MUTED,
-              textTransform: 'uppercase',
-              marginBottom: '16px',
-            }}
-          >
-            How It Works
-          </p>
+        {/* How It Works Section */}
+        <div
+          style={{
+            padding: '80px 56px',
+            background: 'rgba(0,0,0,0.2)',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <p
+              style={{
+                fontFamily: monoFont,
+                fontSize: '11px',
+                letterSpacing: '0.18em',
+                color: MUTED,
+                textTransform: 'uppercase',
+                marginBottom: '16px',
+              }}
+            >
+              How It Works
+            </p>
 
+            <h2
+              style={{
+                fontFamily: sansFont,
+                fontSize: '32px',
+                fontWeight: 300,
+                color: '#fff',
+                marginBottom: '48px',
+                lineHeight: 1.2,
+              }}
+            >
+              <strong style={{ fontWeight: 500 }}>Three</strong> simple steps
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '32px',
+              }}
+            >
+              {steps.map((step, index) => (
+                <div key={index}>
+                  <div
+                    style={{
+                      fontFamily: monoFont,
+                      fontSize: '48px',
+                      fontWeight: 700,
+                      color: CYAN,
+                      opacity: 0.3,
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {step.number}
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      color: '#fff',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {step.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: sansFont,
+                      fontSize: '14px',
+                      color: MUTED,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer CTA */}
+        <div
+          style={{
+            padding: '64px 56px',
+            textAlign: 'center',
+            borderTop: '1px solid rgba(180,200,255,0.08)',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
           <h2
             style={{
               fontFamily: sansFont,
-              fontSize: '32px',
+              fontSize: '28px',
               fontWeight: 300,
               color: '#fff',
-              marginBottom: '48px',
-              lineHeight: 1.2,
+              marginBottom: '24px',
             }}
           >
-            <strong style={{ fontWeight: 500 }}>Three</strong> simple steps
+            Ready to start your <strong style={{ fontWeight: 500 }}>mission</strong>?
           </h2>
 
-          <div
+          <button
+            onClick={() => router.push('/app')}
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '32px',
-            }}
-          >
-            {steps.map((step, index) => (
-              <div key={index}>
-                <div
-                  style={{
-                    fontFamily: monoFont,
-                    fontSize: '48px',
-                    fontWeight: 700,
-                    color: CYAN,
-                    opacity: 0.3,
-                    marginBottom: '16px',
-                  }}
-                >
-                  {step.number}
-                </div>
-                <h3
-                  style={{
-                    fontFamily: sansFont,
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    color: '#fff',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  style={{
-                    fontFamily: sansFont,
-                    fontSize: '14px',
-                    color: MUTED,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer CTA */}
-      <div
-        style={{
-          padding: '64px 56px',
-          textAlign: 'center',
-          borderTop: '1px solid rgba(180,200,255,0.08)',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: sansFont,
-            fontSize: '28px',
-            fontWeight: 300,
-            color: '#fff',
-            marginBottom: '24px',
-          }}
-        >
-          Ready to start your <strong style={{ fontWeight: 500 }}>mission</strong>?
-        </h2>
-
-        {/* Launch App - Glassmorphism */}
-        <button
-          onClick={() => router.push('/app')}
-          style={{
-            padding: '16px 48px',
-            background: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(180,200,255,0.12)',
-            borderRadius: 16,
-            fontFamily: monoFont,
-            fontSize: 14,
-            fontWeight: 700,
-            color: CYAN,
-            cursor: 'pointer',
-            letterSpacing: '0.1em',
-            transition: 'all 0.3s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-            e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-            e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
-          }}
-        >
-          LAUNCH APP →
-        </button>
-      </div>
-
-      {/* Footer */}
-      <footer
-        style={{
-          padding: '24px 56px',
-          borderTop: '1px solid rgba(180,200,255,0.08)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p
-            style={{
+              padding: '16px 48px',
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 16,
               fontFamily: monoFont,
-              fontSize: 12,
-              color: MUTED,
-              margin: 0,
+              fontSize: 14,
+              fontWeight: 700,
+              color: CYAN,
+              cursor: 'pointer',
+              letterSpacing: '0.1em',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
+              e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
             }}
           >
-            <span style={{ color: '#fff' }}>Predict</span> Station © 2026
-          </p>
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Privacy</span>
-            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Terms</span>
-            <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Contact</span>
-          </div>
+            LAUNCH APP →
+          </button>
         </div>
-      </footer>
 
-      {/* Bottom Teal Accent Bar */}
-      <div
-        style={{
-          height: 4,
-          background: CYAN,
-          position: 'relative',
-          zIndex: 10,
-        }}
-      />
+        {/* Footer */}
+        <footer
+          style={{
+            padding: '24px 56px',
+            borderTop: '1px solid rgba(180,200,255,0.08)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p
+              style={{
+                fontFamily: monoFont,
+                fontSize: 12,
+                color: MUTED,
+                margin: 0,
+              }}
+            >
+              <span style={{ color: '#fff' }}>Predict</span> Station © 2026
+            </p>
+            <div style={{ display: 'flex', gap: '24px' }}>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Privacy</span>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Terms</span>
+              <span style={{ fontFamily: sansFont, fontSize: 12, color: MUTED, cursor: 'pointer' }}>Contact</span>
+            </div>
+          </div>
+        </footer>
 
-      {/* Cyan Left Edge Accent */}
-      <div
-        style={{
-          position: 'fixed',
-          left: 0,
-          bottom: '52px',
-          width: 4,
-          height: 80,
-          background: CYAN,
-          zIndex: 15,
-        }}
-      />
+        {/* Bottom Teal Accent Bar */}
+        <div
+          style={{
+            height: 4,
+            background: CYAN,
+            position: 'relative',
+            zIndex: 10,
+          }}
+        />
+
+        {/* Cyan Left Edge Accent */}
+        <div
+          style={{
+            position: 'fixed',
+            left: 0,
+            bottom: '52px',
+            width: 4,
+            height: 80,
+            background: CYAN,
+            zIndex: 15,
+          }}
+        />
+      </div>
     </div>
   )
 }
