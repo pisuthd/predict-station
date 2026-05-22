@@ -35,6 +35,7 @@ export default function LandingPage() {
   const router = useRouter()
   const [scrollY, setScrollY] = useState(0)
   const [translateX, setTranslateX] = useState(0)
+  const [copied, setCopied] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,11 +49,11 @@ export default function LandingPage() {
   // Animate the ticker (slide left continuously)
   useEffect(() => {
     let animationId: number
-    const speed = 0.3 // pixels per frame
+    const speed = 0.3
 
     const animate = () => {
       setTranslateX(prev => {
-        const totalWidth = models.length * 244 // item width + gap
+        const totalWidth = models.length * 244
         if (prev <= -totalWidth) {
           return 0
         }
@@ -65,6 +66,16 @@ export default function LandingPage() {
     animationId = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(animationId)
   }, [])
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText('npx predict-station init')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy')
+    }
+  }
 
   const orbOpacity = Math.max(0, 1 - scrollY / 400)
 
@@ -217,60 +228,50 @@ export default function LandingPage() {
               All processing happens locally on your device.
             </p>
 
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <button
-                onClick={() => router.push('/app')}
+            {/* Copyable Command Block */}
+            <div
+              onClick={handleCopy}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '16px 24px',
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(180,200,255,0.12)',
+                borderRadius: 16,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+              }}
+            >
+              <span
                 style={{
-                  padding: '16px 32px',
-                  background: 'rgba(255,255,255,0.04)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.12)',
-                  borderRadius: 16,
-                  fontFamily: monoFont,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: CYAN,
-                  cursor: 'pointer',
-                  letterSpacing: '0.1em',
-                  transition: 'all 0.3s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-                  e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                  e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
-                }}
-              >
-                GET STARTED
-              </button>
-
-              <button
-                style={{
-                  padding: '16px 32px',
-                  background: 'rgba(255,255,255,0.04)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(180,200,255,0.12)',
-                  borderRadius: 16,
-                  fontFamily: monoFont,
-                  fontSize: 13,
-                  fontWeight: 700,
+                  fontFamily: 'monospace',
+                  fontSize: '16px',
                   color: '#fff',
-                  cursor: 'pointer',
-                  letterSpacing: '0.1em',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  letterSpacing: '0.02em',
                 }}
               >
-                LEARN MORE
-              </button>
+                npx predict-station init
+              </span>
+              <span
+                style={{
+                  fontFamily: monoFont,
+                  fontSize: '12px',
+                  color: copied ? CYAN : 'rgba(180,200,255,0.5)',
+                  transition: 'color 0.3s ease',
+                }}
+              >
+                {copied ? '✓ COPIED' : 'COPY'}
+              </span>
             </div>
           </div>
         </div>
