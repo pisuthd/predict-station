@@ -117,7 +117,7 @@ export default function LandingPage() {
                 e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
               }}
             >
-              ENTER APP →
+              ENTER APP
             </button>
           </div>
         </nav>

@@ -22,7 +22,7 @@ export default function AppPage() {
   const router = useRouter()
   const [agents] = useState<Agent[]>([])
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAgentsLoading, setIsAgentsLoading] = useState(false)
 
   const navItems: { id: NavItem; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -31,19 +31,16 @@ export default function AppPage() {
     { id: 'settings', label: 'Settings' },
   ]
 
-  // Render content based on active nav
-  const renderContent = () => {
-    switch (activeNav) {
-      case 'dashboard':
-        return <MainScreen agents={agents} selectedAgent={null} />
-      case 'agents':
-        return <PlaceholderPage title="Agents" />
-      case 'markets':
-        return <PlaceholderPage title="Markets" />
-      case 'settings':
-        return <PlaceholderPage title="Settings" />
-      default:
-        return <MainScreen agents={agents} selectedAgent={null} />
+  // Handle navigation with loading for agents page
+  const handleNavClick = (navId: NavItem) => {
+    if (navId === 'agents' && activeNav !== 'agents') {
+      setIsAgentsLoading(true)
+      setTimeout(() => {
+        setIsAgentsLoading(false)
+        setActiveNav(navId)
+      }, 2500) // Match LoadingScreen duration
+    } else {
+      setActiveNav(navId)
     }
   }
 
@@ -72,13 +69,12 @@ export default function AppPage() {
         }}
       >
         <div 
-          onClick={() => !isLoading && router.push('/')}
+          onClick={() => router.push('/')}
           style={{ 
             padding: '0 8px 16px', 
             borderBottom: '1px solid rgba(180,200,255,0.08)',
             marginBottom: 8,
-            cursor: isLoading ? 'default' : 'pointer',
-            opacity: isLoading ? 0.5 : 1,
+            cursor: 'pointer',
           }}
         >
           <p style={{ fontFamily: monoFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', color: CYAN, margin: 0 }}>
@@ -89,8 +85,7 @@ export default function AppPage() {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => !isLoading && setActiveNav(item.id)}
-            disabled={isLoading}
+            onClick={() => handleNavClick(item.id)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -100,10 +95,9 @@ export default function AppPage() {
               background: activeNav === item.id ? 'rgba(62,196,192,0.15)' : 'transparent',
               border: activeNav === item.id ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
               borderRadius: 10,
-              cursor: isLoading ? 'default' : 'pointer',
+              cursor: 'pointer',
               width: '100%',
               transition: 'all 0.2s ease',
-              opacity: isLoading ? 0.3 : 1,
             }}
           >
             <span style={{ 
@@ -136,8 +130,24 @@ export default function AppPage() {
     </div>
   )
 
-  // Show loading screen first
-  if (isLoading) {
+  // Render content based on active nav
+  const renderContent = () => {
+    switch (activeNav) {
+      case 'dashboard':
+        return <MainScreen agents={agents} selectedAgent={null} />
+      case 'agents':
+        return <PlaceholderPage title="Agents" />
+      case 'markets':
+        return <PlaceholderPage title="Markets" />
+      case 'settings':
+        return <PlaceholderPage title="Settings" />
+      default:
+        return <MainScreen agents={agents} selectedAgent={null} />
+    }
+  }
+
+  // Show loading screen for agents
+  if (isAgentsLoading) {
     return (
       <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
         <OrbCanvas />
@@ -145,7 +155,7 @@ export default function AppPage() {
         {/* Full sidebar visible during loading */}
         <Sidebar />
 
-        <LoadingScreen onComplete={() => setIsLoading(false)} />
+        <LoadingScreen onComplete={() => {}} />
       </div>
     )
   }
