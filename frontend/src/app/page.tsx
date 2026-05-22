@@ -1,13 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
 
+const models = [
+  { name: 'Qwen3.2-1.6B', desc: 'Lightweight & Fast' },
+  { name: 'Qwen3.2-4B', desc: 'Enhanced Accuracy' },
+  { name: '100% Local', desc: 'No Cloud Required' },
+  { name: 'Privacy First', desc: 'Your Data Stays Local' },
+  { name: 'On-Device AI', desc: 'Run Anywhere' },
+]
+
 export default function LandingPage() {
   const router = useRouter()
   const [scrollY, setScrollY] = useState(0)
+  const [translateX, setTranslateX] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,44 +27,34 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Calculate fade based on scroll (fades out after 200px scroll)
+  // Animate the ticker (slide left continuously)
+  useEffect(() => {
+    let animationId: number
+    let lastTime = 0
+    const speed = 0.3 // pixels per frame
+
+    const animate = (timestamp: number) => {
+      if (!lastTime) lastTime = timestamp
+      const delta = timestamp - lastTime
+      lastTime = timestamp
+
+      setTranslateX(prev => {
+        const containerWidth = containerRef.current?.offsetWidth || 800
+        const totalWidth = models.length * 300 // approximate item width
+        if (prev <= -totalWidth) {
+          return 0
+        }
+        return prev - speed
+      })
+
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animationId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(animationId)
+  }, [])
+
   const orbOpacity = Math.max(0, 1 - scrollY / 400)
-
-  const features = [
-    {
-      icon: '🤖',
-      title: 'AI Agents',
-      description: 'Create and manage AI agents for market monitoring',
-    },
-    {
-      icon: '📊',
-      title: 'Real-time Data',
-      description: 'Monitor prediction markets with live updates',
-    },
-    {
-      icon: '🔒',
-      title: 'Private & Local',
-      description: 'All AI runs on your device - no data leaves your system',
-    },
-  ]
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Create AI Agent',
-      description: 'Set up your personal AI agent with custom settings',
-    },
-    {
-      number: '02',
-      title: 'Configure Markets',
-      description: 'Select prediction markets to monitor and trade',
-    },
-    {
-      number: '03',
-      title: 'Deploy & Monitor',
-      description: 'Let your agent analyze and make predictions',
-    },
-  ]
 
   return (
     <div
@@ -158,10 +158,9 @@ export default function LandingPage() {
         <div
           style={{
             flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'flex', 
             padding: '0 56px',
+            alignItems: 'center',
           }}
         >
           <div style={{ maxWidth: '560px' }}>
@@ -263,87 +262,18 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Features Section */}
-        <div
-          style={{
-            padding: '80px 56px',
-            position: 'relative',
-            zIndex: 10,
-          }}
-        >
-          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '32px',
-              }}
-            >
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding: '24px',
-                    background: 'rgba(255,255,255,0.04)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(180,200,255,0.12)',
-                    borderRadius: 16,
-                    transition: 'all 0.3s ease',
-                    cursor: 'default',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '32px',
-                      marginBottom: '16px',
-                    }}
-                  >
-                    {feature.icon}
-                  </div>
-                  <h3
-                    style={{
-                      fontFamily: sansFont,
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      color: '#fff',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    {feature.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: sansFont,
-                      fontSize: '13px',
-                      color: MUTED,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* How It Works Section */}
+ 
+        {/* Supported Models Section */}
         <div
           style={{
             padding: '80px 56px',
             background: 'rgba(0,0,0,0.2)',
             position: 'relative',
             zIndex: 10,
+            overflow: 'hidden',
           }}
         >
-          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', marginBottom: '32px' }}>
             <p
               style={{
                 fontFamily: monoFont,
@@ -351,70 +281,109 @@ export default function LandingPage() {
                 letterSpacing: '0.18em',
                 color: MUTED,
                 textTransform: 'uppercase',
-                marginBottom: '16px',
+                marginBottom: '8px',
               }}
             >
-              How It Works
+              Supported Models
             </p>
-
             <h2
               style={{
                 fontFamily: sansFont,
-                fontSize: '32px',
-                fontWeight: 300,
+                fontSize: '24px',
+                fontWeight: 400,
                 color: '#fff',
-                marginBottom: '48px',
                 lineHeight: 1.2,
               }}
             >
-              <strong style={{ fontWeight: 500 }}>Three</strong> simple steps
+              Powered by <strong style={{ fontWeight: 600, color: CYAN }}>Qwen3.2</strong> models
             </h2>
+          </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '32px',
-              }}
-            >
-              {steps.map((step, index) => (
-                <div key={index}>
-                  <div
-                    style={{
-                      fontFamily: monoFont,
-                      fontSize: '48px',
-                      fontWeight: 700,
-                      color: CYAN,
-                      opacity: 0.3,
-                      marginBottom: '16px',
-                    }}
-                  >
-                    {step.number}
-                  </div>
-                  <h3
-                    style={{
-                      fontFamily: sansFont,
-                      fontSize: '18px',
-                      fontWeight: 600,
-                      color: '#fff',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    {step.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: sansFont,
-                      fontSize: '14px',
-                      color: MUTED,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {step.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+          {/* Animated Model Cards */}
+          <div
+            ref={containerRef}
+            style={{
+              display: 'flex',
+              gap: '24px',
+              transform: `translateX(${translateX}px)`,
+              width: 'fit-content',
+            }}
+          >
+            {models.map((model, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '24px 32px',
+                  background: 'rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 16,
+                  minWidth: '220px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: monoFont,
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: CYAN,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {model.name}
+                </span>
+                <span
+                  style={{
+                    fontFamily: sansFont,
+                    fontSize: '13px',
+                    color: MUTED,
+                  }}
+                >
+                  {model.desc}
+                </span>
+              </div>
+            ))}
+            {/* Duplicate for seamless loop */}
+            {models.map((model, index) => (
+              <div
+                key={`dup-${index}`}
+                style={{
+                  padding: '24px 32px',
+                  background: 'rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(180,200,255,0.12)',
+                  borderRadius: 16,
+                  minWidth: '220px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: monoFont,
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: CYAN,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {model.name}
+                </span>
+                <span
+                  style={{
+                    fontFamily: sansFont,
+                    fontSize: '13px',
+                    color: MUTED,
+                  }}
+                >
+                  {model.desc}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
