@@ -17,12 +17,6 @@ export const MODEL_INFO = {
   }
 };
 
-// Model source definitions (placeholders - will be replaced with actual QVAC sources)
-const MODEL_SOURCES = {
-  '1.7B': 'qwen3-1.7b-q4',
-  '4B': 'qwen3-4b-q4'
-};
-
 // Progress tracking
 let loadProgressCallback = null;
 
@@ -37,6 +31,15 @@ function reportProgress(percentage, status) {
   }
 }
 
+// Get model source based on type
+function getModelSource(modelType) {
+  // Dynamically get model sources from @qvac/sdk
+  // These will be imported at load time
+  return modelType === '4B' 
+    ? 'qwen3-4b-inst-q4-k-m'  // Fallback identifier
+    : 'qwen3-1.7b-inst-q4';
+}
+
 // AI Service
 export const aiService = {
   getStatus() {
@@ -47,37 +50,39 @@ export const aiService = {
     };
   },
 
-  async loadModel(modelType = '1.7B', onProgress) {
+  async loadModel(modelType = '1.7B') {
     try {
-      reportProgress(0, 'Starting...');
+      reportProgress(0, 'Starting QVAC...');
       
-      // Simulate QVAC loading with progress
-      // In real implementation, this would use @qvac/sdk:
-      // const { loadModel: qvacLoadModel } = await import('@qvac/sdk');
-      // modelId = await qvacLoadModel({
-      //   modelSrc: MODEL_SOURCES[modelType],
-      //   modelType: 'llm',
-      //   modelConfig: { ctx_size: 4096 },
-      //   onProgress: (p) => onProgress?.(p.percentage),
-      // });
-
-      // Simulated loading stages
-      const stages = [
-        { pct: 10, status: 'Downloading model weights...' },
-        { pct: 30, status: 'Verifying checksum...' },
-        { pct: 50, status: 'Loading into memory...' },
-        { pct: 70, status: 'Initializing tokenizer...' },
-        { pct: 85, status: 'Warming up model...' },
-        { pct: 95, status: 'Almost ready...' },
-        { pct: 100, status: 'Ready' },
-      ];
-
-      for (const stage of stages) {
-        await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
-        reportProgress(stage.pct, stage.status);
-      }
-
-      modelId = `model-${modelType}-${Date.now()}`;
+      // Dynamically import @qvac/sdk
+      const { loadModel: qvacLoadModel, QWEN3_1_7B_INST_Q4, QWEN3_4B_INST_Q4_K_M } = await import('@qvac/sdk');
+      
+      const modelSource = modelType === '4B' ? QWEN3_4B_INST_Q4_K_M : QWEN3_1_7B_INST_Q4;
+      
+      reportProgress(5, 'Connecting to model service...');
+      
+      // Load model with real QVAC
+      modelId = await qvacLoadModel({
+        modelSrc: modelSource,
+        modelType: 'llm',
+        modelConfig: {
+          ctx_size: 8192,
+          tools: true,
+        },
+        onProgress: (progress) => {
+          // QVAC progress can be string or object with percentage
+          if (typeof progress === 'string') {
+            // Parse string progress messages
+            reportProgress(-1, progress); // -1 indicates raw text
+          } else if (progress && typeof progress.percentage === 'number') {
+            reportProgress(progress.percentage, progress.status || 'Loading...');
+          } else {
+            reportProgress(-1, JSON.stringify(progress));
+          }
+        }
+      });
+      
+      reportProgress(100, 'Ready');
       currentModelType = modelType;
       
       return { 
@@ -99,6 +104,8 @@ export const aiService = {
     try {
       if (modelId) {
         console.log(`[AI] Unloading model: ${modelId}`);
+        const { unloadModel: qvacUnloadModel } = await import('@qvac/sdk');
+        await qvacUnloadModel({ modelId });
         reportProgress(0, 'Unloading...');
         modelId = null;
         currentModelType = null;
@@ -117,17 +124,33 @@ export const aiService = {
       throw new Error('AI model not loaded. Please load a model first.');
     }
 
-    // Simulate streaming response for demo
-    const response = `Hello! I'm ready to help. You said: "${message}"`;
+    // Use real QVAC completion
+    const { completion } = await import('@qvac/sdk');
     
-    // Stream tokens
-    for (const char of response) {
-      if (onToken) onToken(char);
-      await new Promise(resolve => setTimeout(resolve, 20));
-    }
+    const result = completion({
+      modelId: modelId,
+      history: [...history, { role: 'user', content: message }],
+      stream: true,
+      kvCache: true,
+      captureThinking: true,
+    });
 
-    // Send done signal via onToken with empty string
-    if (onToken) onToken('');
+    for await (const streamEvent of result.events) {
+      switch (streamEvent.type) {
+        case "contentDelta":
+          if (onToken) onToken(streamEvent.text);
+          break;
+        case "thinkingDelta":
+          if (onThinking) onThinking(streamEvent.text);
+          break;
+        case "toolCall":
+          if (onToolCall) onToolCall(streamEvent.call);
+          break;
+        case "completionDone":
+          if (onToken) onToken(''); // Signal completion
+          break;
+      }
+    }
   }
 };
 
