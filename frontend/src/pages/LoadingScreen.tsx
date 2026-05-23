@@ -1,18 +1,40 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CYAN, NAVY, monoFont, sansFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
 
-export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
-  const [progress, setProgress] = useState(0)
-  const [statusText, setStatusText] = useState('Initializing...')
+interface LoadingScreenProps {
+  progress?: number  // External progress (0-100), if not provided uses internal simulation
+  statusText?: string  // External status text
+  onComplete: () => void
+}
+
+export default function LoadingScreen({ progress: externalProgress, statusText: externalStatus, onComplete }: LoadingScreenProps) {
+  const [internalProgress, setInternalProgress] = useState(0)
+  const [internalStatus, setInternalStatus] = useState('Initializing...')
   const [errorMessage, setErrorMessage] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const hasCompleted = useRef(false)
+
+  // Use external progress if provided, otherwise use internal simulation
+  const progress = externalProgress ?? internalProgress
+  const statusText = externalStatus ?? internalStatus
 
   useEffect(() => {
-    if (isComplete) return
+    if (isComplete || hasCompleted.current) return
 
+    // If using external progress, don't run internal simulation
+    if (externalProgress !== undefined) {
+      if (externalProgress >= 100 && !hasCompleted.current) {
+        hasCompleted.current = true
+        setIsComplete(true)
+        setTimeout(() => onComplete(), 300)
+      }
+      return
+    }
+
+    // Internal simulation
     let currentProgress = 0
     const statuses = [
       'Loading core systems...',
@@ -26,19 +48,20 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
 
       if (currentProgress >= 100) {
         currentProgress = 100
-        setProgress(100)
-        setStatusText('Ready')
+        setInternalProgress(100)
+        setInternalStatus('Ready')
         setIsComplete(true)
+        hasCompleted.current = true
         setTimeout(() => onComplete(), 300)
         return
       }
 
-      setProgress(currentProgress)
-      setStatusText(statuses[Math.floor(currentProgress / 25)] ?? statuses[3])
+      setInternalProgress(currentProgress)
+      setInternalStatus(statuses[Math.floor(currentProgress / 25)] ?? statuses[3])
     }, 200)
 
     return () => clearInterval(interval)
-  }, [onComplete, isComplete])
+  }, [onComplete, isComplete, externalProgress])
 
   return (
     <div
@@ -53,19 +76,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       }}
     >
       <OrbCanvas />
-
-      {/* Teal left-edge accent */}
-      {/* <div
-        style={{
-          position: 'absolute',
-          bottom: 52,
-          left: 0,
-          width: 4,
-          height: 80,
-          background: CYAN,
-          zIndex: 5,
-        }}
-      /> */}
 
       {/* Main content */}
       <div
@@ -106,7 +116,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               marginBottom: '10px',
             }}
           >
-            Private & On-Device AI
+            Loading Model
           </p>
 
           {/* Title */}

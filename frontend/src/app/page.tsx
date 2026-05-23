@@ -126,7 +126,7 @@ export default function LandingPage() {
         <HeroSection />
         <SupportedModels />
         <HowItWorks />
-        <CLICommands />
+        {/* <CLICommands /> */}
         <FooterCTA />
 
         {/* Footer */}

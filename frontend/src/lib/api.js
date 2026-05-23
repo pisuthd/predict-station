@@ -61,6 +61,36 @@ export const api = {
       body: JSON.stringify({ modelType }),
     }),
     unload: () => fetchAPI('/models/unload', { method: 'POST' }),
+    // Listen to model loading progress via SSE
+    onLoadProgress: (callback) => {
+      const serverUrl = getServerUrl();
+      const baseUrl = serverUrl.endsWith('/api') ? serverUrl : `${serverUrl}/api`;
+      const url = `${baseUrl}/models/load/progress`;
+      
+      const eventSource = new EventSource(url);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const progress = JSON.parse(event.data);
+          callback(progress);
+          
+          // Auto-close when loading is complete
+          if (progress.percentage >= 100 || progress.status === 'idle') {
+            setTimeout(() => eventSource.close(), 500);
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      };
+      
+      eventSource.onerror = () => {
+        eventSource.close();
+      };
+      
+      return {
+        close: () => eventSource.close(),
+      };
+    },
   },
   
   // Chat (streaming)

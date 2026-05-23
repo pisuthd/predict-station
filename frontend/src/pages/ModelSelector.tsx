@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import Wordmark from '../components/Wordmark'
 import { api } from '../lib/api'
+import LoadingScreen from './LoadingScreen'
 
 interface Model {
   name: string
@@ -22,6 +23,8 @@ export default function ModelSelector({ serverUrl, onSelect, onBack }: ModelSele
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadingModel, setLoadingModel] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [statusText, setStatusText] = useState('Initializing...')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -46,20 +49,58 @@ export default function ModelSelector({ serverUrl, onSelect, onBack }: ModelSele
     if (!selectedModel) return
     
     setLoadingModel(true)
+    setProgress(0)
+    setStatusText('Connecting to model server...')
     setError('')
+    
     try {
+      // Start loading model on backend
       const result = await api.models.load(selectedModel)
-      if (result.success) {
-        onSelect(selectedModel)
-      } else {
+      
+      if (!result.success) {
         setError(result.error || 'Failed to load model')
+        setLoadingModel(false)
+        return
       }
+      
+      // Listen to progress updates
+      setStatusText('Loading model weights...')
+      const progressListener = api.models.onLoadProgress((progressData: { percentage: number; status: string }) => {
+        setProgress(progressData.percentage)
+        setStatusText(progressData.status || 'Loading...')
+        
+        // Complete when loading finishes
+        if (progressData.percentage >= 100) {
+          setTimeout(() => {
+            setLoadingModel(false)
+            if (selectedModel) {
+              onSelect(selectedModel)
+            }
+          }, 500)
+        }
+      })
+      
+      // Cleanup on unmount or error
+      return () => {
+        progressListener.close()
+      }
+      
     } catch (err) {
       setError('Failed to load model. Check server logs.')
       console.error(err)
-    } finally {
       setLoadingModel(false)
     }
+  }
+
+  // Show loading screen while model is loading
+  if (loadingModel) {
+    return (
+      <LoadingScreen 
+        progress={progress}
+        statusText={statusText}
+        onComplete={() => selectedModel && onSelect(selectedModel)}
+      />
+    )
   }
 
   const modelEntries = Object.entries(models)
@@ -87,8 +128,7 @@ export default function ModelSelector({ serverUrl, onSelect, onBack }: ModelSele
           backdropFilter: 'blur(12px)',
           border: '1px solid rgba(180,200,255,0.12)',
           borderRadius: 2,
-          width: '100%',
-          maxWidth: 420,
+          width: 480,
           overflow: 'hidden',
         }}
       >

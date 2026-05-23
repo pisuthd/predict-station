@@ -57,9 +57,8 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
           background: 'rgba(255,255,255,0.04)',
           backdropFilter: 'blur(12px)',
           border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 2,
-          width: '100%',
-          maxWidth: 420,
+          borderRadius: 2, 
+          width: 480,
           overflow: 'hidden',
         }}
       >
@@ -70,13 +69,13 @@ export default function ServerSelector({ onConnect }: ServerSelectorProps) {
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
             <Wordmark />
-            <span style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.14em', color: MUTED, textTransform: 'uppercase' }}>
+            {/* <span style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.14em', color: MUTED, textTransform: 'uppercase' }}>
               Private & On-Device AI
-            </span>
+            </span> */}
           </div>
 
           <p style={{ fontFamily: monoFont, fontSize: 11, letterSpacing: '0.14em', color: MUTED, textTransform: 'uppercase', marginBottom: 8 }}>
-            Server
+            Private & On-Device AI
           </p>
 
           <h1 style={{ fontFamily: sansFont, fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 8, lineHeight: 1.2 }}>

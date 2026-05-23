@@ -3,12 +3,21 @@ import cors from 'cors';
 import { z } from 'zod';
 
 // Import services
-import { aiService, MODEL_INFO } from './services/ai.js';
+import { aiService, MODEL_INFO, setLoadProgressCallback } from './services/ai.js';
 import { agentsService } from './services/agents.js';
 import { sessionsService } from './services/sessions.js';
 import { toolsService, getToolInfo } from './services/tools.js';
 
 const app = express();
+
+// Model loading progress tracking
+let modelLoadProgress = { percentage: 0, status: 'idle' };
+
+// Register progress callback with AI service
+setLoadProgressCallback((progress) => {
+  modelLoadProgress = progress;
+});
+
 const PORT = 3001;
 
 // Middleware
@@ -55,6 +64,34 @@ app.post('/api/models/unload', async (_req, res) => {
     const message = error instanceof Error ? error.message : 'Failed to unload model';
     res.status(400).json({ success: false, error: message });
   }
+});
+
+// SSE endpoint for model loading progress
+app.get('/api/models/load/progress', (req, res) => {
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  // Send current progress
+  res.write(`data: ${JSON.stringify(modelLoadProgress)}\n\n`);
+
+  // Poll for updates (since SSE doesn't work with callbacks in Express)
+  const interval = setInterval(() => {
+    res.write(`data: ${JSON.stringify(modelLoadProgress)}\n\n`);
+    
+    // Close connection when loading is complete
+    if (modelLoadProgress.percentage >= 100 || modelLoadProgress.status === 'idle') {
+      clearInterval(interval);
+      res.end();
+    }
+  }, 100);
+
+  // Clean up on client disconnect
+  req.on('close', () => {
+    clearInterval(interval);
+  });
 });
 
 // ============================================

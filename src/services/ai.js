@@ -1,11 +1,9 @@
 // AI Service - QVAC Model Management
 
-// Note: QVAC SDK integration will be added when the package is installed
-// For now, this is a placeholder service structure
-
 let modelId = null;
+let currentModelType = null;
 
-// Model information - only 2 supported models
+// Model configurations
 export const MODEL_INFO = {
   '1.7B': {
     name: 'Qwen3-1.7B',
@@ -19,26 +17,68 @@ export const MODEL_INFO = {
   }
 };
 
+// Model source definitions (placeholders - will be replaced with actual QVAC sources)
+const MODEL_SOURCES = {
+  '1.7B': 'qwen3-1.7b-q4',
+  '4B': 'qwen3-4b-q4'
+};
+
+// Progress tracking
+let loadProgressCallback = null;
+
+export function setLoadProgressCallback(callback) {
+  loadProgressCallback = callback;
+}
+
+// Report progress
+function reportProgress(percentage, status) {
+  if (loadProgressCallback) {
+    loadProgressCallback({ percentage, status });
+  }
+}
+
 // AI Service
 export const aiService = {
   getStatus() {
     return {
       isReady: modelId !== null,
       modelId: modelId,
+      modelType: currentModelType,
     };
   },
 
-  async loadModel(modelType = '1.7B') {
+  async loadModel(modelType = '1.7B', onProgress) {
     try {
-      // In the actual implementation, this will use QVAC SDK
-      // For now, simulate loading
-      console.log(`[AI] Loading model: ${MODEL_INFO[modelType]?.name || modelType}`);
+      reportProgress(0, 'Starting...');
       
-      // Placeholder: In real implementation:
-      // const { loadModel } = await import('@qvac/sdk');
-      // modelId = await loadModel({ ... });
-      
+      // Simulate QVAC loading with progress
+      // In real implementation, this would use @qvac/sdk:
+      // const { loadModel: qvacLoadModel } = await import('@qvac/sdk');
+      // modelId = await qvacLoadModel({
+      //   modelSrc: MODEL_SOURCES[modelType],
+      //   modelType: 'llm',
+      //   modelConfig: { ctx_size: 4096 },
+      //   onProgress: (p) => onProgress?.(p.percentage),
+      // });
+
+      // Simulated loading stages
+      const stages = [
+        { pct: 10, status: 'Downloading model weights...' },
+        { pct: 30, status: 'Verifying checksum...' },
+        { pct: 50, status: 'Loading into memory...' },
+        { pct: 70, status: 'Initializing tokenizer...' },
+        { pct: 85, status: 'Warming up model...' },
+        { pct: 95, status: 'Almost ready...' },
+        { pct: 100, status: 'Ready' },
+      ];
+
+      for (const stage of stages) {
+        await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+        reportProgress(stage.pct, stage.status);
+      }
+
       modelId = `model-${modelType}-${Date.now()}`;
+      currentModelType = modelType;
       
       return { 
         success: true, 
@@ -47,6 +87,7 @@ export const aiService = {
         message: `${MODEL_INFO[modelType]?.name || modelType} loaded successfully`
       };
     } catch (error) {
+      reportProgress(0, 'Error');
       return { 
         success: false, 
         error: error.message || 'Failed to load model' 
@@ -57,12 +98,10 @@ export const aiService = {
   async unloadModel() {
     try {
       if (modelId) {
-        // Placeholder: In real implementation, call QVAC unload
-        // const { unloadModel } = await import('@qvac/sdk');
-        // await unloadModel({ modelId });
-        
         console.log(`[AI] Unloading model: ${modelId}`);
+        reportProgress(0, 'Unloading...');
         modelId = null;
+        currentModelType = null;
       }
       return { success: true };
     } catch (error) {
@@ -78,10 +117,6 @@ export const aiService = {
       throw new Error('AI model not loaded. Please load a model first.');
     }
 
-    // Placeholder: In real implementation, this will use QVAC SDK completion
-    // const { completion } = await import('@qvac/sdk');
-    // ... streaming completion logic
-    
     // Simulate streaming response for demo
     const response = `Hello! I'm ready to help. You said: "${message}"`;
     

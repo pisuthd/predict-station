@@ -71,23 +71,7 @@ export default function AppPage() {
     setSelectedModel(modelType)
     setShowModelSelector(false)
   }
-
-  // Handle agent selection
-  const handleSelectAgent = (agent: Agent) => {
-    setSelectedAgent(agent)
-  }
-
-  // Handle create new agent
-  const handleCreateAgent = (agentData: { name: string }) => {
-    const newAgent: Agent = {
-      id: Date.now().toString(),
-      name: agentData.name,
-      status: 'idle',
-      createdAt: new Date().toISOString(),
-    }
-    setAgents([...agents, newAgent])
-    setSelectedAgent(newAgent)
-  }
+ 
 
   // Full sidebar component
   const Sidebar = () => (
@@ -194,8 +178,7 @@ export default function AppPage() {
   // Show server selector when clicking Agents
   if (showServerSelector) {
     return (
-      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}>
-        <OrbCanvas />
+      <div style={{ position: 'relative', minHeight: '100vh', background: NAVY }}> 
         <Sidebar />
         <div style={{ 
           display: 'flex', 
