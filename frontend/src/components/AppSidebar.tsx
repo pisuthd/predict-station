@@ -1,7 +1,6 @@
 'use client'
-
-import { useState } from 'react'
-import { CYAN, monoFont } from '../../../theme'
+ 
+import { CYAN, monoFont } from '../theme'
 
 interface AppSidebarProps {
   activeTab?: string

@@ -1,6 +1,6 @@
 'use client'
 
-import { CYAN, monoFont } from '../../../theme'
+import { CYAN, monoFont } from '../theme'
 
 interface AppHeaderProps {
   agentCount?: number

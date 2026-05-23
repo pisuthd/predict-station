@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
+import { CYAN, NAVY, monoFont, sansFont } from '../theme'
 
 interface SidebarProps {
   agentCount: number

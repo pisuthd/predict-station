@@ -1,6 +1,6 @@
 'use client'
 
-import { NAVY, MUTED, monoFont, sansFont } from '../../../theme'
+import { NAVY, MUTED, monoFont, sansFont } from '../theme'
 
 interface PlaceholderPageProps {
   title: string

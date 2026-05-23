@@ -1,6 +1,6 @@
 'use client'
 
-import { CYAN, monoFont, sansFont } from '../../../theme'
+import { CYAN, monoFont, sansFont } from '../theme'
 
 interface Agent {
   id: string
