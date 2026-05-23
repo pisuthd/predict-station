@@ -50,7 +50,7 @@ export default function ModelSelector({ serverUrl, onSelect, onBack }: ModelSele
     
     setLoadingModel(true)
     setProgress(0)
-    setStatusText('Connecting to model server...')
+    setStatusText('Enabling model at the agent node...')
     setError('')
     
     try {
@@ -64,7 +64,7 @@ export default function ModelSelector({ serverUrl, onSelect, onBack }: ModelSele
       }
       
       // Listen to progress updates
-      setStatusText('Loading model weights...')
+      setStatusText('Downloading chosen model to local node...')
       const progressListener = api.models.onLoadProgress((progressData: { percentage: number; status: string }) => {
         setProgress(progressData.percentage)
         setStatusText(progressData.status || 'Loading...')

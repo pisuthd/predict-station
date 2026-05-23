@@ -53,20 +53,24 @@ export const aiService = {
 
     try {
       reportProgress(0, 'Starting QVAC...');
-      
+
       // Import QVAC SDK
       const { loadModel, QWEN3_1_7B_INST_Q4, QWEN3_4B_INST_Q4_K_M } = await import('@qvac/sdk');
-      
+
       const modelSource = modelType === '4B' ? QWEN3_4B_INST_Q4_K_M : QWEN3_1_7B_INST_Q4;
       const modelDisplayName = MODEL_INFO[modelType]?.name || modelType;
-      
+
       console.log(`[QVAC] Loading ${modelDisplayName}...`);
       reportProgress(5, `Connecting to ${modelDisplayName}...`);
-      
+
       // Load model with real QVAC
       modelId = await loadModel({
         modelSrc: modelSource,
-        modelType: 'llm',
+        modelType: 'llamacpp-completion',
+        modelConfig: {
+          ctx_size: 8192,
+          tools: true,
+        },
         onProgress: (progress) => {
           // QVAC provides progress.percentage directly
           const pct = progress.percentage ?? 50;
@@ -75,14 +79,14 @@ export const aiService = {
           reportProgress(pct, status);
         }
       });
-      
+
       console.log(`[QVAC] Model loaded: ${modelId}`);
       reportProgress(100, 'Ready');
       currentModelType = modelType;
-      
-      return { 
-        success: true, 
-        modelId, 
+
+      return {
+        success: true,
+        modelId,
         modelType,
         message: `${modelDisplayName} loaded successfully`
       };
@@ -90,9 +94,9 @@ export const aiService = {
       console.error('[QVAC] Failed to load model:', error);
       reportProgress(0, `Error: ${error.message}`);
       modelId = null;
-      return { 
-        success: false, 
-        error: error.message || 'Failed to load model' 
+      return {
+        success: false,
+        error: error.message || 'Failed to load model'
       };
     }
   },
@@ -113,9 +117,9 @@ export const aiService = {
       // Reset state even on error
       modelId = null;
       currentModelType = null;
-      return { 
-        success: false, 
-        error: error.message || 'Failed to unload model' 
+      return {
+        success: false,
+        error: error.message || 'Failed to unload model'
       };
     }
   },
@@ -127,7 +131,7 @@ export const aiService = {
 
     // Use real QVAC completion
     const { completion } = await import('@qvac/sdk');
-    
+
     const result = completion({
       modelId: modelId,
       history: [...history, { role: 'user', content: message }],
