@@ -304,6 +304,24 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </motion.div>
           </div>
 
+          {/* Footer */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 20px', borderTop: '1px solid rgba(180,200,255,0.08)' }}>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '10px 20px',
+                background: 'transparent',
+                border: '1px solid rgba(180,200,255,0.2)',
+                borderRadius: 8,
+                color: MUTED,
+                fontFamily: monoFont,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
