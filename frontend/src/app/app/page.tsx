@@ -50,7 +50,6 @@ export default function AppPage() {
         setShowModelSelector(true)
       }
     } else if (navId === 'settings') {
-      setActiveNav('settings')
       setShowSettings(true)
     } else {
       setActiveNav(navId)
@@ -187,8 +186,6 @@ export default function AppPage() {
         return <PlaceholderPage title="Markets" />
       case 'leaderboard':
         return <PlaceholderPage title="Leaderboard" />
-      case 'settings':
-        return <MainScreen agents={agents} selectedAgent={selectedAgent} />
       default:
         return <MainScreen agents={agents} selectedAgent={selectedAgent} />
     }
