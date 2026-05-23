@@ -41,7 +41,7 @@ export default function HeroSection() {
         >
           <strong style={{ fontWeight: 500 }}>Mission Control</strong>
           <br />
-          for Prediction Markets
+          for DeepBook Predict
         </h1>
 
         <p
@@ -53,8 +53,7 @@ export default function HeroSection() {
             marginBottom: '40px',
           }}
         >
-          Deploy AI agents to monitor and trade on decentralized prediction markets. 
-          All processing happens locally on your device.
+           Deploy local AI agents to monitor, analyze, and trade on DeepBook Predict. Everything runs privately on your device.
         </p>
 
         {/* CTA Buttons */}

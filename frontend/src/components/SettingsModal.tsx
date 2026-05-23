@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 
 type SettingsTab = 'agent' | 'model' | 'data' | 'notifications'
@@ -200,128 +201,144 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(3,6,58,0.8)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
         style={{
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 16,
-          width: '100%',
-          maxWidth: 560,
-          maxHeight: '80vh',
-          overflow: 'hidden',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(3,6,58,0.8)',
+          backdropFilter: 'blur(8px)',
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
         }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(180,200,255,0.08)' }}>
-          <h2 style={{ fontFamily: monoFont, fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#fff', margin: 0 }}>
-            SETTINGS
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              fontFamily: monoFont,
-              fontSize: 18,
-              color: MUTED,
-              lineHeight: 1,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Sidebar Tabs */}
-          <div style={{ width: 180, borderRight: '1px solid rgba(180,200,255,0.08)', padding: '12px 0' }}>
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '10px 16px',
-                  background: activeTab === tab.id ? 'rgba(62,196,192,0.15)' : 'transparent',
-                  border: 'none',
-                  borderLeft: `3px solid ${activeTab === tab.id ? CYAN : 'transparent'}`,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span style={{
-                  fontFamily: sansFont,
-                  fontSize: 11,
-                  fontWeight: activeTab === tab.id ? 600 : 400,
-                  color: activeTab === tab.id ? CYAN : MUTED,
-                }}>
-                  {tab.label}
-                </span>
-              </button>
-            ))}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          onClick={e => e.stopPropagation()}
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(180,200,255,0.12)',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 560,
+            maxHeight: '80vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(180,200,255,0.08)' }}>
+            <h2 style={{ fontFamily: monoFont, fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#fff', margin: 0 }}>
+              SETTINGS
+            </h2>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontFamily: monoFont,
+                fontSize: 18,
+                color: MUTED,
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
           </div>
 
-          {/* Content */}
-          <div style={{ flex: 1, padding: 24, overflow: 'auto' }}>
-            {renderContent()}
-          </div>
-        </div>
+          {/* Body */}
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            {/* Sidebar Tabs */}
+            <div style={{ width: 180, borderRight: '1px solid rgba(180,200,255,0.08)', padding: '12px 0' }}>
+              {tabs.map((tab) => (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  whileHover={{ x: 2 }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: activeTab === tab.id ? 'rgba(62,196,192,0.15)' : 'transparent',
+                    border: 'none',
+                    borderLeft: `3px solid ${activeTab === tab.id ? CYAN : 'transparent'}`,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{
+                    fontFamily: sansFont,
+                    fontSize: 11,
+                    fontWeight: activeTab === tab.id ? 600 : 400,
+                    color: activeTab === tab.id ? CYAN : MUTED,
+                  }}>
+                    {tab.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
 
-        {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 20px', borderTop: '1px solid rgba(180,200,255,0.08)' }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '10px 20px',
-              background: 'transparent',
-              border: '1px solid rgba(180,200,255,0.2)',
-              borderRadius: 8,
-              color: MUTED,
-              fontFamily: monoFont,
-              fontSize: 12,
-              cursor: 'pointer',
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            style={{
-              padding: '10px 20px',
-              background: CYAN,
-              border: 'none',
-              borderRadius: 8,
-              color: NAVY,
-              fontFamily: monoFont,
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: 'pointer',
-            }}
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Content */}
+            <motion.div 
+              key={activeTab}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.15 }}
+              style={{ flex: 1, padding: 24, overflow: 'auto' }}
+            >
+              {renderContent()}
+            </motion.div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 20px', borderTop: '1px solid rgba(180,200,255,0.08)' }}>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '10px 20px',
+                background: 'transparent',
+                border: '1px solid rgba(180,200,255,0.2)',
+                borderRadius: 8,
+                color: MUTED,
+                fontFamily: monoFont,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              style={{
+                padding: '10px 20px',
+                background: CYAN,
+                border: 'none',
+                borderRadius: 8,
+                color: NAVY,
+                fontFamily: monoFont,
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              Save Changes
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }
