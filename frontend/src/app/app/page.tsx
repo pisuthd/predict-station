@@ -9,9 +9,10 @@ import PlaceholderPage from './components/PlaceholderPage'
 import OrbCanvas from '../../components/OrbCanvas'
 import ServerSelector from '../../pages/ServerSelector'
 import ModelSelector from '../../pages/ModelSelector'
+import SettingsModal from '../../components/SettingsModal'
 import { setServerUrl } from '../../lib/api'
 
-type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
+type NavItem = 'dashboard' | 'agents' | 'markets' | 'leaderboard' | 'settings'
 
 interface Agent {
   id: string
@@ -29,11 +30,13 @@ export default function AppPage() {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
   const [showServerSelector, setShowServerSelector] = useState(false)
   const [showModelSelector, setShowModelSelector] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const navItems: { id: NavItem; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'agents', label: 'Agents' },
     { id: 'markets', label: 'Markets' },
+    { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'settings', label: 'Settings' },
   ]
 
@@ -41,14 +44,14 @@ export default function AppPage() {
   const handleNavClick = (navId: NavItem) => {
     if (navId === 'agents') {
       setActiveNav('agents')
-      // If server is not set or user wants to change, show server selector
       if (!serverUrl) {
         setShowServerSelector(true)
       } else if (!selectedModel) {
-        // Server set but model not selected
         setShowModelSelector(true)
       }
-      // If both are set, just show the agents page content
+    } else if (navId === 'settings') {
+      setActiveNav('settings')
+      setShowSettings(true)
     } else {
       setActiveNav(navId)
       setShowServerSelector(false)
@@ -58,7 +61,7 @@ export default function AppPage() {
 
   // Handle server connection
   const handleServerConnect = (url: string) => {
-    setServerUrl(url) // Save to localStorage
+    setServerUrl(url)
     setServerUrlState(url)
     setShowServerSelector(false)
     setShowModelSelector(true)
@@ -182,8 +185,10 @@ export default function AppPage() {
         return <PlaceholderPage title="Agents" />
       case 'markets':
         return <PlaceholderPage title="Markets" />
+      case 'leaderboard':
+        return <PlaceholderPage title="Leaderboard" />
       case 'settings':
-        return <PlaceholderPage title="Settings" />
+        return <MainScreen agents={agents} selectedAgent={selectedAgent} />
       default:
         return <MainScreen agents={agents} selectedAgent={selectedAgent} />
     }
@@ -247,6 +252,9 @@ export default function AppPage() {
       <main style={{ minHeight: '100vh' }}>
         {renderContent()}
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }
