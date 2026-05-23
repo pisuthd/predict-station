@@ -24,7 +24,7 @@ export function setLoadProgressCallback(callback) {
   loadProgressCallback = callback;
 }
 
-// Report progress
+// Report progress - always sends percentage number
 function reportProgress(percentage, status) {
   if (loadProgressCallback) {
     loadProgressCallback({ percentage, status });
@@ -42,6 +42,15 @@ export const aiService = {
   },
 
   async loadModel(modelType = '1.7B') {
+    // First, try to unload any existing model
+    if (modelId) {
+      try {
+        await this.unloadModel();
+      } catch (e) {
+        // Ignore unload errors
+      }
+    }
+
     try {
       reportProgress(0, 'Starting QVAC...');
       
@@ -54,10 +63,10 @@ export const aiService = {
       console.log(`[QVAC] Loading ${modelDisplayName}...`);
       reportProgress(5, `Connecting to ${modelDisplayName}...`);
       
-      // Load model with real QVAC
+      // Load model with real QVAC - use llamacpp-completion instead of "llm"
       modelId = await loadModel({
         modelSrc: modelSource,
-        modelType: 'llm',
+        modelType: 'llamacpp-completion', // Updated from deprecated "llm"
         modelConfig: {
           ctx_size: 8192,
           tools: true,
@@ -66,12 +75,26 @@ export const aiService = {
           // QVAC progress can be string or object
           if (typeof progress === 'string') {
             console.log(`[QVAC] ${progress}`);
-            reportProgress(-1, progress); // -1 indicates raw text for frontend
+            // Convert string status to percentage estimate
+            const text = progress.toLowerCase();
+            let pct = 10;
+            if (text.includes('downloading')) pct = 20;
+            else if (text.includes('verif')) pct = 40;
+            else if (text.includes('loading')) pct = 60;
+            else if (text.includes('initializ')) pct = 75;
+            else if (text.includes('warm')) pct = 90;
+            else if (text.includes('ready') || text.includes('loaded')) pct = 100;
+            reportProgress(pct, progress);
           } else if (progress && typeof progress.percentage === 'number') {
             reportProgress(progress.percentage, progress.status || 'Loading...');
           } else {
             console.log(`[QVAC] ${JSON.stringify(progress)}`);
-            reportProgress(-1, JSON.stringify(progress));
+            // Map common QVAC status messages to percentages
+            const status = progress?.status || JSON.stringify(progress);
+            let pct = 50;
+            if (status.includes('Model cached')) pct = 30;
+            else if (status.includes('Loading from registry')) pct = 35;
+            reportProgress(pct, status);
           }
         }
       });
@@ -88,7 +111,8 @@ export const aiService = {
       };
     } catch (error) {
       console.error('[QVAC] Failed to load model:', error);
-      reportProgress(0, 'Error');
+      reportProgress(0, `Error: ${error.message}`);
+      modelId = null;
       return { 
         success: false, 
         error: error.message || 'Failed to load model' 
@@ -109,6 +133,9 @@ export const aiService = {
       return { success: true };
     } catch (error) {
       console.error('[QVAC] Failed to unload model:', error);
+      // Reset state even on error
+      modelId = null;
+      currentModelType = null;
       return { 
         success: false, 
         error: error.message || 'Failed to unload model' 

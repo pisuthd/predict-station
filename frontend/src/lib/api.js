@@ -68,15 +68,29 @@ export const api = {
       const url = `${baseUrl}/models/load/progress`;
       
       const eventSource = new EventSource(url);
+      let isComplete = false;
       
       eventSource.onmessage = (event) => {
         try {
           const progress = JSON.parse(event.data);
+          
+          // Track completion state
+          if (progress.percentage >= 100) {
+            isComplete = true;
+          }
+          
+          // Handle error state - report it and close
+          if (progress.status && progress.status.startsWith('Error:')) {
+            callback({ ...progress, isError: true });
+            setTimeout(() => eventSource.close(), 100);
+            return;
+          }
+          
           callback(progress);
           
-          // Auto-close when loading is complete
-          if (progress.percentage >= 100 || progress.status === 'idle') {
-            setTimeout(() => eventSource.close(), 500);
+          // Auto-close when loading is complete or idle
+          if (isComplete || progress.status === 'idle') {
+            setTimeout(() => eventSource.close(), 1000);
           }
         } catch (e) {
           // Ignore parse errors
@@ -84,11 +98,16 @@ export const api = {
       };
       
       eventSource.onerror = () => {
-        eventSource.close();
+        // Don't close immediately on error - let server handle it
+        // Only close if we're already complete or got an error
+        if (isComplete || eventSource.readyState === EventSource.CLOSED) {
+          eventSource.close();
+        }
       };
       
       return {
         close: () => eventSource.close(),
+        isComplete: () => isComplete,
       };
     },
   },
@@ -130,7 +149,7 @@ export const api = {
                 if (onThinking) onThinking(data.content);
                 break;
               case 'toolCall':
-                if (onToolCall) onToolCall(data.content);
+                if (onToolCall) onToken(data.content);
                 break;
               case 'done':
                 return;
