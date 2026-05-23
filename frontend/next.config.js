@@ -2,12 +2,19 @@
 const nextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
-    // Fix for process module in browser
     if (!isServer) {
+      // Polyfill for browser environment
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        process: false,
+        process: require.resolve('process/browser'),
       };
+      
+      // Provide global shims
+      config.plugins.push(
+        new (require('webpack').ProvidePlugin)({
+          process: 'process/browser',
+        })
+      );
     }
     return config;
   },
