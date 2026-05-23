@@ -63,39 +63,16 @@ export const aiService = {
       console.log(`[QVAC] Loading ${modelDisplayName}...`);
       reportProgress(5, `Connecting to ${modelDisplayName}...`);
       
-      // Load model with real QVAC - use llamacpp-completion instead of "llm"
+      // Load model with real QVAC
       modelId = await loadModel({
         modelSrc: modelSource,
-        modelType: 'llamacpp-completion', // Updated from deprecated "llm"
-        modelConfig: {
-          ctx_size: 8192,
-          tools: true,
-        },
+        modelType: 'llm',
         onProgress: (progress) => {
-          // QVAC progress can be string or object
-          if (typeof progress === 'string') {
-            console.log(`[QVAC] ${progress}`);
-            // Convert string status to percentage estimate
-            const text = progress.toLowerCase();
-            let pct = 10;
-            if (text.includes('downloading')) pct = 20;
-            else if (text.includes('verif')) pct = 40;
-            else if (text.includes('loading')) pct = 60;
-            else if (text.includes('initializ')) pct = 75;
-            else if (text.includes('warm')) pct = 90;
-            else if (text.includes('ready') || text.includes('loaded')) pct = 100;
-            reportProgress(pct, progress);
-          } else if (progress && typeof progress.percentage === 'number') {
-            reportProgress(progress.percentage, progress.status || 'Loading...');
-          } else {
-            console.log(`[QVAC] ${JSON.stringify(progress)}`);
-            // Map common QVAC status messages to percentages
-            const status = progress?.status || JSON.stringify(progress);
-            let pct = 50;
-            if (status.includes('Model cached')) pct = 30;
-            else if (status.includes('Loading from registry')) pct = 35;
-            reportProgress(pct, status);
-          }
+          // QVAC provides progress.percentage directly
+          const pct = progress.percentage ?? 50;
+          const status = progress.status ?? 'Loading...';
+          console.log(`[QVAC] Downloaded: ${pct}%`);
+          reportProgress(pct, status);
         }
       });
       
