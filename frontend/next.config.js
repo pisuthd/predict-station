@@ -3,14 +3,18 @@ const nextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
     // Don't bundle native modules in browser
-    // This prevents bare-* and @qvac from root node_modules causing issues
     if (!isServer) {
-      config.externals = [
-        ...(config.externals || []),
-        // Native modules from root package.json (CLI deps)
-        /^bare-/,
-        /^@qvac/,
-      ];
+      // Externalize entire bare-* scope
+      config.externals.push({
+        'bare-abort': 'commonjs bare-abort',
+        'bare-fs': 'commonjs bare-fs',
+        'bare-os': 'commonjs bare-os',
+        'bare-signals': 'commonjs bare-signals',
+        'bare-tty': 'commonjs bare-tty',
+        'bare-stdio': 'commonjs bare-stdio',
+        'process': 'commonjs process',
+        '@qvac/sdk': 'commonjs @qvac/sdk',
+      });
     }
     return config;
   },
