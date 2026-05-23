@@ -234,7 +234,7 @@ export default function AppPage() {
       </main>
 
       {/* Settings Modal */}
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      {/* <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} /> */}
     </div>
   )
 }
