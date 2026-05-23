@@ -34,8 +34,9 @@ export default function LoadingScreen({ progress: externalProgress, statusText: 
       return
     }
 
-    // Internal simulation
-    let currentProgress = 0
+    // Internal simulation - starts at 20% to show progress
+    let currentProgress = 20
+    setInternalProgress(20)
     const statuses = [
       'Loading core systems...',
       'Initializing agent framework...',
@@ -44,7 +45,7 @@ export default function LoadingScreen({ progress: externalProgress, statusText: 
     ]
 
     const interval = setInterval(() => {
-      currentProgress += Math.random() * 8 + 4
+      currentProgress += Math.random() * 6 + 3
 
       if (currentProgress >= 100) {
         currentProgress = 100

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { X, Send } from 'lucide-react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../../theme'
 
@@ -8,6 +8,7 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  thinking?: string
   timestamp: Date
 }
 
@@ -165,12 +166,14 @@ export default function ChatModal({
           
           {messages.map((msg, index) => {
             const isLastAssistant = msg.role === 'assistant' && index === messages.length - 1;
-            const showThinkingForThis = isLastAssistant && streamingThinking.length > 0;
+            // Show streaming thinking OR persisted thinking from message
+            const thinkingContent = isLastAssistant ? streamingThinking : (msg.thinking || '');
+            const hasThinking = thinkingContent.length > 0;
             
             return (
               <div key={msg.id}>
-                {/* Thinking content ABOVE the assistant message */}
-                {showThinkingForThis && (
+                {/* Thinking content ABOVE the assistant message - persists after streaming */}
+                {hasThinking && (
                   <div
                     style={{
                       display: 'flex',
@@ -193,7 +196,7 @@ export default function ChatModal({
                       }}
                     >
                       <span style={{ color: '#818cf8', fontStyle: 'normal', fontWeight: 600 }}>Thinking: </span>
-                      {streamingThinking}
+                      {thinkingContent}
                     </div>
                   </div>
                 )}

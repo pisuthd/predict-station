@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2, MessageSquare, Settings } from 'lucide-react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import { api } from '../lib/api'
-import OrbCanvas from '../components/OrbCanvas'
 import ChatModal from '../components/chat/ChatModal'
 
 interface Agent {
@@ -19,44 +18,67 @@ interface Session {
   name: string
   agentSlug: string
   created: string
+  lastActive?: string
+  messagesCount?: number
+}
+
+interface Tool {
+  name: string
+  enabled: boolean
+  description?: string
 }
 
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+  thinking?: string
   timestamp: Date
 }
 
-type Tab = 'overview' | 'sessions'
+interface WorkspaceFile {
+  contextMd: string
+  coreMd: string
+  identityMd: string
+}
+
+type MainTab = 'sessions' | 'configuration'
 
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [selectedAgent, setSelectedAgent] = useState<string>('main')
   const [sessions, setSessions] = useState<Session[]>([])
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [tools, setTools] = useState<Tool[]>([])
+  const [mainTab, setMainTab] = useState<MainTab>('sessions')
   const [isLoading, setIsLoading] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [newAgentName, setNewAgentName] = useState('')
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [chatSession, setChatSession] = useState<string>('main')
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [streamingThinking, setStreamingThinking] = useState('')
-  
+  const [workspace, setWorkspace] = useState<WorkspaceFile>({
+    contextMd: '',
+    coreMd: '',
+    identityMd: '',
+  })
+  const [isCreateSessionModalOpen, setIsCreateSessionModalOpen] = useState(false)
+  const [newSessionName, setNewSessionName] = useState('')
+
   // Ref to always have access to latest messages (avoids stale closure)
   const chatMessagesRef = useRef<ChatMessage[]>([])
 
-  // Fetch agents on mount
+  // Fetch agents, sessions, tools on mount
   useEffect(() => {
     loadAgents()
+    loadTools()
   }, [])
 
   // Fetch sessions when agent changes
   useEffect(() => {
     if (selectedAgent) {
       loadSessions(selectedAgent)
+      loadWorkspace(selectedAgent)
     }
   }, [selectedAgent])
 
@@ -69,8 +91,6 @@ export default function AgentsPage() {
     try {
       const agentList = await api.agents.list()
       setAgents(agentList)
-      
-      // Set default if current selection doesn't exist
       if (agentList.length > 0 && !agentList.find((a: Agent) => a.slug === selectedAgent)) {
         setSelectedAgent(agentList[0].slug)
       }
@@ -90,66 +110,50 @@ export default function AgentsPage() {
     }
   }
 
-  const handleCreateAgent = async () => {
-    if (!newAgentName.trim()) return
-    
+  const loadTools = async () => {
     try {
-      await api.agents.create(newAgentName.trim())
-      setNewAgentName('')
-      setIsCreateModalOpen(false)
-      await loadAgents()
+      const toolList = await api.tools.list()
+      setTools(toolList)
     } catch (error) {
-      console.error('Failed to create agent:', error)
+      console.error('Failed to fetch tools:', error)
+    }
+  }
+
+  const loadWorkspace = async (agentSlug: string) => {
+    setWorkspace({ contextMd: '', coreMd: '', identityMd: '' })
+  }
+
+  const handleToggleTool = async (toolName: string, enabled: boolean) => {
+    try {
+      await api.tools.toggle(toolName, enabled)
+      setTools(prev => prev.map(t => t.name === toolName ? { ...t, enabled } : t))
+    } catch (error) {
+      console.error('Failed to toggle tool:', error)
     }
   }
 
   const handleCreateSession = async () => {
-    const name = prompt('Session name:')
-    if (!name?.trim()) return
-    
+    if (!newSessionName.trim()) return
     try {
-      await api.agents.createSession(selectedAgent, name.trim())
+      await api.agents.createSession(selectedAgent, newSessionName.trim())
+      setNewSessionName('')
+      setIsCreateSessionModalOpen(false)
       await loadSessions(selectedAgent)
     } catch (error) {
       console.error('Failed to create session:', error)
     }
   }
 
-  const handleDeleteSession = async (sessionSlug: string) => {
-    if (sessionSlug === 'main') return
-    if (!confirm('Delete this session?')) return
-    
-    try {
-      await api.agents.deleteSession(selectedAgent, sessionSlug)
-      await loadSessions(selectedAgent)
-    } catch (error) {
-      console.error('Failed to delete session:', error)
-    }
-  }
-
-  const handleDeleteAgent = async (slug: string) => {
-    if (slug === 'main') return
-    if (!confirm('Delete this agent and all its sessions?')) return
-    
-    try {
-      await api.agents.delete(slug)
-      await loadAgents()
-    } catch (error) {
-      console.error('Failed to delete agent:', error)
-    }
-  }
-
   const openChat = async (sessionSlug: string) => {
     setChatSession(sessionSlug)
     setIsChatOpen(true)
-    
-    // Load messages for this session
     try {
       const sessionData = await api.sessions.get(selectedAgent, sessionSlug)
       const messages = (sessionData.messages || []).map((msg: any, index: number) => ({
         id: msg.id || `msg-${index}`,
         role: msg.role,
         content: msg.content,
+        thinking: msg.thinking || '',
         timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
       }))
       setChatMessages(messages)
@@ -168,6 +172,16 @@ export default function AgentsPage() {
     chatMessagesRef.current = []
   }
 
+  const handleClearMessages = async (sessionSlug: string) => {
+    if (!confirm('Clear all messages in this session?')) return
+    try {
+      await api.sessions.saveMessages(selectedAgent, sessionSlug, [])
+      await loadSessions(selectedAgent)
+    } catch (error) {
+      console.error('Failed to clear messages:', error)
+    }
+  }
+
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isGenerating) return
     
@@ -182,22 +196,22 @@ export default function AgentsPage() {
     setChatInput('')
     setIsGenerating(true)
     
-    // Create placeholder for assistant response
     const assistantMessageId = (Date.now() + 1).toString()
+    let currentThinking = ''
     setChatMessages(prev => [
       ...prev,
       {
         id: assistantMessageId,
         role: 'assistant',
         content: '',
+        thinking: '',
         timestamp: new Date(),
       },
     ])
     
     try {
       setStreamingThinking('')
-      // Get conversation history from ref (has all messages including new ones)
-      const conversationHistory = chatMessagesRef.current.map((m: ChatMessage) => ({ role: m.role, content: m.content }))
+      const conversationHistory = chatMessagesRef.current.map(m => ({ role: m.role, content: m.content }))
       
       await api.chat(
         userMessage.content,
@@ -213,7 +227,15 @@ export default function AgentsPage() {
           )
         },
         (thinking: string) => {
-          setStreamingThinking(prev => prev + thinking)
+          currentThinking += thinking
+          setStreamingThinking(currentThinking)
+          setChatMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantMessageId
+                ? { ...msg, thinking: currentThinking }
+                : msg
+            )
+          )
         }
       )
     } catch (error) {
@@ -229,12 +251,12 @@ export default function AgentsPage() {
       setIsGenerating(false)
       setStreamingThinking('')
       
-      // Save messages to backend - use ref to get all messages
       try {
         const messagesToSave = chatMessagesRef.current.map((m: ChatMessage) => ({
           id: m.id,
           role: m.role,
           content: m.content,
+          thinking: m.thinking || '',
           timestamp: m.timestamp.toISOString(),
         }))
         await api.sessions.saveMessages(selectedAgent, chatSession, messagesToSave)
@@ -244,19 +266,24 @@ export default function AgentsPage() {
     }
   }
 
-  const getAgentName = (slug: string) => {
-    return agents.find(a => a.slug === slug)?.name || slug
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  const agentOptions = agents.map(agent => ({
-    value: agent.slug,
-    label: agent.slug === 'main' ? `${agent.name} (default)` : agent.name,
-  }))
-
-  const tabs = [
-    { id: 'overview' as const, label: 'Overview' },
-    { id: 'sessions' as const, label: 'Sessions' },
-  ]
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+    
+    if (minutes < 1) return 'just now'
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    return `${days}d ago`
+  }
 
   return (
     <div
@@ -264,239 +291,330 @@ export default function AgentsPage() {
         minHeight: '100vh',
         background: NAVY,
         fontFamily: sansFont,
-        position: 'relative',
+        display: 'flex',
       }}
     >
-      <OrbCanvas />
-      <div style={{ padding: '40px', paddingLeft: '220px', position: 'relative', zIndex: 10 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 24 }}>
-          <strong style={{ fontWeight: 500 }}>Agents</strong>
-        </h1>
-        
-        {/* Agent Selector & Create */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <select
-            value={selectedAgent}
-            onChange={e => setSelectedAgent(e.target.value)}
-            style={{
-              padding: '10px 14px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(180,200,255,0.2)',
-              borderRadius: 8,
-              fontFamily: monoFont,
-              fontSize: 12,
-              color: '#fff',
-              cursor: 'pointer',
-              minWidth: 180,
-            }}
-          >
-            {agentOptions.map(opt => (
-              <option key={opt.value} value={opt.value} style={{ background: NAVY }}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '10px 16px',
-              background: CYAN,
-              border: 'none',
-              borderRadius: 8,
-              fontFamily: monoFont,
-              fontSize: 11,
-              fontWeight: 600,
-              color: NAVY,
-              cursor: 'pointer',
-              letterSpacing: '0.05em',
-            }}
-          >
-            <Plus size={14} /> Create Agent
-          </button>
-          
-          {selectedAgent !== 'main' && (
+      {/* Left Floating Sidebar */}
+      <div
+        style={{
+          position: 'fixed',
+          left: 24,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: 240,
+          background: 'rgba(255,255,255,0.04)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(180,200,255,0.12)',
+          borderRadius: 16,
+          padding: '20px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          zIndex: 100,
+        }}
+      >
+        {/* Agents List */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <h3 style={{ fontFamily: monoFont, fontSize: 9, fontWeight: 600, color: MUTED, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
+              Agents
+            </h3>
             <button
-              onClick={() => handleDeleteAgent(selectedAgent)}
+              onClick={() => {
+                const name = prompt('Agent name:')
+                if (name?.trim()) {
+                  api.agents.create(name.trim()).then(loadAgents)
+                }
+              }}
               style={{
-                padding: '10px 16px',
-                background: 'rgba(255,100,100,0.1)',
-                border: '1px solid rgba(255,100,100,0.3)',
-                borderRadius: 8,
-                fontFamily: monoFont,
-                fontSize: 11,
-                color: 'rgba(255,100,100,0.9)',
+                padding: '3px 6px',
+                background: 'rgba(62,196,192,0.15)',
+                border: '1px solid rgba(62,196,192,0.3)',
+                borderRadius: 4,
+                fontSize: 9,
+                color: CYAN,
                 cursor: 'pointer',
               }}
             >
-              Delete Agent
+              <Plus size={8} /> Add
             </button>
-          )}
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {agents.map(agent => (
+              <button
+                key={agent.slug}
+                onClick={() => setSelectedAgent(agent.slug)}
+                style={{
+                  padding: '8px 10px',
+                  background: selectedAgent === agent.slug ? 'rgba(62,196,192,0.15)' : 'transparent',
+                  border: selectedAgent === agent.slug ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  width: '100%',
+                }}
+              >
+                <span style={{ fontFamily: sansFont, fontSize: 12, color: selectedAgent === agent.slug ? CYAN : '#fff' }}>
+                  {agent.name}
+                </span>
+                {agent.slug === 'main' && (
+                  <span style={{ fontSize: 8, color: MUTED, marginLeft: 4 }}>default</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tools */}
+        <div>
+          <h3 style={{ fontFamily: monoFont, fontSize: 9, fontWeight: 600, color: MUTED, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
+            Tools
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {tools.map(tool => (
+              <label
+                key={tool.name}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 8px',
+                  background: 'rgba(255,255,255,0.03)',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={tool.enabled}
+                  onChange={e => handleToggleTool(tool.name, e.target.checked)}
+                  style={{ accentColor: CYAN, width: 12, height: 12 }}
+                />
+                <span style={{ fontSize: 11, color: '#fff', textTransform: 'capitalize' }}>
+                  {tool.name}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(180,200,255,0.1)' }}>
-        {tabs.map(tab => (
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: '32px 40px 32px 300px', overflowY: 'auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 300, color: '#fff', marginBottom: 6 }}>
+            <strong style={{ fontWeight: 500 }}>{agents.find(a => a.slug === selectedAgent)?.name || 'Agent'}</strong>
+          </h1>
+          <p style={{ color: MUTED, fontSize: 13 }}>Manage sessions for this agent</p>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(180,200,255,0.1)' }}>
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => setMainTab('sessions')}
             style={{
               padding: '10px 16px',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === tab.id ? `2px solid ${CYAN}` : '2px solid transparent',
+              borderBottom: mainTab === 'sessions' ? `2px solid ${CYAN}` : '2px solid transparent',
               fontFamily: monoFont,
               fontSize: 11,
-              fontWeight: activeTab === tab.id ? 600 : 400,
-              color: activeTab === tab.id ? CYAN : MUTED,
+              fontWeight: mainTab === 'sessions' ? 600 : 400,
+              color: mainTab === 'sessions' ? CYAN : MUTED,
               cursor: 'pointer',
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
             }}
           >
-            {tab.label}
+            Sessions
           </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 12,
-          padding: 24,
-        }}>
-          <h2 style={{ fontFamily: monoFont, fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 16 }}>
-            {getAgentName(selectedAgent)}
-          </h2>
-          <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.6 }}>
-            Agent: {selectedAgent}<br />
-            Sessions: {sessions.length}
-          </p>
           <button
-            onClick={() => openChat('main')}
+            onClick={() => setMainTab('configuration')}
             style={{
-              marginTop: 16,
-              padding: '10px 20px',
-              background: CYAN,
+              padding: '10px 16px',
+              background: 'none',
               border: 'none',
-              borderRadius: 6,
-              fontFamily: monoFont,
-              fontSize: 12,
-              fontWeight: 600,
-              color: NAVY,
-              cursor: 'pointer',
-            }}
-          >
-            Chat
-          </button>
-        </div>
-      )}
-
-      {activeTab === 'sessions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Create Session Button */}
-          <button
-            onClick={handleCreateSession}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '12px 16px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px dashed rgba(180,200,255,0.2)',
-              borderRadius: 8,
+              borderBottom: mainTab === 'configuration' ? `2px solid ${CYAN}` : '2px solid transparent',
               fontFamily: monoFont,
               fontSize: 11,
-              color: MUTED,
+              fontWeight: mainTab === 'configuration' ? 600 : 400,
+              color: mainTab === 'configuration' ? CYAN : MUTED,
               cursor: 'pointer',
-              width: '100%',
-              textAlign: 'left',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
             }}
           >
-            <Plus size={14} /> Create Session
+            Configuration
           </button>
+        </div>
 
-          {/* Sessions List */}
-          {sessions.map(session => (
-            <div
-              key={session.slug}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(180,200,255,0.12)',
-                borderRadius: 8,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontFamily: monoFont, fontSize: 12, color: '#fff' }}>
-                  {session.name}
-                  {session.slug === 'main' && (
-                    <span style={{ color: CYAN, marginLeft: 8, fontSize: 10 }}>(default)</span>
-                  )}
-                </span>
+        {/* Sessions Tab - Important */}
+        {mainTab === 'sessions' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontFamily: monoFont, fontSize: 12, fontWeight: 600, color: '#fff', margin: 0 }}>All Sessions</h2>
+              <button
+                onClick={() => setIsCreateSessionModalOpen(true)}
+                style={{
+                  padding: '8px 14px',
+                  background: CYAN,
+                  border: 'none',
+                  borderRadius: 8,
+                  fontFamily: monoFont,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: NAVY,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Plus size={12} /> New Session
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(180,200,255,0.12)',
+              borderRadius: 12,
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 120px 120px 100px',
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.03)',
+                borderBottom: '1px solid rgba(180,200,255,0.08)',
+              }}>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, letterSpacing: '0.06em' }}>NAME</span>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, letterSpacing: '0.06em' }}>LAST ACTIVE</span>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, letterSpacing: '0.06em' }}>CREATED</span>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, letterSpacing: '0.06em', textAlign: 'right' }}>ACTIONS</span>
               </div>
-              
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => openChat(session.slug)}
+
+              {sessions.map(session => (
+                <div
+                  key={session.slug}
                   style={{
-                    padding: '8px 16px',
-                    background: CYAN,
-                    border: 'none',
-                    borderRadius: 6,
-                    fontFamily: monoFont,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: NAVY,
-                    cursor: 'pointer',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 120px 120px 100px',
+                    padding: '14px 16px',
+                    borderBottom: '1px solid rgba(180,200,255,0.06)',
+                    alignItems: 'center',
                   }}
                 >
-                  Chat
-                </button>
-                
-                {session.slug !== 'main' && (
-                  <button
-                    onClick={() => handleDeleteSession(session.slug)}
-                    style={{
-                      padding: '8px 16px',
-                      background: 'rgba(255,100,100,0.1)',
-                      border: '1px solid rgba(255,100,100,0.2)',
-                      borderRadius: 6,
-                      fontFamily: monoFont,
-                      fontSize: 11,
-                      color: 'rgba(255,100,100,0.9)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <MessageSquare size={14} color={MUTED} />
+                    <span style={{ fontSize: 13, color: '#fff' }}>{session.name}</span>
+                    {session.slug === 'main' && (
+                      <span style={{ fontSize: 9, color: CYAN, background: 'rgba(62,196,192,0.15)', padding: '2px 6px', borderRadius: 4 }}>default</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 12, color: MUTED }}>{formatTimeAgo(session.created)}</span>
+                  <span style={{ fontSize: 12, color: MUTED }}>{formatDate(session.created)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                    <button
+                      onClick={() => openChat(session.slug)}
+                      style={{
+                        padding: '6px 10px',
+                        background: CYAN,
+                        border: 'none',
+                        borderRadius: 6,
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: NAVY,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Chat
+                    </button>
+                    <button
+                      onClick={() => handleClearMessages(session.slug)}
+                      title="Clear messages"
+                      style={{
+                        padding: 6,
+                        background: 'rgba(255,100,100,0.1)',
+                        border: '1px solid rgba(255,100,100,0.2)',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Trash2 size={12} color="rgba(255,100,100,0.9)" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Configuration Tab - Less Important */}
+        {mainTab === 'configuration' && (
+          <div>
+            {/* Cronjobs placeholder */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Settings size={14} color={MUTED} />
+                <h3 style={{ fontFamily: monoFont, fontSize: 12, fontWeight: 600, color: '#fff', margin: 0 }}>Cronjobs</h3>
+              </div>
+              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(180,200,255,0.12)', borderRadius: 8, color: MUTED, fontSize: 12, fontStyle: 'italic' }}>
+                Coming soon...
               </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Create Agent Modal */}
-      {isCreateModalOpen && (
+            {/* Workspace Files */}
+            <h3 style={{ fontFamily: monoFont, fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 12 }}>Agent Configuration</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { key: 'identityMd', label: 'identity.md', desc: "Agent's identity and personality" },
+                { key: 'coreMd', label: 'core.md', desc: 'Behavioral rules and guidelines' },
+                { key: 'contextMd', label: 'context.md', desc: 'Agent knowledge base' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(180,200,255,0.12)', borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <label style={{ fontFamily: monoFont, fontSize: 10, fontWeight: 600, color: CYAN }}>{label}</label>
+                    <span style={{ fontSize: 9, color: MUTED }}>{desc}</span>
+                  </div>
+                  <textarea
+                    value={workspace[key as keyof WorkspaceFile]}
+                    onChange={e => setWorkspace(prev => ({ ...prev, [key]: e.target.value }))}
+                    placeholder={`Define ${label}...`}
+                    style={{
+                      width: '100%',
+                      minHeight: 80,
+                      padding: '8px 10px',
+                      background: 'rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(180,200,255,0.15)',
+                      borderRadius: 6,
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: '#fff',
+                      resize: 'vertical',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Create Session Modal */}
+      {isCreateSessionModalOpen && (
         <div
-          onClick={() => setIsCreateModalOpen(false)}
+          onClick={() => setIsCreateSessionModalOpen(false)}
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(3,6,58,0.8)',
+            background: 'rgba(3,6,58,0.85)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -515,17 +633,14 @@ export default function AgentsPage() {
               width: 360,
             }}
           >
-            <h2 style={{ fontFamily: monoFont, fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 16 }}>
-              Create Agent
-            </h2>
-            
+            <h2 style={{ fontFamily: monoFont, fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 16 }}>Create Session</h2>
             <input
               type="text"
-              value={newAgentName}
-              onChange={e => setNewAgentName(e.target.value)}
-              placeholder="Agent name"
+              value={newSessionName}
+              onChange={e => setNewSessionName(e.target.value)}
+              placeholder="Session name"
               autoFocus
-              onKeyDown={e => e.key === 'Enter' && handleCreateAgent()}
+              onKeyDown={e => e.key === 'Enter' && handleCreateSession()}
               style={{
                 width: '100%',
                 padding: '12px 14px',
@@ -540,38 +655,17 @@ export default function AgentsPage() {
                 boxSizing: 'border-box',
               }}
             />
-            
             <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
               <button
-                onClick={() => setIsCreateModalOpen(false)}
-                style={{
-                  padding: '10px 20px',
-                  background: 'transparent',
-                  border: '1px solid rgba(180,200,255,0.2)',
-                  borderRadius: 6,
-                  fontFamily: monoFont,
-                  fontSize: 11,
-                  color: MUTED,
-                  cursor: 'pointer',
-                }}
+                onClick={() => setIsCreateSessionModalOpen(false)}
+                style={{ padding: '10px 20px', background: 'transparent', border: '1px solid rgba(180,200,255,0.2)', borderRadius: 6, fontFamily: monoFont, fontSize: 11, color: MUTED, cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
-                onClick={handleCreateAgent}
-                disabled={!newAgentName.trim()}
-                style={{
-                  padding: '10px 20px',
-                  background: CYAN,
-                  border: 'none',
-                  borderRadius: 6,
-                  fontFamily: monoFont,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: NAVY,
-                  cursor: newAgentName.trim() ? 'pointer' : 'not-allowed',
-                  opacity: newAgentName.trim() ? 1 : 0.5,
-                }}
+                onClick={handleCreateSession}
+                disabled={!newSessionName.trim()}
+                style={{ padding: '10px 20px', background: CYAN, border: 'none', borderRadius: 6, fontFamily: monoFont, fontSize: 11, fontWeight: 600, color: NAVY, cursor: newSessionName.trim() ? 'pointer' : 'not-allowed', opacity: newSessionName.trim() ? 1 : 0.5 }}
               >
                 Create
               </button>
@@ -583,7 +677,7 @@ export default function AgentsPage() {
       {/* Chat Modal */}
       {isChatOpen && (
         <ChatModal
-          agentName={getAgentName(selectedAgent)}
+          agentName={agents.find(a => a.slug === selectedAgent)?.name || selectedAgent}
           sessionName={sessions.find(s => s.slug === chatSession)?.name || chatSession}
           messages={chatMessages}
           input={chatInput}
@@ -594,7 +688,6 @@ export default function AgentsPage() {
           onClose={closeChat}
         />
       )}
-      </div>
     </div>
   )
 }

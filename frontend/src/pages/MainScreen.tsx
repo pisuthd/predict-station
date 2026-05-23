@@ -3,16 +3,16 @@
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import StatusDot from '../components/StatusDot'
 
-interface Agent {
-  id: string
+interface BackendAgent {
+  slug: string
   name: string
-  status: 'idle' | 'active' | 'error'
-  createdAt: string
+  created: string
+  sessionsCount: number
 }
 
 interface MainScreenProps {
-  agents: Agent[]
-  selectedAgent: Agent | null
+  agents: BackendAgent[]
+  selectedAgent: BackendAgent | null
 }
 
 export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
@@ -87,9 +87,9 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
                   {selectedAgent.name}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                  <StatusDot status={selectedAgent.status} />
+                  <StatusDot status="idle" />
                   <span style={{ fontFamily: monoFont, fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    {selectedAgent.status}
+                    idle
                   </span>
                 </div>
               </div>
@@ -125,10 +125,10 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
           }}
         >
           <p style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.14em', color: MUTED, textTransform: 'uppercase', marginBottom: 8 }}>
-            Active
+            Sessions
           </p>
           <p style={{ fontFamily: monoFont, fontSize: 48, fontWeight: 700, color: CYAN, margin: 0 }}>
-            {agents.filter(a => a.status === 'active').length}
+            {agents.filter(a => a.sessionsCount > 0).length}
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {agents.map((agent) => (
-                <div key={agent.id} style={{
+                <div key={agent.slug} style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(180,200,255,0.08)',
                   borderRadius: 8,
@@ -193,13 +193,11 @@ export default function MainScreen({ agents, selectedAgent }: MainScreenProps) {
                   </div>
                   <div style={{ flex: 1 }}>
                     <span style={{ fontFamily: sansFont, fontSize: 14, fontWeight: 500, color: '#fff' }}>{agent.name}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <StatusDot status={agent.status} />
-                    <span style={{ fontFamily: monoFont, fontSize: 10, letterSpacing: '0.08em', color: MUTED, textTransform: 'uppercase' }}>
-                      {agent.status}
+                    <span style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, marginLeft: 8 }}>
+                      {agent.sessionsCount} sessions
                     </span>
                   </div>
+                  <StatusDot status="idle" />
                 </div>
               ))}
             </div>

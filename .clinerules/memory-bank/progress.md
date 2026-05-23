@@ -90,6 +90,8 @@ predict-station/
 ✅ Agents page with dropdown + tabs + chat modal
 ✅ Streaming thinking display (inside chat)
 ✅ Cross-platform data storage (~/predict-station)
+✅ Sidebar with activeNav state management
+✅ Glassmorphism styling throughout
 
 ## Known Issues
 - Next.js 14.2.0 has a security vulnerability - consider upgrading

@@ -1,0 +1,5 @@
+{
+  "getAddress": true,
+  "getBalance": true,
+  "getObjects": true
+}
