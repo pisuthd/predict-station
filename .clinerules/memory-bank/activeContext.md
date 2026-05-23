@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Work Focus
-Next.js routing with landing page at / and app pages at /app
+Backend API server for AI model loading with SSE progress tracking. QVAC integration planned but not yet implemented.
 
 ## Landing Page Structure
 ```
@@ -15,12 +15,12 @@ Next.js routing with landing page at / and app pages at /app
   - Animated orbs (right side, fade on scroll)
   - Cyan left edge accent bar (moves with scroll)
 
-/app → Main App Screen
-  - Loading screen first (progress bar animation)
-  - Floating sidebar (left, glassmorphism) - visible during loading
-  - TopNavBar floating button (top-right) - CONNECT WALLET
-  - MainScreen (dashboard with stats cards, agent list)
-  - Placeholder pages for Agents/Markets/Settings
+/app → App Flow
+  - ServerSelector (enter server URL)
+  - ModelSelector (choose + load model with progress bar)
+  - LoadingScreen (shows progress via SSE)
+  - MainScreen (dashboard with stats, agents, sidebar nav)
+  - SettingsModal (glassmorphism modal, opened from sidebar)
 ```
 
 ## /app Layout
@@ -32,7 +32,7 @@ Next.js routing with landing page at / and app pages at /app
 │Predict   │  ┌───────────────────────────────────┐
 │Station   │  │                                   │
 │──────────│  │ Dashboard / Agents / Markets /    │
-│Dashboard │  │ Settings (placeholder)           │
+│Dashboard │  │ Settings (modal)                  │
 │Agents    │  │                                   │
 │Markets   │  └───────────────────────────────────┘
 │Settings  │
@@ -50,26 +50,30 @@ Next.js routing with landing page at / and app pages at /app
 - Space Mono for headings, DM Sans for body
 - borderRadius: 16 for glassmorphism elements
 
-## Key UI Components
-- TopNavBar: CONNECT WALLET button (ENTER APP style, no card wrapper)
-- Sidebar: Floating glassmorphism card with Predict Station branding + nav
-- LoadingScreen: Progress animation with sidebar visible
-- MainScreen: Stats cards, agent list, network selector
-- PlaceholderPage: Generic placeholder for Agents/Markets/Settings
-
 ## Routes
 - `/` - Landing page (src/app/page.tsx)
-- `/app` - Main app with loading → sidebar + navbar + content switching
+- `/app` - App flow with ServerSelector → ModelSelector → MainScreen
 
 ## State Management
-- `isLoading` state in AppPage controls loading/dashboard view
-- `activeNav` state controls which page content to show
-- Agents stored in state, passed to MainScreen
+- `serverUrl` - API server URL (localStorage + state)
+- `selectedModel` - Currently selected model type
+- `showServerSelector` / `showModelSelector` - View state
+- `showSettings` - Settings modal visibility
+- `activeNav` - Current nav item (dashboard/agents/markets/leaderboard)
+- `agents` - List of agents
+
+## Backend API (port 3001)
+- GET/POST /api/models - Model list/load
+- GET /api/models/status - Model status
+- GET /api/models/load/progress - SSE progress stream
+- POST /api/chat - Streaming chat completion
+- CRUD /api/agents, /api/sessions, /api/tools
 
 ## Important Patterns
 - Use 'use client' for interactive components
-- Keep components in src/components/landing/
+- Keep components in src/components/
 - Pages in src/app/
 - Theme constants in src/theme.ts
 - lucide-react for icons
 - Inline styles with CSS-like properties
+- SSE for real-time progress updates

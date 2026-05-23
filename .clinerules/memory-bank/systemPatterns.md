@@ -4,11 +4,13 @@
 ```
 predict-station/
 ├── package.json           # CLI Package (bin: src/cli.js)
+├── pnpm-workspace.yaml    # pnpm workspaces config
 ├── src/
+│   ├── package.json      # Server workspace (@predict-station/server)
 │   ├── cli.js            # CLI entry point
 │   ├── server.js         # Express HTTP API server (port 3001)
 │   └── services/
-│       ├── ai.js         # QVAC model management
+│       ├── ai.js         # Model management (placeholder, QVAC to come)
 │       ├── agents.js     # Agent CRUD & storage
 │       ├── sessions.js   # Session CRUD & messages
 │       └── tools.js      # Tool registry & enable/disable
@@ -29,6 +31,7 @@ predict-station/
 | GET | `/api/models/status` | Check if model is loaded |
 | POST | `/api/models/load` | Load model by type |
 | POST | `/api/models/unload` | Unload current model |
+| GET | `/api/models/load/progress` | SSE stream for loading progress |
 
 ### Chat API (Streaming SSE)
 | Method | Endpoint | Description |
@@ -60,11 +63,12 @@ predict-station/
 
 ## CLI Commands
 ```bash
-npm run dev      # Start HTTP API server
-npm run server  # Start HTTP API server only
-npm run start   # Show CLI help
+pnpm dev              # Start frontend dev server
+pnpm dev:server       # Start backend API server
+pnpm build            # Build frontend
+npm run start         # Show CLI help
 npx predict-station init   # Initialize project
-npx predict-station dev   # Start server
+npx predict-station dev    # Start server
 ```
 
 ## Frontend Integration
@@ -76,5 +80,6 @@ npx predict-station dev   # Start server
 1. **CLI at root**: package.json at root with src/cli.js entry point
 2. **HTTP API in /src**: Express server with services, no TypeScript
 3. **App Router**: Using Next.js 14 App Router for frontend
-4. **SSE Streaming**: Chat responses streamed via Server-Sent Events
+4. **SSE Streaming**: Chat responses and model loading progress via Server-Sent Events
 5. **File-based storage**: Agents and sessions stored in data/ directory
+6. **pnpm workspaces**: Separate workspaces for frontend and server
