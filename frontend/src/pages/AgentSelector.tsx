@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
-import OrbCanvas from '../components/OrbCanvas'
 import Wordmark from '../components/Wordmark'
 import StatusDot from '../components/StatusDot'
 

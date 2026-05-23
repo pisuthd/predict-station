@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { NAVY, CYAN, monoFont, sansFont } from '../../theme'
 import TopNavBar from '../../components/TopNavBar'
 import MainScreen from '../../pages/MainScreen'
+import AgentsPage from '../../pages/AgentsPage'
 import PlaceholderPage from '../../components/PlaceholderPage'
 import OrbCanvas from '../../components/OrbCanvas'
 import ServerSelector from '../../pages/ServerSelector'
@@ -165,7 +166,7 @@ export default function AppPage() {
       case 'dashboard':
         return <MainScreen agents={agents} selectedAgent={selectedAgent} />
       case 'agents':
-        return <PlaceholderPage title="Agents" />
+        return <AgentsPage />
       case 'markets':
         return <PlaceholderPage title="Markets" />
       case 'leaderboard':

@@ -77,3 +77,9 @@ Backend API server for AI model loading with SSE progress tracking. QVAC integra
 - lucide-react for icons
 - Inline styles with CSS-like properties
 - SSE for real-time progress updates
+
+## Recent Changes
+- Added AgentsPage with dropdown selector + tabs (Overview/Sessions)
+- Added ChatModal with glassmorphism design
+- Streaming thinking display inside chat panel (above assistant message)
+- Fixed stale closure bug - messages now save correctly using useRef

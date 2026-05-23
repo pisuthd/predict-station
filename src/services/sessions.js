@@ -1,14 +1,11 @@
 // Sessions Service - CRUD and Message Storage
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, rmSync } from 'fs';
+import { join } from 'path';
+import os from 'os';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Data directory for sessions (within agents)
-const DATA_DIR = join(__dirname, '..', 'data', 'sessions');
+// Cross-platform data directory: ~/.predict-station/agents/{agent}/sessions
+const DATA_DIR = join(os.homedir(), '.predict-station', 'agents');
 
 // Ensure data directory exists
 function ensureDataDir() {
@@ -103,7 +100,12 @@ export const sessionsService = {
       throw new Error('Session not found');
     }
     
-    // In a real implementation, we'd use fs.rmSync here
+    // Don't delete the main session
+    if (sessionSlug === 'main') {
+      throw new Error('Cannot delete the main session');
+    }
+    
+    rmSync(sessionDir, { recursive: true, force: true });
     return { success: true };
   },
 
@@ -151,9 +153,11 @@ export const sessionsService = {
             key: `agent:${agentSlug}:${sessionSlug}`,
             agent: agentSlug,
             session: sessionSlug,
+            name: info.name || sessionSlug,
             created: info.created || new Date().toISOString(),
             lastActive: info.lastActive || info.created || new Date().toISOString(),
             messagesCount: messages.length,
+            isDefault: sessionSlug === 'main',
           });
         }
       }
@@ -173,7 +177,7 @@ export const sessionsService = {
       
       const info = {
         slug: 'main',
-        name: 'Main Session',
+        name: 'Main',
         agentSlug,
         created: new Date().toISOString(),
       };

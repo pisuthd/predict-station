@@ -186,6 +186,41 @@ app.delete('/api/agents/:slug', async (req, res) => {
   }
 });
 
+// Sessions for specific agent
+app.get('/api/agents/:agentSlug/sessions', async (req, res) => {
+  try {
+    const sessions = await sessionsService.list(req.params.agentSlug);
+    res.json(sessions);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to list sessions';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/agents/:agentSlug/sessions', async (req, res) => {
+  try {
+    const schema = z.object({
+      name: z.string().min(1),
+    });
+    const { name } = schema.parse(req.body);
+    const session = await sessionsService.create(req.params.agentSlug, name);
+    res.json(session);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create session';
+    res.status(400).json({ error: message });
+  }
+});
+
+app.delete('/api/agents/:agentSlug/sessions/:sessionSlug', async (req, res) => {
+  try {
+    await sessionsService.delete(req.params.agentSlug, req.params.sessionSlug);
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete session';
+    res.status(400).json({ error: message });
+  }
+});
+
 // ============================================
 // Sessions API
 // ============================================

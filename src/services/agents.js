@@ -1,14 +1,11 @@
 // Agents Service - CRUD and Storage
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
+import { join } from 'path';
+import os from 'os';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Data directory for agents
-const DATA_DIR = join(__dirname, '..', 'data', 'agents');
+// Cross-platform data directory: ~/.predict-station/agents
+const DATA_DIR = join(os.homedir(), '.predict-station', 'agents');
 
 // Ensure data directory exists
 function ensureDataDir() {
@@ -25,7 +22,7 @@ function nameToSlug(name) {
     .replace(/^-+|-+$/g, '');
 }
 
-// Ensure main agent exists
+// Ensure main agent exists with default session
 function ensureMainAgent() {
   ensureDataDir();
   const mainDir = join(DATA_DIR, 'main');
@@ -33,6 +30,17 @@ function ensureMainAgent() {
     mkdirSync(mainDir, { recursive: true });
     const info = { slug: 'main', name: 'Main Agent', created: new Date().toISOString() };
     writeFileSync(join(mainDir, 'info.json'), JSON.stringify(info, null, 2));
+    
+    // Also create default "main" session
+    const mainSessionDir = join(mainDir, 'main');
+    mkdirSync(mainSessionDir, { recursive: true });
+    writeFileSync(join(mainSessionDir, 'info.json'), JSON.stringify({
+      slug: 'main',
+      name: 'Main',
+      agentSlug: 'main',
+      created: new Date().toISOString(),
+    }, null, 2));
+    writeFileSync(join(mainSessionDir, 'messages.json'), JSON.stringify([]));
   }
 }
 
@@ -51,7 +59,23 @@ export const agentsService = {
       if (existsSync(infoPath)) {
         try {
           const info = JSON.parse(readFileSync(infoPath, 'utf-8'));
-          agents.push(info);
+          
+          // Count sessions for this agent
+          let sessionsCount = 0;
+          const agentDir = join(DATA_DIR, slug);
+          if (existsSync(agentDir)) {
+            try {
+              const sessions = readdirSync(agentDir);
+              sessionsCount = sessions.filter(s => {
+                return existsSync(join(agentDir, s, 'info.json'));
+              }).length;
+            } catch (e) {}
+          }
+          
+          agents.push({
+            ...info,
+            sessionsCount,
+          });
         } catch (e) {
           // Skip invalid entries
         }
@@ -79,6 +103,17 @@ export const agentsService = {
     
     writeFileSync(join(agentDir, 'info.json'), JSON.stringify(info, null, 2));
     
+    // Create default "main" session for new agent
+    const mainSessionDir = join(agentDir, 'main');
+    mkdirSync(mainSessionDir, { recursive: true });
+    writeFileSync(join(mainSessionDir, 'info.json'), JSON.stringify({
+      slug: 'main',
+      name: 'Main',
+      agentSlug: slug,
+      created: new Date().toISOString(),
+    }, null, 2));
+    writeFileSync(join(mainSessionDir, 'messages.json'), JSON.stringify([]));
+    
     return info;
   },
 
@@ -103,8 +138,7 @@ export const agentsService = {
       throw new Error('Agent not found');
     }
     
-    // In a real implementation, we'd use fs.rmSync here
-    // For now, we'll just return success
+    rmSync(agentDir, { recursive: true, force: true });
     return { success: true };
   },
 

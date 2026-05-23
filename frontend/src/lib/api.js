@@ -171,6 +171,13 @@ export const api = {
     }),
     get: (slug) => fetchAPI(`/agents/${slug}`),
     delete: (slug) => fetchAPI(`/agents/${slug}`, { method: 'DELETE' }),
+    // Sessions for specific agent
+    listSessions: (agentSlug) => fetchAPI(`/agents/${agentSlug}/sessions`),
+    createSession: (agentSlug, name) => fetchAPI(`/agents/${agentSlug}/sessions`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+    deleteSession: (agentSlug, sessionSlug) => fetchAPI(`/agents/${agentSlug}/sessions/${sessionSlug}`, { method: 'DELETE' }),
   },
   
   // Sessions
