@@ -428,15 +428,28 @@ app.use((err, _req, res, _next) => {
 });
 
 // Start server
-export async function startServer(port = PORT) {
+export async function startServer(port = PORT, modelType = null) {
   // Initialize wallet on startup
   await walletService.initialize();
   
   return new Promise((resolve) => {
-    app.listen(port, () => {
+    app.listen(port, async () => {
       console.log(`[Agent Node] HTTP API server running on http://localhost:${port}`);
       const walletStatus = walletService.getStatus();
       console.log(`[Agent Node] Wallet: ${walletStatus.address || 'not initialized'}`);
+      
+      // Auto-load model if specified
+      if (modelType) {
+        console.log(`[Agent Node] Loading Qwen3-${modelType}...`);
+        try {
+          await aiService.loadModel(modelType);
+          const status = aiService.getStatus();
+          console.log(`[Agent Node] Model ready: Qwen3-${status.modelType}`);
+        } catch (error) {
+          console.error(`[Agent Node] Failed to load model:`, error.message);
+        }
+      }
+      
       resolve();
     });
   });
