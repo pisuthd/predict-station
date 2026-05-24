@@ -27,11 +27,15 @@ interface State {
   selectedSession: string
   selectedModel: string
   activeNav: string
+  connectionError: string | null
+  isConnecting: boolean
 }
 
 type Action =
   | { type: 'SET_STEP'; payload: Step }
   | { type: 'CONNECT'; payload: string }
+  | { type: 'CONNECT_SUCCESS' }
+  | { type: 'CONNECT_ERROR'; payload: string }
   | { type: 'DISCONNECT' }
   | { type: 'SET_AGENTS'; payload: Agent[] }
   | { type: 'SET_SELECTED_AGENT'; payload: string }
@@ -51,6 +55,8 @@ const initialState: State = {
   selectedSession: 'main',
   selectedModel: '',
   activeNav: 'dashboard',
+  connectionError: null,
+  isConnecting: false,
 }
 
 // Reducer
@@ -59,9 +65,13 @@ function appReducer(state: State, action: Action): State {
     case 'SET_STEP':
       return { ...state, step: action.payload }
     case 'CONNECT':
-      return { ...state, serverUrl: action.payload, step: 'select-model' }
+      return { ...state, serverUrl: action.payload, isConnecting: true, connectionError: null }
+    case 'CONNECT_SUCCESS':
+      return { ...state, step: 'select-model', isConnecting: false }
+    case 'CONNECT_ERROR':
+      return { ...state, step: 'disconnected', isConnecting: false, connectionError: action.payload }
     case 'DISCONNECT':
-      return { ...state, step: 'disconnected', selectedModel: '' }
+      return { ...state, step: 'disconnected', selectedModel: '', connectionError: null }
     case 'SET_AGENTS':
       return { ...state, agents: action.payload }
     case 'SET_SELECTED_AGENT':
@@ -100,8 +110,23 @@ const AppContext = createContext<AppState | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState)
 
-  const connect = useCallback((url: string) => {
+  const connect = useCallback(async (url: string) => {
     dispatch({ type: 'CONNECT', payload: url })
+    
+    // Verify connection with health check
+    try {
+      // Small delay to let state update
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const response = await api.health()
+      if (response.status === 'ok') {
+        dispatch({ type: 'CONNECT_SUCCESS' })
+      } else {
+        dispatch({ type: 'CONNECT_ERROR', payload: 'Server returned invalid response' })
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to server'
+      dispatch({ type: 'CONNECT_ERROR', payload: errorMessage })
+    }
   }, [])
 
   const disconnect = useCallback(() => {
