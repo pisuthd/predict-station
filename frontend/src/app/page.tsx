@@ -7,7 +7,6 @@ import OrbCanvas from '../components/OrbCanvas'
 import HeroSection from '../components/landing/HeroSection'
 import SupportedModels from '../components/landing/SupportedModels'
 import HowItWorks from '../components/landing/HowItWorks'
-import CLICommands from '../components/landing/CLICommands'
 import FooterCTA from '../components/landing/FooterCTA'
 
 export default function LandingPage() {
@@ -88,7 +87,7 @@ export default function LandingPage() {
                 margin: 0,
               }}
             >
-              <span style={{ color: '#fff' }}>Predict</span> Station
+              <span style={{ color: '#fff' }}>Predict</span>Up
             </p>
 
             {/* Enter App Button */}
@@ -148,9 +147,12 @@ export default function LandingPage() {
                 fontSize: 12,
                 color: 'rgba(180,200,255,0.5)',
                 margin: 0,
+
               }}
             >
-              <span style={{ color: '#fff' }}>Predict</span> Station © 2026
+              <span style={{ color: '#fff' }}>Predict</span>
+              <span style={{ color: CYAN, fontWeight: 700, }}>Up</span>
+              {` `}© 2026
             </p>
             <div style={{ display: 'flex', gap: '24px' }}>
               <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: 'rgba(180,200,255,0.5)', cursor: 'pointer' }}>Privacy</span>

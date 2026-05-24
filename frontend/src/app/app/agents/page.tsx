@@ -1,5 +1,5 @@
-import AgentsPage from '../../../components/agents/AgentsPage'
+import AgentSelector from '../../../components/agents/AgentSelector'
 
-export default function AgentsRoute() {
-  return <AgentsPage />
+export default function AgentsPage() {
+  return <AgentSelector />
 }
