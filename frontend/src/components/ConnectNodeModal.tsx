@@ -6,42 +6,35 @@ import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../theme'
 import { useApp } from '../context/AppProvider'
 
 export default function ConnectNodeModal() {
-  const { connect } = useApp()
+  const { connect, isConnecting, connectionError } = useApp()
   const [isOpen, setIsOpen] = useState(false)
   const [serverType, setServerType] = useState<'default' | 'custom'>('default')
   const [customUrl, setCustomUrl] = useState('')
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
 
-  const handleConnect = async () => {
-    setError('')
+  const handleConnect = () => {
+    setLocalError('')
     
     const url = serverType === 'default' 
-      ? 'http://localhost:3001/api' 
+      ? 'http://localhost:3001' 
       : customUrl.trim()
     
     if (serverType === 'custom' && !url) {
-      setError('Please enter a server URL')
+      setLocalError('Please enter a server URL')
       return
     }
     
     if (serverType === 'custom' && !url.startsWith('http')) {
-      setError('URL must start with http:// or https://')
+      setLocalError('URL must start with http:// or https://')
       return
     }
     
-    setIsConnecting(true)
-    try {
-      await connect(url)
-      setIsOpen(false)
-      setCustomUrl('')
-      setServerType('default')
-    } catch (err) {
-      setError('Failed to connect to agent node')
-    } finally {
-      setIsConnecting(false)
-    }
+    connect(url)
+    // Close modal only after successful connection (handled by AppProvider)
   }
+  
+  // Show error if connection fails
+  const displayError = localError || connectionError
 
   return (
     <> 
@@ -251,7 +244,7 @@ export default function ConnectNodeModal() {
                           width: '100%',
                           padding: '11px 14px',
                           background: 'rgba(255,255,255,0.06)',
-                          border: `1px solid ${error ? 'rgba(255,100,100,0.6)' : 'rgba(180,200,255,0.2)'}`,
+                          border: `1px solid ${displayError ? 'rgba(255,100,100,0.6)' : 'rgba(180,200,255,0.2)'}`,
                           borderRadius: 6,
                           fontFamily: sansFont,
                           fontSize: 14,
@@ -260,14 +253,25 @@ export default function ConnectNodeModal() {
                           boxSizing: 'border-box',
                         }}
                       />
-                      {error && (
-                        <p style={{ fontFamily: monoFont, fontSize: 11, color: 'rgba(255,100,100,0.8)', marginTop: 6 }}>
-                          {error}
-                        </p>
-                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Error message (shown below input or above button) */}
+                {displayError && (
+                  <div style={{ 
+                    padding: '10px 12px', 
+                    background: 'rgba(255,100,100,0.15)', 
+                    borderRadius: 6, 
+                    marginBottom: 16,
+                    border: '1px solid rgba(255,100,100,0.3)',
+                    fontFamily: monoFont,
+                    fontSize: 11,
+                    color: 'rgba(255,100,100,0.9)',
+                  }}>
+                    ⚠️ {displayError}
+                  </div>
+                )}
 
                 {/* Connect button */}
                 <motion.button
