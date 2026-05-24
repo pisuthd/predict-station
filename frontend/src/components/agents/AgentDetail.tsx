@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings, MessageSquare, Trash2 } from 'lucide-react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../../theme'
@@ -37,7 +37,9 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
   const [chatInput, setChatInput] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [streamingThinking, setStreamingThinking] = useState('')
-
+  
+  // Ref to capture messages for saving
+  const chatMessagesRef = useRef<ChatMessage[]>([])
   // Get current agent from the agents list
   const currentAgent = agents.find(a => a.slug === agentSlug)
 
@@ -152,7 +154,8 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
     
     try {
       setStreamingThinking('')
-      const conversationHistory = chatMessages.map(m => ({ role: m.role, content: m.content }))
+      // Build history including the new user message
+      const conversationHistory = [...chatMessages.map(m => ({ role: m.role, content: m.content })), { role: 'user' as const, content: userMessage.content }]
       
       await api.chat(
         userMessage.content,
@@ -192,15 +195,23 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
       setIsGenerating(false)
       setStreamingThinking('')
       
+      // Get latest messages from state to save
       try {
-        const messagesToSave = chatMessages.map(m => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-          thinking: m.thinking || '',
-          timestamp: m.timestamp.toISOString(),
-        }))
-        await api.sessions.saveMessages(agentSlug, chatSession, messagesToSave)
+        // Use a ref or get current state - we need to read from the latest state
+        setChatMessages(currentMessages => {
+          const messagesToSave = currentMessages.map(m => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            thinking: m.thinking || '',
+            timestamp: m.timestamp.toISOString(),
+          }))
+          // Save after state update
+          api.sessions.saveMessages(agentSlug, chatSession, messagesToSave).catch(err => {
+            console.error('Failed to save messages:', err)
+          })
+          return currentMessages
+        })
       } catch (err) {
         console.error('Failed to save messages:', err)
       }
