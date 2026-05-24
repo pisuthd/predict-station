@@ -7,6 +7,8 @@ import { aiService, MODEL_INFO, setLoadProgressCallback } from './services/ai.js
 import { agentsService } from './services/agents.js';
 import { sessionsService } from './services/sessions.js';
 import { toolsService, getToolInfo } from './services/tools.js';
+import walletService from './services/wallet.js';
+import configService from './services/config.js';
 
 const app = express();
 
@@ -312,6 +314,113 @@ app.post('/api/tools/:name/toggle', (req, res) => {
   }
 });
 
+// ============================================
+// Wallet API
+// ============================================
+
+app.get('/api/wallet/status', (_req, res) => {
+  try {
+    const status = walletService.getStatus();
+    res.json(status);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to get wallet status';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get('/api/wallet/address', (_req, res) => {
+  try {
+    const address = walletService.getAddress();
+    if (!address) {
+      res.status(404).json({ error: 'No wallet found' });
+      return;
+    }
+    res.json({ address });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to get wallet address';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/wallet/create', async (req, res) => {
+  try {
+    const schema = z.object({
+      seedPhrase: z.string().optional(),
+    });
+    const { seedPhrase } = schema.parse(req.body);
+    const result = await walletService.createWallet(seedPhrase);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create wallet';
+    res.status(400).json({ error: message });
+  }
+});
+
+app.get('/api/wallet/mnemonic', (_req, res) => {
+  try {
+    const mnemonic = walletService.revealMnemonic();
+    if (!mnemonic) {
+      res.status(404).json({ error: 'No wallet found' });
+      return;
+    }
+    res.json({ mnemonic });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to reveal mnemonic';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.delete('/api/wallet', (_req, res) => {
+  try {
+    const result = walletService.deleteWallet();
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete wallet';
+    res.status(400).json({ error: message });
+  }
+});
+
+// ============================================
+// Config API
+// ============================================
+
+app.get('/api/config', (_req, res) => {
+  try {
+    const config = configService.get();
+    res.json(config);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to get config';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/config', (req, res) => {
+  try {
+    const schema = z.object({
+      suiRpc: z.string().optional(),
+      predictServer: z.string().optional(),
+    });
+    const updates = schema.parse(req.body);
+    const currentConfig = configService.get();
+    const newConfig = { ...currentConfig, ...updates };
+    const result = configService.save(newConfig);
+    res.json({ success: true, config: newConfig });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to save config';
+    res.status(400).json({ error: message });
+  }
+});
+
+app.post('/api/config/reset', (_req, res) => {
+  try {
+    const result = configService.reset();
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to reset config';
+    res.status(400).json({ error: message });
+  }
+});
+
 // Error handling middleware
 app.use((err, _req, res, _next) => {
   console.error('[Error]', err);
@@ -319,10 +428,15 @@ app.use((err, _req, res, _next) => {
 });
 
 // Start server
-export function startServer(port = PORT) {
+export async function startServer(port = PORT) {
+  // Initialize wallet on startup
+  await walletService.initialize();
+  
   return new Promise((resolve) => {
     app.listen(port, () => {
       console.log(`[Agent Node] HTTP API server running on http://localhost:${port}`);
+      const walletStatus = walletService.getStatus();
+      console.log(`[Agent Node] Wallet: ${walletStatus.address || 'not initialized'}`);
       resolve();
     });
   });

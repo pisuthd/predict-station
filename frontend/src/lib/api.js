@@ -203,6 +203,28 @@ export const api = {
       body: JSON.stringify({ enabled }),
     }),
   },
+  
+  // Wallet
+  wallet: {
+    status: () => fetchAPI('/wallet/status'),
+    address: () => fetchAPI('/wallet/address'),
+    create: (seedPhrase) => fetchAPI('/wallet/create', {
+      method: 'POST',
+      body: JSON.stringify({ seedPhrase }),
+    }),
+    mnemonic: () => fetchAPI('/wallet/mnemonic'),
+    delete: () => fetchAPI('/wallet', { method: 'DELETE' }),
+  },
+  
+  // Config
+  config: {
+    get: () => fetchAPI('/config'),
+    save: (data) => fetchAPI('/config', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    reset: () => fetchAPI('/config/reset', { method: 'POST' }),
+  },
 };
 
 export default api;
