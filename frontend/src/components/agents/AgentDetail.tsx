@@ -29,7 +29,7 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
   const [tools, setTools] = useState<{ name: string; enabled: boolean }[]>([])
   const [workspace, setWorkspace] = useState({ identityMd: '', coreMd: '', contextMd: '' })
   const [isCreatingSession, setIsCreatingSession] = useState(false)
-  
+
   // Chat modal state
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [chatSession, setChatSession] = useState('')
@@ -37,7 +37,7 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
   const [chatInput, setChatInput] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [streamingThinking, setStreamingThinking] = useState('')
-  
+
   // Ref to capture messages for saving
   const chatMessagesRef = useRef<ChatMessage[]>([])
   // Get current agent from the agents list
@@ -132,31 +132,31 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
 
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isGenerating) return
-    
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: chatInput.trim(),
       timestamp: new Date(),
     }
-    
+
     setChatMessages(prev => [...prev, userMessage])
     setChatInput('')
     setIsGenerating(true)
-    
+
     const assistantMessageId = (Date.now() + 1).toString()
     let currentThinking = ''
-    
+
     setChatMessages(prev => [
       ...prev,
       { id: assistantMessageId, role: 'assistant', content: '', thinking: '', timestamp: new Date() },
     ])
-    
+
     try {
       setStreamingThinking('')
       // Build history including the new user message
       const conversationHistory = [...chatMessages.map(m => ({ role: m.role, content: m.content })), { role: 'user' as const, content: userMessage.content }]
-      
+
       await api.chat(
         userMessage.content,
         conversationHistory,
@@ -194,7 +194,7 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
     } finally {
       setIsGenerating(false)
       setStreamingThinking('')
-      
+
       // Get latest messages from state to save
       try {
         // Use a ref or get current state - we need to read from the latest state
@@ -229,10 +229,10 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
   // Show back button if agent not found
   if (!currentAgent && agents.length > 0) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: NAVY, 
-        padding: '32px 48px 32px 224px' 
+      <div style={{
+        minHeight: '100vh',
+        background: NAVY,
+        padding: '32px 48px 32px 224px'
       }}>
         <div style={{
           background: 'rgba(255,255,255,0.02)',
@@ -267,10 +267,10 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: NAVY, 
-      padding: '32px 48px 32px 224px' 
+    <div style={{
+      minHeight: '100vh',
+      background: NAVY,
+      padding: '32px 48px 32px 224px'
     }}>
       {/* Header with back button */}
       <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -283,7 +283,7 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
             borderRadius: 6,
             fontFamily: monoFont,
             fontSize: 10,
-            color: MUTED,
+            color: CYAN,
             cursor: 'pointer',
           }}
         >
@@ -303,11 +303,11 @@ export default function AgentDetail({ agentSlug }: AgentDetailProps) {
       </div>
 
       {/* Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        gap: 0, 
+      <div style={{
+        display: 'flex',
+        gap: 0,
         borderBottom: '1px solid rgba(180,200,255,0.12)',
-        marginBottom: 20 
+        marginBottom: 20
       }}>
         {tabs.map(tab => (
           <button
