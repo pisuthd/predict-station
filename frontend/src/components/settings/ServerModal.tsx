@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { CYAN, NAVY, MUTED, monoFont, sansFont } from '../../theme'
 import { useApp } from '../../context/AppProvider'
 
@@ -9,7 +10,14 @@ interface ServerModalProps {
 }
 
 export default function ServerModal({ showServerModal, setShowServerModal }: ServerModalProps) {
-  const { connect, isConnecting, connectionError } = useApp()
+  const { connect, isConnecting, connectionError, step } = useApp()
+
+  // Close modal when connected
+  useEffect(() => {
+    if (step === 'connected' && showServerModal) {
+      setShowServerModal(false)
+    }
+  }, [step, showServerModal, setShowServerModal])
 
   if (!showServerModal) return null
 

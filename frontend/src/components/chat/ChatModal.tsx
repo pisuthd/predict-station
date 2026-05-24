@@ -166,13 +166,14 @@ export default function ChatModal({
           
           {messages.map((msg, index) => {
             const isLastAssistant = msg.role === 'assistant' && index === messages.length - 1
-            // Only show streaming thinking for the LAST assistant message during generation
-            const showStreamingThinking = isLastAssistant && isGenerating && streamingThinking.length > 0
+            // Show thinking: from streamingThinking (during generation) OR msg.thinking (persisted after)
+            const thinkingContent = isLastAssistant && isGenerating ? streamingThinking : (msg.thinking || '')
+            const showThinking = thinkingContent.length > 0
             
             return (
               <div key={msg.id}>
-                {/* Streaming thinking box - ONLY for last assistant message during generation */}
-                {showStreamingThinking && (
+                {/* Thinking box - shows during streaming OR persists from completed message */}
+                {showThinking && (
                   <div
                     style={{
                       display: 'flex',
@@ -195,7 +196,7 @@ export default function ChatModal({
                       }}
                     >
                       <span style={{ color: '#818cf8', fontStyle: 'normal', fontWeight: 600 }}>Thinking: </span>
-                      {streamingThinking}
+                      {thinkingContent}
                     </div>
                   </div>
                 )}

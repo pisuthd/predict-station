@@ -3,7 +3,6 @@
 import { AppProvider, useApp } from '../../context/AppProvider'
 import Sidebar from '../../components/sidebar/Sidebar'
 import TopNavBar from '../../components/TopNavBar'
-import ModelSelectorModal from '../../components/ModelSelectorModal'
 import LoadingScreenModal from '../../components/LoadingScreenModal'
 import { NAVY } from '../../theme'
 
@@ -25,8 +24,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       
-      {/* Modals based on step */}
-      {step === 'select-model' && <ModelSelectorModal />}
+      {/* Loading screen when model is loading */}
       {step === 'loading-model' && <LoadingScreenModal />}
     </div>
   )
