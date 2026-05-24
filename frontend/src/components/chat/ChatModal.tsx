@@ -167,7 +167,7 @@ export default function ChatModal({
           {messages.map((msg, index) => {
             const isLastAssistant = msg.role === 'assistant' && index === messages.length - 1;
             // Show streaming thinking OR persisted thinking from message
-            const thinkingContent = isLastAssistant ? streamingThinking : (msg.thinking || '');
+            const thinkingContent = streamingThinking || (msg.thinking || '');
             const hasThinking = thinkingContent.length > 0;
             
             return (

@@ -25,56 +25,7 @@ export default function Markets() {
           <strong style={{ fontWeight: 500 }}>Markets</strong>
         </h1>
       </div>
-
-      {/* Connection Status Card */}
-      <div style={{
-        background: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(180,200,255,0.12)',
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 12, height: 12,
-              borderRadius: '50%',
-              background: step === 'connected' ? '#22c55e' : 'rgba(255,100,100,0.8)',
-            }} />
-            <div>
-              <p style={{ fontFamily: monoFont, fontSize: 11, color: '#fff', margin: 0, fontWeight: 600 }}>
-                {step === 'connected' ? 'Connected to Agent Node' : 'Not Connected'}
-              </p>
-              {step === 'connected' && (
-                <p style={{ fontFamily: monoFont, fontSize: 10, color: MUTED, marginTop: 2 }}>
-                  {serverUrl}
-                </p>
-              )}
-            </div>
-          </div>
-          {step !== 'connected' && (
-            <button
-              onClick={() => router.push('/')}
-              style={{
-                padding: '8px 16px',
-                background: CYAN,
-                border: 'none',
-                borderRadius: 6,
-                fontFamily: monoFont,
-                fontSize: 10,
-                fontWeight: 600,
-                color: NAVY,
-                cursor: 'pointer',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Connect Now
-            </button>
-          )}
-        </div>
-      </div>
+ 
 
       {/* Placeholder Content */}
       <div style={{

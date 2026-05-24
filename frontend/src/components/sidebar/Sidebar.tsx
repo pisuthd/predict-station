@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation'
 import { CYAN, NAVY, monoFont, sansFont } from '../../theme'
 import { useApp } from '../../context/AppProvider'
 
-type NavItem = 'dashboard' | 'agents' | 'markets' | 'settings'
+type NavItem = 'dashboard' | 'agents' | 'markets' | 'analytics' | 'settings'
 
 const navItems: { id: NavItem; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'agents', label: 'Agents' },
   { id: 'markets', label: 'Markets' },
+  { id: 'analytics', label: 'Analytics' },
   { id: 'settings', label: 'Settings' },
 ]
 
@@ -56,7 +57,7 @@ export default function Sidebar() {
           }}
         >
           <p style={{ fontFamily: monoFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', color: CYAN, margin: 0 }}>
-            <span style={{ color: '#fff' }}>Predict</span> Station
+            <span style={{ color: '#fff' }}>Predict</span>Up
           </p>
         </div>
 

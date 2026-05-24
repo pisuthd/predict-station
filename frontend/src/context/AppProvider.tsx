@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react'
 import { api } from '../lib/api'
 
+// Types
 interface Agent {
   slug: string
   name: string
@@ -15,101 +16,172 @@ interface Session {
   createdAt: string
 }
 
-interface AppState {
-  step: 'select-model' | 'loading-model' | 'connected' | 'disconnected'
+type Step = 'select-model' | 'loading-model' | 'connected' | 'disconnected'
+
+interface State {
+  step: Step
   serverUrl: string
-  connect: (url: string) => void
-  disconnect: () => void
   agents: Agent[]
   selectedAgent: string
-  setSelectedAgent: (slug: string) => void
-  refreshAgents: () => void
   sessions: Session[]
   selectedSession: string
-  setSelectedSession: (slug: string) => void
-  refreshSessions: (agentSlug: string) => void
   selectedModel: string
-  setSelectedModel: (model: string) => void
-  setStep: (step: 'select-model' | 'loading-model' | 'connected' | 'disconnected') => void
-  setModelLoaded: (loaded: boolean) => void
   activeNav: string
+}
+
+type Action =
+  | { type: 'SET_STEP'; payload: Step }
+  | { type: 'CONNECT'; payload: string }
+  | { type: 'DISCONNECT' }
+  | { type: 'SET_AGENTS'; payload: Agent[] }
+  | { type: 'SET_SELECTED_AGENT'; payload: string }
+  | { type: 'SET_SESSIONS'; payload: Session[] }
+  | { type: 'SET_SELECTED_SESSION'; payload: string }
+  | { type: 'SET_SELECTED_MODEL'; payload: string }
+  | { type: 'SET_ACTIVE_NAV'; payload: string }
+  | { type: 'MODEL_LOADED' }
+
+// Initial State
+const initialState: State = {
+  step: 'disconnected',
+  serverUrl: 'http://localhost:3001',
+  agents: [],
+  selectedAgent: 'main',
+  sessions: [],
+  selectedSession: 'main',
+  selectedModel: '',
+  activeNav: 'dashboard',
+}
+
+// Reducer
+function appReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SET_STEP':
+      return { ...state, step: action.payload }
+    case 'CONNECT':
+      return { ...state, serverUrl: action.payload, step: 'select-model' }
+    case 'DISCONNECT':
+      return { ...state, step: 'disconnected', selectedModel: '' }
+    case 'SET_AGENTS':
+      return { ...state, agents: action.payload }
+    case 'SET_SELECTED_AGENT':
+      return { ...state, selectedAgent: action.payload }
+    case 'SET_SESSIONS':
+      return { ...state, sessions: action.payload }
+    case 'SET_SELECTED_SESSION':
+      return { ...state, selectedSession: action.payload }
+    case 'SET_SELECTED_MODEL':
+      return { ...state, selectedModel: action.payload }
+    case 'SET_ACTIVE_NAV':
+      return { ...state, activeNav: action.payload }
+    case 'MODEL_LOADED':
+      return { ...state, step: 'connected' }
+    default:
+      return state
+  }
+}
+
+// Context
+interface AppState extends State {
+  connect: (url: string) => void
+  disconnect: () => void
+  refreshAgents: () => Promise<void>
+  refreshSessions: (agentSlug: string) => Promise<void>
+  setSelectedAgent: (slug: string) => void
+  setSelectedSession: (slug: string) => void
+  setSelectedModel: (model: string) => void
+  setStep: (step: Step) => void
+  setModelLoaded: (loaded: boolean) => void
   setActiveNav: (nav: string) => void
 }
 
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [step, setStep] = useState<'select-model' | 'loading-model' | 'connected' | 'disconnected'>('disconnected')
-  const [serverUrl, setServerUrl] = useState('http://localhost:3001')
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [selectedAgent, setSelectedAgent] = useState('main')
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [selectedSession, setSelectedSession] = useState('main')
-  const [selectedModel, setSelectedModel] = useState('')
-  const [activeNav, setActiveNav] = useState('dashboard')
+  const [state, dispatch] = useReducer(appReducer, initialState)
 
-  const connect = (url: string) => {
-    setServerUrl(url)
-    setStep('select-model')
-  }
+  const connect = useCallback((url: string) => {
+    dispatch({ type: 'CONNECT', payload: url })
+  }, [])
 
-  const disconnect = () => {
-    setStep('disconnected')
-    setSelectedModel('')
-  }
+  const disconnect = useCallback(() => {
+    dispatch({ type: 'DISCONNECT' })
+  }, [])
 
-  const refreshAgents = async () => {
+  const refreshAgents = useCallback(async () => {
     try {
       const data = await api.agents.list()
-      setAgents(data)
-      if (data.length > 0 && !data.find((a: Agent) => a.slug === selectedAgent)) {
-        setSelectedAgent(data[0].slug)
+      dispatch({ type: 'SET_AGENTS', payload: data })
+      if (data.length > 0 && !data.find((a: Agent) => a.slug === state.selectedAgent)) {
+        dispatch({ type: 'SET_SELECTED_AGENT', payload: data[0].slug })
       }
     } catch (err) {
       console.error('Failed to fetch agents:', err)
     }
-  }
+  }, [state.selectedAgent])
 
-  const refreshSessions = async (agentSlug: string) => {
+  const refreshSessions = useCallback(async (agentSlug: string) => {
     try {
       const data = await api.agents.listSessions(agentSlug)
-      setSessions(data)
-      if (data.length > 0 && !data.find((s: Session) => s.slug === selectedSession)) {
-        setSelectedSession(data[0].slug)
+      dispatch({ type: 'SET_SESSIONS', payload: data })
+      if (data.length > 0 && !data.find((s: Session) => s.slug === state.selectedSession)) {
+        dispatch({ type: 'SET_SELECTED_SESSION', payload: data[0].slug })
       }
     } catch (err) {
       console.error('Failed to fetch sessions:', err)
     }
-  }
+  }, [state.selectedSession])
 
-  const setModelLoaded = (loaded: boolean) => {
+  const setSelectedAgent = useCallback((slug: string) => {
+    dispatch({ type: 'SET_SELECTED_AGENT', payload: slug })
+  }, [])
+
+  const setSelectedSession = useCallback((slug: string) => {
+    dispatch({ type: 'SET_SELECTED_SESSION', payload: slug })
+  }, [])
+
+  const setSelectedModel = useCallback((model: string) => {
+    dispatch({ type: 'SET_SELECTED_MODEL', payload: model })
+  }, [])
+
+  const setStep = useCallback((step: Step) => {
+    dispatch({ type: 'SET_STEP', payload: step })
+  }, [])
+
+  const setModelLoaded = useCallback((loaded: boolean) => {
     if (loaded) {
-      setStep('connected')
+      dispatch({ type: 'MODEL_LOADED' })
       refreshAgents()
     }
+  }, [refreshAgents])
+
+  const setActiveNav = useCallback((nav: string) => {
+    dispatch({ type: 'SET_ACTIVE_NAV', payload: nav })
+  }, [])
+
+  // Refresh agents when connected
+  useEffect(() => {
+    if (state.step === 'connected') {
+      refreshAgents()
+    }
+  }, [state.step, refreshAgents])
+
+  const value: AppState = {
+    ...state,
+    connect,
+    disconnect,
+    refreshAgents,
+    refreshSessions,
+    setSelectedAgent,
+    setSelectedSession,
+    setSelectedModel,
+    setStep,
+    setModelLoaded,
+    setActiveNav,
   }
 
   return (
-    <AppContext.Provider value={{
-      step,
-      serverUrl,
-      connect,
-      disconnect,
-      agents,
-      selectedAgent,
-      setSelectedAgent,
-      refreshAgents,
-      sessions,
-      selectedSession,
-      setSelectedSession,
-      refreshSessions,
-      selectedModel,
-      setSelectedModel,
-      setStep,
-      setModelLoaded,
-      activeNav,
-      setActiveNav,
-    }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   )
