@@ -336,3 +336,30 @@ const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 if (isMainModule) {
   startServer();
 }
+
+// ============================================
+// Graceful Shutdown - Unload Model on Exit
+// ============================================
+
+async function gracefulShutdown(signal) {
+  console.log(`\n[Agent Node] Received ${signal}, shutting down gracefully...`);
+  
+  // Unload model if loaded
+  try {
+    const status = aiService.getStatus();
+    if (status.isReady) {
+      console.log('[Agent Node] Unloading model...');
+      await aiService.unloadModel();
+      console.log('[Agent Node] Model unloaded successfully');
+    }
+  } catch (error) {
+    console.error('[Agent Node] Failed to unload model:', error);
+  }
+  
+  console.log('[Agent Node] Goodbye!');
+  process.exit(0);
+}
+
+// Handle SIGINT (Ctrl+C) and SIGTERM
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
