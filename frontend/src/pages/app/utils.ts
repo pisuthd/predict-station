@@ -167,3 +167,22 @@ export const formatCountdown = (expiryMs: number): string => {
   if (m > 0) return `${m}m`
   return `${s}s`
 }
+
+// Format countdown with days: "18d 0h 16m"
+export const formatCountdownFull = (expiryMs: number): string => {
+  const diff = expiryMs - Date.now()
+  if (diff <= 0) return 'Ended'
+  const s = Math.floor(diff / 1000)
+  const d = Math.floor(s / 86400)
+  const remainingAfterDays = s % 86400
+  const h = Math.floor(remainingAfterDays / 3600)
+  const m = Math.floor((remainingAfterDays % 3600) / 60)
+  
+  if (d > 0) {
+    return `${d}d ${h}h ${m}m`
+  }
+  if (h > 0) {
+    return `${h}h ${m}m`
+  }
+  return `${m}m`
+}

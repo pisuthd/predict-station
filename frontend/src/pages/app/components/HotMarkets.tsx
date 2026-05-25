@@ -1,11 +1,11 @@
 'use client'
 
-import { type Market, formatUSD, formatCountdown, formatCompact } from '../utils'
+import { type Market, formatUSD, formatCountdownFull, formatCompact } from '../utils'
 
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 const WHITE = '#ffffff'
-const MUTED = '#666666'
+const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
 
 interface HotMarketsProps {
@@ -21,6 +21,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
+      overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
@@ -29,15 +30,20 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        flexShrink: 0,
       }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>HOT MARKETS</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>ACTIVE MARKETS</span>
         <span style={{ fontSize: 10, color: CYAN }}>
           {vaultValue ? formatCompact(vaultValue) + ' TVL' : '—'}
         </span>
       </div>
 
-      {/* Markets list */}
-      <div style={{ flex: 1 }}>
+      {/* Markets list - scrollable */}
+      <div style={{ 
+        flex: 1,
+        overflowY: 'auto',
+        minHeight: 0, // Important for flex overflow
+      }}>
         {markets.map((m, i) => {
           const odds = m.odds
           const spot = m.spot / 1e9
@@ -64,7 +70,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
                   BTC {strike > spot ? '>' : '<'} {formatUSD(strike)}
                 </div>
                 <div style={{ fontSize: 10, color: MUTED }}>
-                  {formatCountdown(m.expiryMs)}
+                  {formatCountdownFull(m.expiryMs)}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -87,6 +93,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
         borderTop: '1px solid rgba(255,255,255,0.08)',
         fontSize: 11,
         color: MUTED,
+        flexShrink: 0,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>Active Markets</span>
