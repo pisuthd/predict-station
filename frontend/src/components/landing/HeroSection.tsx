@@ -1,10 +1,8 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { CYAN, monoFont } from '../../theme'
 
 export default function HeroSection() {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   return (
     <div
@@ -46,7 +44,7 @@ export default function HeroSection() {
 
         <p
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '16px',
             color: 'rgba(180,200,255,0.6)',
             lineHeight: 1.6,
@@ -59,7 +57,7 @@ export default function HeroSection() {
         {/* CTA Buttons */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => router.push('/app')}
+            onClick={() => navigate('/app')}
             style={{
               padding: '12px 28px',
               background: CYAN,

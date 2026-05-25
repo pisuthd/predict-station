@@ -1,10 +1,8 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { CYAN, monoFont } from '../../theme'
+import { useNavigate } from 'react-router-dom'
+import { CYAN } from '../../theme'
 
 export default function FooterCTA() {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   return (
     <div
@@ -18,7 +16,7 @@ export default function FooterCTA() {
     >
       <h2
         style={{
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: "'DM Sans', sans-serif",
           fontSize: '28px',
           fontWeight: 300,
           color: '#fff',
@@ -29,14 +27,14 @@ export default function FooterCTA() {
       </h2>
 
       <button
-        onClick={() => router.push('/app')}
+        onClick={() => navigate('/app')}
         style={{
           padding: '16px 48px',
           background: 'rgba(255,255,255,0.04)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(180,200,255,0.12)',
           borderRadius: 16,
-          fontFamily: monoFont,
+          fontFamily: "'Space Mono', monospace",
           fontSize: 14,
           fontWeight: 700,
           color: CYAN,

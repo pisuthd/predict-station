@@ -1,6 +1,4 @@
-'use client'
-
-import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, type ReactNode } from 'react'
 import { api } from '../lib/api'
 
 // Types
@@ -16,7 +14,7 @@ interface Session {
   createdAt: string
 }
 
-type Step = 'loading-model' | 'connected' | 'disconnected'
+type Step = 'connected' | 'disconnected'
 
 interface State {
   step: Step
@@ -25,7 +23,6 @@ interface State {
   selectedAgent: string
   sessions: Session[]
   selectedSession: string
-  selectedModel: string
   activeNav: string
   connectionError: string | null
   isConnecting: boolean
@@ -41,9 +38,7 @@ type Action =
   | { type: 'SET_SELECTED_AGENT'; payload: string }
   | { type: 'SET_SESSIONS'; payload: Session[] }
   | { type: 'SET_SELECTED_SESSION'; payload: string }
-  | { type: 'SET_SELECTED_MODEL'; payload: string }
   | { type: 'SET_ACTIVE_NAV'; payload: string }
-  | { type: 'MODEL_LOADED' }
 
 // Initial State
 const initialState: State = {
@@ -53,7 +48,6 @@ const initialState: State = {
   selectedAgent: 'main',
   sessions: [],
   selectedSession: 'main',
-  selectedModel: '',
   activeNav: 'dashboard',
   connectionError: null,
   isConnecting: false,
@@ -67,12 +61,11 @@ function appReducer(state: State, action: Action): State {
     case 'CONNECT':
       return { ...state, serverUrl: action.payload, isConnecting: true, connectionError: null }
     case 'CONNECT_SUCCESS':
-      // Will check model status via useEffect
-      return { ...state, isConnecting: false }
+      return { ...state, step: 'connected', isConnecting: false }
     case 'CONNECT_ERROR':
       return { ...state, step: 'disconnected', isConnecting: false, connectionError: action.payload }
     case 'DISCONNECT':
-      return { ...state, step: 'disconnected', selectedModel: '', connectionError: null }
+      return { ...state, step: 'disconnected', connectionError: null }
     case 'SET_AGENTS':
       return { ...state, agents: action.payload }
     case 'SET_SELECTED_AGENT':
@@ -81,12 +74,8 @@ function appReducer(state: State, action: Action): State {
       return { ...state, sessions: action.payload }
     case 'SET_SELECTED_SESSION':
       return { ...state, selectedSession: action.payload }
-    case 'SET_SELECTED_MODEL':
-      return { ...state, selectedModel: action.payload }
     case 'SET_ACTIVE_NAV':
       return { ...state, activeNav: action.payload }
-    case 'MODEL_LOADED':
-      return { ...state, step: 'connected' }
     default:
       return state
   }
@@ -100,9 +89,7 @@ interface AppState extends State {
   refreshSessions: (agentSlug: string) => Promise<void>
   setSelectedAgent: (slug: string) => void
   setSelectedSession: (slug: string) => void
-  setSelectedModel: (model: string) => void
   setStep: (step: Step) => void
-  setModelLoaded: (loaded: boolean) => void
   setActiveNav: (nav: string) => void
 }
 
@@ -119,7 +106,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Small delay to let state update
       await new Promise(resolve => setTimeout(resolve, 100))
       const response = await api.health()
-      if (response.status === 'ok') {
+      if ((response as { status?: string }).status === 'ok') {
         dispatch({ type: 'CONNECT_SUCCESS' })
       } else {
         dispatch({ type: 'CONNECT_ERROR', payload: 'Server returned invalid response' })
@@ -166,44 +153,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_SELECTED_SESSION', payload: slug })
   }, [])
 
-  const setSelectedModel = useCallback((model: string) => {
-    dispatch({ type: 'SET_SELECTED_MODEL', payload: model })
-  }, [])
-
   const setStep = useCallback((step: Step) => {
     dispatch({ type: 'SET_STEP', payload: step })
   }, [])
 
-  const setModelLoaded = useCallback((loaded: boolean) => {
-    if (loaded) {
-      dispatch({ type: 'MODEL_LOADED' })
-      refreshAgents()
-    }
-  }, [refreshAgents])
-
   const setActiveNav = useCallback((nav: string) => {
     dispatch({ type: 'SET_ACTIVE_NAV', payload: nav })
   }, [])
-
-  // Check model status when connection completes
-  useEffect(() => {
-    // Trigger when isConnecting becomes false (connection completed)
-    if (!state.isConnecting && state.serverUrl) {
-      const checkModelStatus = async () => {
-        try {
-          const status = await api.models.status()
-          if (status.isReady) {
-            dispatch({ type: 'MODEL_LOADED' })
-          } else {
-            dispatch({ type: 'SET_STEP', payload: 'loading-model' })
-          }
-        } catch (err) {
-          console.error('Failed to check model status:', err)
-        }
-      }
-      checkModelStatus()
-    }
-  }, [state.isConnecting, state.serverUrl])
 
   // Refresh agents when connected
   useEffect(() => {
@@ -220,9 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshSessions,
     setSelectedAgent,
     setSelectedSession,
-    setSelectedModel,
     setStep,
-    setModelLoaded,
     setActiveNav,
   }
 

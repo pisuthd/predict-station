@@ -1,7 +1,5 @@
-'use client'
-
 import { useState, useEffect, useRef } from 'react'
-import { CYAN, monoFont } from '../../theme'
+import { CYAN } from '../../theme'
 
 const models = [
   { name: 'Qwen3.2-1.6B', desc: 'Lightweight & Fast' },
@@ -47,7 +45,7 @@ export default function SupportedModels() {
       <div style={{ maxWidth: 1200, margin: '0 auto', marginBottom: '32px' }}>
         <p
           style={{
-            fontFamily: monoFont,
+            fontFamily: "'Space Mono', monospace",
             fontSize: '11px',
             letterSpacing: '0.18em',
             color: CYAN,
@@ -59,7 +57,7 @@ export default function SupportedModels() {
         </p>
         <h2
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '24px',
             fontWeight: 400,
             color: '#fff',
@@ -97,7 +95,7 @@ export default function SupportedModels() {
           >
             <span
               style={{
-                fontFamily: monoFont,
+                fontFamily: "'Space Mono', monospace",
                 fontSize: '16px',
                 fontWeight: 700,
                 color: CYAN,
@@ -108,7 +106,7 @@ export default function SupportedModels() {
             </span>
             <span
               style={{
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: "'DM Sans', sans-serif",
                 fontSize: '13px',
                 color: 'rgba(180,200,255,0.6)',
               }}

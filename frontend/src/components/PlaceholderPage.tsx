@@ -1,5 +1,3 @@
-'use client'
-
 import { NAVY, MUTED, monoFont, sansFont } from '../theme'
 
 interface PlaceholderPageProps {

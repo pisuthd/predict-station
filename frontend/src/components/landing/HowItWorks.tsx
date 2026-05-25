@@ -1,6 +1,4 @@
-'use client'
-
-import { CYAN, monoFont } from '../../theme'
+import { CYAN } from '../../theme'
 
 const steps = [
   {
@@ -33,7 +31,7 @@ export default function HowItWorks() {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <p
           style={{
-            fontFamily: monoFont,
+            fontFamily: "'Space Mono', monospace",
             fontSize: '11px',
             letterSpacing: '0.18em',
             color: CYAN,
@@ -46,7 +44,7 @@ export default function HowItWorks() {
 
         <h2
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '32px',
             fontWeight: 300,
             color: '#fff',
@@ -68,7 +66,7 @@ export default function HowItWorks() {
             <div key={index}>
               <div
                 style={{
-                  fontFamily: monoFont,
+                  fontFamily: "'Space Mono', monospace",
                   fontSize: '48px',
                   fontWeight: 700,
                   color: CYAN,
@@ -79,7 +77,7 @@ export default function HowItWorks() {
               </div>
               <h3
                 style={{
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: '18px',
                   fontWeight: 600,
                   color: '#fff',
@@ -90,7 +88,7 @@ export default function HowItWorks() {
               </h3>
               <p
                 style={{
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: '14px',
                   color: 'rgba(180,200,255,0.6)',
                   lineHeight: 1.5,
