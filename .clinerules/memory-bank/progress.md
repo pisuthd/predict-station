@@ -11,29 +11,36 @@
   - Tools API (list, toggle)
   - SSE progress endpoint for model loading
 - Frontend API Client (`frontend/src/lib/api.js`)
-- Next.js routing:
-  - `/` - Landing page
-  - `/app` - App flow (ServerSelector → ModelSelector → Dashboard)
 - Landing page with all sections
 - App flow with floating sidebar + TopNavBar
-- ModelSelector with progress tracking via SSE
-- LoadingScreen with real progress updates
 - Git repository with commits
+
+## Frontend Routing ✅ (Updated)
+- **Hybrid routing** (Option A):
+  - `/app/page.tsx` → Dashboard, Settings, Markets, Analytics (content switch via activeNav)
+  - `/app/agents/page.tsx` → AgentSelector (separate route)
+  - `/app/agents/[slug]/page.tsx` → AgentDetail (dynamic route)
+- Sidebar syncs with pathname via useEffect
+- No separate routes for Dashboard/Settings/Markets/Analytics
 
 ## App Layout ✅
 ```
-/app (Loading) → /app (Main)
-  - Sidebar always visible (floating left, glassmorphism)
-  - TopNavBar floating at top-right (CONNECT WALLET button)
-  - Dashboard / Agents / Markets / Settings via sidebar navigation
+/app (Main Content via activeNav)
+├── Dashboard (default)
+├── Settings
+├── Markets
+├── Analytics
+└── /app/agents (separate route)
+    ├── AgentSelector (list)
+    └── AgentDetail (/:slug)
 ```
 
-## Agents Page ✅
-- Agent dropdown selector (shows "main (default)" suffix)
-- Tabs: Overview | Sessions
-- Create agent button with glass modal
-- Sessions tab with create/delete sessions
-- Chat modal with streaming response + thinking display
+## AppProvider State ✅
+- `activeNav` - current sidebar navigation
+- `agents` - list of agents
+- `selectedAgent` - current agent slug
+- `sessions` - sessions for current agent
+- `step` - 'connected' | 'disconnected'
 
 ## Chat Modal ✅
 - Glassmorphism design (blur backdrop)
@@ -42,6 +49,17 @@
 - Purple/blue thinking bubble with "Thinking:" label
 - Auto-scroll when content updates
 - Enter to send, input disabled during generation
+
+## Settings Page ✅
+Refactored into 8 separate components:
+- NodeConfigTab - Node configuration + status + connect button
+- WalletTab - Wallet status + reveal seed phrase
+- ModelTab - AI model type + temperature
+- DataTab - Export/Import/Clear buttons
+- NotificationsTab - Toggle switch
+- ServerModal - Server selection with connection error display
+- RevealModal - Seed phrase reveal with CONFIRM validation
+- Settings.tsx - Main component (tabs + layout)
 
 ## Data Storage ✅
 - Cross-platform: `~/.predict-station/agents/{agent}/sessions/{session}/`
@@ -52,7 +70,6 @@
 - [ ] QVAC SDK integration (backend only, via @qvac/sdk)
 - [ ] Prediction market integration
 - [ ] Wallet connection functionality
-- [ ] Markets page implementation
 - [ ] Leaderboard page implementation
 - [ ] Sui-specific tools implementation
 
@@ -71,27 +88,19 @@ predict-station/
 │       ├── sessions.js  # Session CRUD
 │       └── tools.js     # Tools registry
 └── frontend/            # Next.js app
-    ├── src/
-    │   ├── app/         # App Router pages
-    │   ├── components/  # React components
-    │   ├── lib/         # API client
-    │   ├── pages/       # Page components
-    │   └── theme.ts     # Design tokens
-    └── package.json
+    └── src/
+        ├── app/         # App Router pages
+        │   └── app/    # App section routes
+        │       ├── layout.tsx
+        │       ├── page.tsx       # Single route with content switch
+        │       └── agents/
+        │           ├── page.tsx   # Agent list
+        │           └── [slug]/page.tsx # Agent detail
+        ├── components/  # React components
+        ├── context/     # AppProvider
+        ├── lib/         # API client
+        └── theme.ts     # Design tokens
 ```
-
-## Migration Status
-✅ Landing page completed with all sections
-✅ App layout with floating sidebar + TopNavBar
-✅ ModelSelector with SSE progress tracking
-✅ LoadingScreen with real progress updates
-✅ HTTP API backend with Express (port 3001)
-✅ pnpm workspace configuration
-✅ Agents page with dropdown + tabs + chat modal
-✅ Streaming thinking display (inside chat)
-✅ Cross-platform data storage (~/predict-station)
-✅ Sidebar with activeNav state management
-✅ Glassmorphism styling throughout
 
 ## Known Issues
 - Next.js 14.2.0 has a security vulnerability - consider upgrading

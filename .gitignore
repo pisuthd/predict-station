@@ -10,6 +10,7 @@ build/
 # Next.js
 frontend/.next/
 frontend/out/
+frontend-next/
 
 # Production
 frontend/coverage/
