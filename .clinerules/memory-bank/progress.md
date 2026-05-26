@@ -5,45 +5,49 @@
 - CLI with commands (`npm run start`)
 - Git repository with commits
 
-## Predict Station Dashboard ✅ (New)
-New dashboard at `/app/page.tsx` showing real-time prediction markets from DeepBook Predict protocol.
+## LocalBook Landing Page ✅
 
-### Dashboard Layout
+### Landing Page Structure
 ```
-Left Column (Fixed):              Right Column (Scrollable):
-[Question: Will BTC be above...]   [ACTIVE MARKETS header]
-[in 45m]                          [#1 BTC > $77,290 — 18d 0h 16m — 52%]
-[PriceChart with Live Forward]    [#2 BTC > $76,800 — 19d 2h 10m — 51%]
-                                  [... more markets ...]
-                                  [Active Markets: 5]
+frontend/src/pages/
+├── Landing.tsx
+└── components/landing/
+    ├── HeroSection.tsx      # "Mission Control for DeepBook" + CTA
+    ├── SupportedModels.tsx  # Animated Qwen model banner
+    ├── KeyFeatures.tsx      # "Why Traders Choose LocalBook" (6 features)
+    ├── HowItWorks.tsx       # 3 Simple Steps
+    ├── LocalBookDesktop.tsx # "Your Personal AI Trading Team"
+    ├── FooterCTA.tsx        # "Ready to Trade Smarter on Sui Finance?"
+    └── index.ts
 ```
 
-### Components
-- **page.tsx** - Main dashboard with question + chart
-- **PriceChart.tsx** - Real-time price chart with forward/ATM target
-- **HotMarkets.tsx** - Scrollable list of active markets (renamed from HotMarkets)
-- **useMarkets.ts** - Hook for fetching markets from API
-- **useMarketPrices.ts** - Hook for real-time price history
-- **utils.ts** - Formatting helpers (formatUSD, formatCountdownFull, etc.)
+### Sections
+1. **Hero** - Mission Control for DeepBook, TRY INTERFACE + DOWNLOAD APP
+2. **Supported Models** - Animated scrolling banner with Qwen models
+3. **Key Features** - "Why Traders Choose LocalBook" (6 features grid)
+4. **How It Works** - 3 Simple Steps
+5. **LocalBook Desktop** - "Your Personal AI Trading Team" (5 capabilities)
+6. **Footer CTA** - "Ready to Trade Smarter on Sui Finance?" + 2 buttons
 
-### Key Features
-- Live Forward price with pulse animation
-- ATM Target (At-The-Money strike) displayed
-- Time format: "18d 0h 16m" (days, hours, minutes)
-- Muted color: `rgba(180,200,255,0.6)`
-- Loading indicator with pulsing cyan dot
-- Market selection persists on click
+### Footer CTA Buttons
+- "Download LocalBook Desktop Now" (primary cyan)
+- "Try the Web Interface →" (secondary outline)
+- "No signup required for web interface • Desktop app is completely free"
 
-### API Integration
-- Connects to `https://predict-server.testnet.mystenlabs.com`
-- Fetches oracles, prices, and SVI parameters
-- Real-time price history with 1s updates
+## DeepBook Integration ✅
+- Supports Spot, Margin, and Predict markets
+- DeepBook is the protocol, LocalBook is the platform
 
 ## What's Left to Build 🚧
 - [ ] QVAC SDK integration (backend only, via @qvac/sdk)
 - [ ] Wallet connection functionality
+- [ ] Trade buttons functionality
 - [ ] Leaderboard page implementation
-- [ ] Sui-specific tools implementation
+- [ ] Download app functionality
+
+## Known Issues
+- Next.js 14.2.0 has a security vulnerability - consider upgrading
+- QVAC SDK to be integrated separately (backend only)
 
 ## Project Structure
 ```
@@ -51,24 +55,16 @@ predict-station/
 ├── package.json          # Root CLI package
 ├── pnpm-workspace.yaml   # pnpm workspaces config
 ├── .clinerules/          # Memory Bank
-└── frontend/             # Vite + React app
-    └── src/
-        ├── pages/
-        │   ├── Landing.tsx
-        │   └── app/
-        │       ├── page.tsx        # Dashboard
-        │       ├── components/
-        │       │   ├── PriceChart.tsx
-        │       │   ├── HotMarkets.tsx
-        │       │   └── ...
-        │       └── utils.ts
-        ├── hooks/
-        │   ├── useMarkets.ts
-        │   ├── useMarketPrices.ts
-        │   └── ...
-        └── theme.ts
-```
-
-## Known Issues
-- Next.js 14.2.0 has a security vulnerability - consider upgrading
-- QVAC SDK to be integrated separately (backend only)
+├── frontend/             # Vite + React landing page
+│   └── src/
+│       ├── pages/
+│       │   └── Landing.tsx
+│       └── components/landing/
+│           ├── HeroSection.tsx
+│           ├── SupportedModels.tsx
+│           ├── KeyFeatures.tsx
+│           ├── HowItWorks.tsx
+│           ├── LocalBookDesktop.tsx
+│           ├── FooterCTA.tsx
+│           └── index.ts
+└── src/                  # CLI server + app

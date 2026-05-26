@@ -1,28 +1,34 @@
 import { CYAN } from '../../theme'
 
-const steps = [
+const benefits = [
   {
     number: '01',
-    title: 'Download & Connect',
-    description: 'Install LocalBook desktop app and connect your Sui wallet.',
+    title: 'Shared Revenue',
+    description: 'Every trade through your integration generates revenue. From day one.',
   },
   {
     number: '02',
-    title: 'Deploy Agents',
-    description: 'Create or use pre-built AI agents specialized for Spot, Margin, or Predict.',
+    title: 'Deep Liquidity',
+    description: "Tap into Sui's deepest order book the moment you integrate. No bootstrapping.",
   },
   {
     number: '03',
-    title: 'Trade with Intelligence',
-    description: 'Let agents analyze markets and send trade suggestions to your web interface for approval and execution.',
+    title: 'Native Composability',
+    description: 'Combine primitives in a single transaction. One call, multiple capabilities.',
+  },
+  {
+    number: '04',
+    title: 'Lightning Settlement',
+    description: '~390ms settlement finality. Transactions at Sui speed.',
   },
 ]
 
-export default function HowItWorks() {
+export default function WhyDeepBook() {
   return (
     <div
       style={{
         padding: '80px 56px',
+        background: 'rgba(0,0,0,0.2)',
         position: 'relative',
         zIndex: 10,
       }}
@@ -38,7 +44,7 @@ export default function HowItWorks() {
             marginBottom: '16px',
           }}
         >
-          How It Works
+          Why DeepBook
         </p>
 
         <h2
@@ -51,17 +57,17 @@ export default function HowItWorks() {
             lineHeight: 1.2,
           }}
         >
-          <strong style={{ fontWeight: 500 }}>3</strong> simple steps
+          Why builders choose <strong style={{ fontWeight: 500, color: CYAN }}>DeepBook</strong>
         </h2>
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '32px',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '48px 64px',
           }}
         >
-          {steps.map((step, index) => (
+          {benefits.map((benefit, index) => (
             <div key={index}>
               <div
                 style={{
@@ -72,7 +78,7 @@ export default function HowItWorks() {
                   marginBottom: '16px',
                 }}
               >
-                {step.number}
+                {benefit.number}
               </div>
               <h3
                 style={{
@@ -83,7 +89,7 @@ export default function HowItWorks() {
                   marginBottom: '8px',
                 }}
               >
-                {step.title}
+                {benefit.title}
               </h3>
               <p
                 style={{
@@ -93,7 +99,7 @@ export default function HowItWorks() {
                   lineHeight: 1.5,
                 }}
               >
-                {step.description}
+                {benefit.description}
               </p>
             </div>
           ))}

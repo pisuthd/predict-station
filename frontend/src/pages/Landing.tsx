@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CYAN, NAVY, monoFont } from '../theme'
 import OrbCanvas from '../components/OrbCanvas'
-import { HeroSection, SupportedModels, HowItWorks, FooterCTA } from '../components/landing'
+import { HeroSection, SupportedModels, KeyFeatures, HowItWorks, LocalBookDesktop, FooterCTA } from '../components/landing'
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -82,7 +82,7 @@ export default function Landing() {
                 margin: 0,
               }}
             >
-              <span style={{ color: '#fff' }}>Predict</span>Up
+              <span style={{ color: '#fff' }}>Local</span>Book
             </p>
 
             {/* Enter App Button */}
@@ -119,7 +119,9 @@ export default function Landing() {
         {/* Sections */}
         <HeroSection />
         <SupportedModels />
+        <KeyFeatures />
         <HowItWorks />
+        <LocalBookDesktop />
         <FooterCTA />
 
         {/* Footer */}
@@ -144,8 +146,8 @@ export default function Landing() {
 
               }}
             >
-              <span style={{ color: '#fff' }}>Predict</span>
-              <span style={{ color: CYAN, fontWeight: 700, }}>Up</span>
+              <span style={{ color: '#fff' }}>Local</span>
+              <span style={{ color: CYAN, fontWeight: 700, }}>Book</span>
               {` `}© 2026
             </p>
             <div style={{ display: 'flex', gap: '24px' }}>

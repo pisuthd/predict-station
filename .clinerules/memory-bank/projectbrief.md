@@ -1,24 +1,54 @@
-# Predict Station - Project Brief
+# LocalBook - Project Brief
 
 ## Overview
-Predict Station is a prediction platform that migrated from an Electron app to a Next.js-based architecture.
+LocalBook is a platform to deploy local AI agents to trade on DeepBook (Sui blockchain). The project pivoted from Predict Station to support all DeepBook products: Spot, Margin, and Predict.
+
+## Brand
+- **LocalBook** - Private Local AI for DeepBook on Sui
+- Slogan: "Mission Control for DeepBook"
+- Website: Landing page with web interface + desktop app
 
 ## Project Structure
 ```
 predict-station/
-├── package.json    # NPM CLI package (published as predict-station)
-├── src/
-│   └── cli.js      # CLI entry point
-└── frontend/      # Next.js web application
+├── frontend/           # Vite + React landing page (LocalBook)
+│   └── src/
+│       ├── pages/Landing.tsx
+│       └── components/landing/
+│           ├── HeroSection.tsx
+│           ├── SupportedModels.tsx
+│           ├── KeyFeatures.tsx
+│           ├── HowItWorks.tsx
+│           ├── LocalBookDesktop.tsx
+│           ├── FooterCTA.tsx
+│           └── index.ts
+└── src/                # CLI server + app (Express + React)
+    ├── server.js       # Express HTTP API server (port 3001)
+    ├── cli.js          # CLI entry point
+    └── app/            # App pages (Chat, Dashboard, Sessions, etc.)
 ```
 
-## Core Goals
-1. CLI tool at root level for easy NPM publishing (`npx predict-station`)
-2. Migrate the existing Electron app into the Next.js frontend
-3. Keep the CLI minimal - focus primarily on frontend development
+## Landing Page Sections
+1. Hero - "Mission Control for DeepBook"
+2. Supported Models - Animated Qwen model banner
+3. Key Features - "Why Traders Choose LocalBook" (6 features)
+4. How It Works - 3 Simple Steps
+5. LocalBook Desktop - "Your Personal AI Trading Team"
+6. Footer CTA - "Ready to Trade Smarter on Sui Finance?"
+
+## DeepBook Products
+- **Spot** - Sui's canonical onchain order book
+- **Margin** - Leveraged positions with real-time risk monitoring
+- **Predict** - Binary & Range markets with implied probabilities
 
 ## Key Decisions
-- CLI at root with package.json and src/cli.js
-- Frontend in separate frontend/ folder
-- CLI uses Node.js 18+ with commander and chalk for styling
-- Frontend uses Next.js 14, React 18, TypeScript, and Tailwind CSS
+- Landing page in frontend/ (Vite + React)
+- CLI app in src/ (Express + React)
+- LocalBook brand for all user-facing content
+- DeepBook protocol for blockchain integration
+
+## Tech Stack
+- Frontend: Vite, React, TypeScript, Framer Motion
+- CLI App: Express, React 18
+- Fonts: Space Mono, DM Sans
+- Colors: Cyan (#3EC4C0), Navy (#0a0a1a)

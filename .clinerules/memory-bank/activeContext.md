@@ -1,66 +1,59 @@
 # Active Context
 
 ## Current Work Focus
-Frontend routing migration - consolidated to single `/app` route with content switching.
+Landing page redesign - pivoted from Predict Station to LocalBook, supporting all DeepBook products (Spot, Margin, Predict).
 
-## Frontend Routing (Option A - Hybrid)
+## Brand: LocalBook
+- Slogan: "Private Local AI for DeepBook on Sui"
+- Platform to deploy local AI agents to trade on DeepBook
+
+## Landing Page Structure
 ```
-/app/app/
-├── layout.tsx         ← TopNavBar + Sidebar wrapper
-├── page.tsx           ← Dashboard, Settings, Markets, Analytics (content switch)
-└── agents/
-    ├── page.tsx       ← AgentSelector (separate route)
-    └── [slug]/page.tsx ← AgentDetail (dynamic route)
+frontend/src/pages/
+├── Landing.tsx
+└── components/landing/
+    ├── HeroSection.tsx      # "Mission Control for DeepBook" + CTA
+    ├── SupportedModels.tsx  # Animated Qwen model banner
+    ├── KeyFeatures.tsx      # "Why Traders Choose LocalBook" (6 features)
+    ├── HowItWorks.tsx       # 3 Simple Steps
+    ├── LocalBookDesktop.tsx  # "Your Personal AI Trading Team"
+    ├── FooterCTA.tsx        # "Ready to Trade Smarter on Sui Finance?"
+    └── index.ts
 ```
 
-## Sidebar Navigation
-- **Dashboard/Settings/Markets/Analytics** → `router.push('/app')` + `setActiveNav(id)`
-- **Agents** → `router.push('/app/agents')` + `setActiveNav('agents')`
-- **Pathname Sync**: useEffect syncs activeNav with pathname
+## Landing Page CTA
+- Hero: TRY INTERFACE + DOWNLOAD APP
+- Footer CTA: "Download LocalBook Desktop Now" + "Try the Web Interface →"
+- Small text: "No signup required for web interface • Desktop app is completely free"
+
+## Architecture
+```
+predict-station/
+├── frontend/          # Landing page (Vite + React)
+└── src/               # CLI with full app (express + react)
+    ├── server.js      # Express server
+    ├── cli.js         # CLI entry
+    └── app/           # App pages (Chat, Dashboard, Sessions, etc.)
+```
+
+## Color Theme
+- Primary: Cyan (#3EC4C0)
+- Background: Navy (#0a0a1a)
+- Accent: Blue/cyan gradients
+- Sidebar: dark surface with cyan highlights
 
 ## Key Patterns
-- Glassmorphism styling: `backdropFilter: blur(20px)`, `rgba(255,255,255,0.04)`
-- Cyan (#3EC4C0) accent color
-- Mono font for labels, Sans font for body
-- activeNav state from AppProvider for sidebar
-- step state: 'loading-model' | 'connected' | 'disconnected'
+- Inline styles (no Tailwind in CLI app)
+- Space Mono font for monospace text
+- Glassmorphism effects: blur, semi-transparent backgrounds
+- Cyan accent color for active states and highlights
 
-## Recent Changes
-- Migrated from separate routes (dashboard, settings, agents, etc.) to single `/app` route
-- Sidebar now uses router.push for Dashboard/Settings/Markets/Analytics + useEffect for pathname sync
-- Agents have separate routes: `/app/agents` (list) and `/app/agents/:slug` (detail)
-- `/pages/` directory deleted (legacy page components)
-- `/components/onboarding/` directory deleted
+## CLI Commands
+- `npm run dev` - Start frontend dev server (landing page)
+- `pnpm dev:server` - Start CLI server + app
 
-## Chat Modal Fixes
-- **Double thinking box**: Fixed - only shows for last assistant message during generation
-- **Thinking persists**: Fixed - clears when stream ends (`isGenerating` = false)
-- **Messages persist**: Fixed - saves to backend via `api.sessions.saveMessages()` after response
-
-## Connection Error Display
-Both ConnectNodeModal and ServerModal show connection errors:
-```jsx
-{connectionError && (
-  <div style={{ padding: 10, background: 'rgba(255,100,100,0.15)', ... }}>
-    ⚠️ {connectionError}
-  </div>
-)}
-```
-
-## Settings Page Structure
-```
-Settings/
-├── NodeConfigTab.tsx    # Node configuration inputs
-├── WalletTab.tsx        # Wallet status + reveal seed
-├── ModelTab.tsx         # AI model type + temperature
-├── DataTab.tsx          # Export/Import/Clear buttons
-├── NotificationsTab.tsx # Toggle switch
-├── ServerModal.tsx      # Server selection modal
-├── RevealModal.tsx      # Seed phrase reveal modal
-└── Settings.tsx         # Main component (tabs + layout)
-```
-
-## API Endpoints for Chat
-- `POST /api/chat` - SSE streaming (tokens, thinking, done)
-- `GET /api/sessions/:agentSlug/:sessionSlug` - Load messages
-- `POST /api/sessions/:agentSlug/:sessionSlug/messages` - Save messages
+## Flow
+1. User opens `http://localhost:5173` → Landing page
+2. Click "Try Interface" → Redirects to app at /app
+3. Click "Download Desktop" → Download installer
+4. CLI app shows main menu with sidebar navigation

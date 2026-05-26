@@ -1,8 +1,40 @@
 import { useNavigate } from 'react-router-dom'
 import { CYAN, monoFont } from '../../theme'
+import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+
+const products = ['Predict', 'Spot', 'Margin']
 
 export default function HeroSection() {
   const navigate = useNavigate()
+  const [productIndex, setProductIndex] = useState(0)
+  const [displayText, setDisplayText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    const currentProduct = products[productIndex]
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (displayText.length < currentProduct.length) {
+          setDisplayText(currentProduct.slice(0, displayText.length + 1))
+        } else {
+          // Pause at full word, then start deleting
+          setTimeout(() => setIsDeleting(true), 5000)
+        }
+      } else {
+        // Deleting
+        if (displayText.length > 0) {
+          setDisplayText(displayText.slice(0, -1))
+        } else {
+          setIsDeleting(false)
+          setProductIndex((prev) => (prev + 1) % products.length)
+        }
+      }
+    }, isDeleting ? 50 : 100)
+
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, productIndex])
 
   return (
     <div
@@ -13,7 +45,7 @@ export default function HeroSection() {
         alignItems: 'center',
       }}
     >
-      <div style={{ maxWidth: '560px' }}>
+      <div style={{ maxWidth: '600px' }}>
         <p
           style={{
             fontSize: '11px',
@@ -35,11 +67,32 @@ export default function HeroSection() {
             letterSpacing: '-0.02em',
             lineHeight: 1.1,
             marginBottom: '24px',
+            minHeight: '120px',
           }}
         >
           <strong style={{ fontWeight: 500 }}>Mission Control</strong>
           <br />
-          for DeepBook Predict
+          <span>for DeepBook</span>
+          {` `}
+          <motion.span
+            style={{
+              display: 'inline-block',
+              color: '#fff',
+              // fontWeight: 600,
+              minWidth: '120px'
+            }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.1 }}
+          >
+            {displayText}
+            <motion.span
+              animate={{ opacity: [1, 0] }}
+              transition={{ repeat: Infinity, duration: 0.5 }}
+              style={{ marginLeft: '2px' }}
+            >
+              |
+            </motion.span>
+          </motion.span>
         </h1>
 
         <p
@@ -51,7 +104,7 @@ export default function HeroSection() {
             marginBottom: '40px',
           }}
         >
-           Deploy local AI agents to monitor, analyze, and trade on DeepBook Predict. Everything runs privately on your device.
+          Deploy local AI agents to monitor, analyze, and trade on Sui Finance via DeepBook — no API costs, and runs entirely on your device.
         </p>
 
         {/* CTA Buttons */}
@@ -78,7 +131,7 @@ export default function HeroSection() {
               e.currentTarget.style.background = CYAN
             }}
           >
-            GET STARTED
+            TRY INTERFACE
           </button>
 
           <button
@@ -103,7 +156,7 @@ export default function HeroSection() {
               e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
             }}
           >
-            LEARN MORE
+            DOWNLOAD APP
           </button>
         </div>
       </div>

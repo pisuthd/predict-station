@@ -1,19 +1,25 @@
 # Product Context
 
 ## Why This Project Exists
-Predict Station is a prediction/forecasting platform that helps users make data-driven predictions. The project was originally built as an Electron desktop application and is being migrated to a modern web stack.
+**LocalBook** is a platform that helps traders deploy local AI agents to trade on DeepBook products (Spot, Margin, Predict) on Sui blockchain. Everything runs privately on the user's device.
 
 ## Problems It Solves
-- Provides an interface for creating and managing predictions
-- Allows users to visualize prediction data
-- Supports AI-powered forecasting capabilities
+- Provides a unified interface for trading on all DeepBook markets (Spot, Margin, Predict)
+- Allows users to deploy AI agents that run locally (no usage fees, maximum privacy)
+- Supports Sui wallet integration for quick access
+- Offers desktop app for running AI agents 24/7
 
 ## Target Users
-- Data analysts and scientists
-- Business users making forecasts
-- Anyone needing a prediction/forecasting tool
+- DeFi traders on Sui blockchain
+- Users who want privacy when trading
+- Traders who want AI assistance without cloud dependencies
+
+## Brand
+- **LocalBook** - Local AI agents for DeepBook trading
+- Slogan: "Private Local AI for DeepBook on Sui"
 
 ## User Experience Goals
-- Clean, modern interface using Next.js App Router
+- Clean, modern glassmorphism interface
 - Fast and responsive web experience
-- Easy to use CLI for quick project setup
+- Easy onboarding with Sui wallet
+- Simple desktop app for local AI agents

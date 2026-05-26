@@ -7,7 +7,7 @@ export default function FooterCTA() {
   return (
     <div
       style={{
-        padding: '64px 56px',
+        padding: '80px 56px',
         textAlign: 'center',
         borderTop: '1px solid rgba(180,200,255,0.08)',
         position: 'relative',
@@ -17,42 +17,79 @@ export default function FooterCTA() {
       <h2
         style={{
           fontFamily: "'DM Sans', sans-serif",
-          fontSize: '28px',
-          fontWeight: 300,
+          fontSize: '32px',
+          fontWeight: 400,
           color: '#fff',
-          marginBottom: '24px',
+          marginBottom: '32px',
         }}
       >
-        Ready to start your <strong style={{ fontWeight: 500 }}>mission</strong>?
+        Ready to Trade Smarter on <strong style={{ fontWeight: 500 }}>Sui Finance</strong>?
       </h2>
 
-      <button
-        onClick={() => navigate('/app')}
+      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '16px' }}>
+        <button
+          style={{
+            padding: '16px 32px',
+            background: CYAN,
+            border: 'none',
+            borderRadius: 12,
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 14,
+            fontWeight: 700,
+            color: '#000',
+            cursor: 'pointer',
+            letterSpacing: '0.05em',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(62,196,192,0.8)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = CYAN
+          }}
+        >
+          Download Now
+        </button>
+
+        <button
+          onClick={() => navigate('/app')}
+          style={{
+            padding: '16px 32px',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(180,200,255,0.12)',
+            borderRadius: 12,
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 14,
+            fontWeight: 700,
+            color: '#fff',
+            cursor: 'pointer',
+            letterSpacing: '0.05em',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.borderColor = 'rgba(62,196,192,0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+            e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+          }}
+        >
+          Try the Interface →
+        </button>
+      </div>
+
+      <p
         style={{
-          padding: '16px 48px',
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(180,200,255,0.12)',
-          borderRadius: 16,
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 14,
-          fontWeight: 700,
-          color: CYAN,
-          cursor: 'pointer',
-          letterSpacing: '0.1em',
-          transition: 'all 0.3s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(62,196,192,0.15)'
-          e.currentTarget.style.borderColor = 'rgba(62,196,192,0.25)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-          e.currentTarget.style.borderColor = 'rgba(180,200,255,0.12)'
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '13px',
+          color: 'rgba(180,200,255,0.5)',
+          margin: 0,
         }}
       >
-        LAUNCH APP →
-      </button>
+        No signup required for web interface • Desktop app is completely free
+      </p>
     </div>
   )
 }
