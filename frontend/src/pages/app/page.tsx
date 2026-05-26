@@ -14,9 +14,7 @@ export default function Dashboard() {
   const { markets, vault, loading, error } = useMarkets(30_000)
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
 
-  // State for selected market - starts at 0 (first market)
   const [selectedIdx, setSelectedIdx] = useState(0)
-  
   const selected = activeMarkets[selectedIdx]
 
   return (
@@ -29,7 +27,7 @@ export default function Dashboard() {
     }}>
       <div style={{ display: 'flex', height: '100vh' }}>
 
-        {/* Left Column - Fixed/Static */}
+        {/* Left Column */}
         <div style={{
           flex: 1,
           paddingRight: 24,
@@ -38,63 +36,51 @@ export default function Dashboard() {
           borderRight: '1px solid rgba(255,255,255,0.08)',
           overflow: 'hidden',
         }}>
-          {/* Question Header - only show when data is loaded */}
-          {!loading && selected && (
-            <div style={{
-              paddingTop: 32,
-              paddingBottom: 16,
-              flexShrink: 0,
-            }}>
-              <h1 style={{ 
-                fontSize: 20, 
-                fontWeight: 700, 
-                color: WHITE, 
-                margin: 0,
-                fontFamily: "'Space Mono', monospace",
-                lineHeight: 1.3,
-              }}>
-                Will {selected.asset} be above ${selected.odds?.strikeK?.toLocaleString()}?
-              </h1>
-              <div style={{ 
-                fontSize: 12, 
-                color: MUTED, 
-                marginTop: 8,
-                fontFamily: "'Space Mono', monospace",
-              }}>
-                {getExpiryText(selected)}
-              </div>
+          {/* Header Row - 2 columns */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            paddingTop: 32,
+            paddingBottom: 20,
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            gap: 24,
+          }}>
+            {/* Left: Product Info */}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, color: MUTED, margin: 0, lineHeight: 1.4 }}>
+                Expiry-based prediction markets on Sui
+              </p>
             </div>
-          )}
+
+            {/* Right: Market Summary */}
+            {!loading && selected && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: WHITE, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                  Will {selected.asset} be above ${selected.odds?.strikeK?.toLocaleString()}?
+                  <img 
+                    src="https://assets.coingecko.com/coins/images/1/standard/bitcoin.png?1696501400" 
+                    alt="BTC" 
+                    width={16} 
+                    height={16}
+                    style={{ borderRadius: '50%', flexShrink: 0 }}
+                  />
+                </div>
+                <div style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>
+                  in {getExpiryText(selected)}
+                </div>
+              </div>
+            )}
+          </div>
 
           {error && (
             <div style={{ color: '#ef4444', padding: 16 }}>⚠ {error}</div>
           )}
 
           {loading ? (
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: MUTED,
-              fontFamily: "'Space Mono', monospace",
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: 8,
-                height: 8,
-                background: CYAN,
-                borderRadius: '50%',
-                marginRight: 12,
-                animation: 'pulse 1s ease-in-out infinite',
-              }} />
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
+              <span style={{ width: 8, height: 8, background: CYAN, borderRadius: '50%', marginRight: 12, animation: 'pulse 1s ease-in-out infinite' }} />
               Loading...
-              <style>{`
-                @keyframes pulse {
-                  0%, 100% { opacity: 1; transform: scale(1); }
-                  50% { opacity: 0.4; transform: scale(0.8); }
-                }
-              `}</style>
+              <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }`}</style>
             </div>
           ) : selected ? (
             <PriceChart
@@ -102,25 +88,15 @@ export default function Dashboard() {
               strike={selected.odds?.strikeK ?? 0}
             />
           ) : (
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: MUTED
-            }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
               No active markets
             </div>
           )}
         </div>
 
-        {/* Right Column - Scrollable Active Markets */}
-        <div style={{
-          width: 360,
-          paddingLeft: 24,
-          overflow: 'hidden',
-        }}>
-          <HotMarkets
+        {/* Right Column - Hot Markets */}
+        <div style={{ width: 360, paddingLeft: 24, overflow: 'hidden' }}>
+          <HotMarkets 
             markets={activeMarkets}
             selectedIndex={selectedIdx}
             onSelect={setSelectedIdx}
@@ -133,22 +109,25 @@ export default function Dashboard() {
 }
 
 /**
- * Format expiry time into human-readable text
- * e.g., "in 5m" or "in 2h 30m"
+ * Format expiry time into detailed countdown
+ * Shows largest unit + next smaller unit (no seconds)
+ * e.g., "4d 2h", "1h 15m", "12m"
  */
 function getExpiryText(market: Market): string {
   const diff = market.expiryMs - Date.now()
+  if (diff <= 0) return 'soon'
   
-  if (diff <= 0) {
-    return 'in soon'
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(m / 60)
+  const d = Math.floor(h / 24)
+  
+  if (d > 0) {
+    const remainingH = h % 24
+    return remainingH > 0 ? `${d}d ${remainingH}h` : `${d}d`
   }
-  
-  const s = Math.floor(diff / 1000)
-  const h = Math.floor(s / 3600)
-  const m = Math.floor((s % 3600) / 60)
-  
   if (h > 0) {
-    return `in ${h}h ${m}m`
+    const remainingM = m % 60
+    return remainingM > 0 ? `${h}h ${remainingM}m` : `${h}h`
   }
-  return `in ${m}m`
+  return `${m}m`
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { type Market, formatUSD, formatCountdownFull, formatCompact } from '../utils'
+import { type Market, formatUSD } from '../utils'
 
 const GREEN = '#22c55e'
 const RED = '#ef4444'
@@ -15,6 +15,30 @@ interface HotMarketsProps {
   vaultValue: number | null
 }
 
+/**
+ * Format expiry time into detailed countdown
+ * Shows largest unit + next smaller unit (no seconds)
+ * e.g., "4d 2h", "1h 15m", "12m"
+ */
+function formatDetailedExpiry(expiryMs: number): string {
+  const diff = expiryMs - Date.now()
+  if (diff <= 0) return 'soon'
+  
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(m / 60)
+  const d = Math.floor(h / 24)
+  
+  if (d > 0) {
+    const remainingH = h % 24
+    return remainingH > 0 ? `${d}d ${remainingH}h` : `${d}d`
+  }
+  if (h > 0) {
+    const remainingM = m % 60
+    return remainingM > 0 ? `${h}h ${remainingM}m` : `${h}h`
+  }
+  return `${m}m`
+}
+
 export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: HotMarketsProps) {
   return (
     <div style={{
@@ -23,7 +47,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
       height: '100%',
       overflow: 'hidden',
     }}>
-      {/* Header */}
+      {/* Header with BTC icon */}
       <div style={{
         padding: '32px 0 16px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -32,7 +56,16 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
         alignItems: 'center',
         flexShrink: 0,
       }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>ACTIVE MARKETS</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img 
+            src="https://assets.coingecko.com/coins/images/1/standard/bitcoin.png?1696501400" 
+            alt="BTC" 
+            width={18} 
+            height={18}
+            style={{ borderRadius: '50%' }}
+          />
+          <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>ACTIVE MARKETS</span>
+        </div>
         <span style={{ fontSize: 10, color: CYAN }}>
           {vaultValue ? formatCompact(vaultValue) + ' TVL' : '—'}
         </span>
@@ -42,7 +75,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
       <div style={{ 
         flex: 1,
         overflowY: 'auto',
-        minHeight: 0, // Important for flex overflow
+        minHeight: 0,
       }}>
         {markets.map((m, i) => {
           const odds = m.odds
@@ -70,7 +103,7 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
                   BTC {strike > spot ? '>' : '<'} {formatUSD(strike)}
                 </div>
                 <div style={{ fontSize: 10, color: MUTED }}>
-                  {formatCountdownFull(m.expiryMs)}
+                  {formatDetailedExpiry(m.expiryMs)}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -102,4 +135,10 @@ export function HotMarkets({ markets, selectedIndex, onSelect, vaultValue }: Hot
       </div>
     </div>
   )
+}
+
+function formatCompact(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return value.toFixed(0)
 }

@@ -1,59 +1,59 @@
 # Active Context
 
 ## Current Work Focus
-Landing page redesign - pivoted from Predict Station to LocalBook, supporting all DeepBook products (Spot, Margin, Predict).
+Dashboard redesign - simplified header with 2-column layout showing product info + market question.
 
-## Brand: LocalBook
-- Slogan: "Private Local AI for DeepBook on Sui"
-- Platform to deploy local AI agents to trade on DeepBook
-
-## Landing Page Structure
+## Dashboard Header Layout
 ```
-frontend/src/pages/
-├── Landing.tsx
-└── components/landing/
-    ├── HeroSection.tsx      # "Mission Control for DeepBook" + CTA
-    ├── SupportedModels.tsx  # Animated Qwen model banner
-    ├── KeyFeatures.tsx      # "Why Traders Choose LocalBook" (6 features)
-    ├── HowItWorks.tsx       # 3 Simple Steps
-    ├── LocalBookDesktop.tsx  # "Your Personal AI Trading Team"
-    ├── FooterCTA.tsx        # "Ready to Trade Smarter on Sui Finance?"
-    └── index.ts
+Left Column (Fixed):              Right Column:
+[Tagline: Expiry-based...]       [Question: Will BTC be above $76,546? [BTC]]
+                                [in 4d 2h]
 ```
 
-## Landing Page CTA
-- Hero: TRY INTERFACE + DOWNLOAD APP
-- Footer CTA: "Download LocalBook Desktop Now" + "Try the Web Interface →"
-- Small text: "No signup required for web interface • Desktop app is completely free"
+### Header Components
+- **Left column**: Tagline only ("Expiry-based prediction markets on Sui")
+- **Right column**: 
+  - Line 1: Question with BTC icon at end
+  - Line 2: Expiry countdown ("in 4d 2h")
+- No network dropdown
+- No UP/DOWN odds in header
 
-## Architecture
-```
-predict-station/
-├── frontend/          # Landing page (Vite + React)
-└── src/               # CLI with full app (express + react)
-    ├── server.js      # Express server
-    ├── cli.js         # CLI entry
-    └── app/           # App pages (Chat, Dashboard, Sessions, etc.)
-```
+### PriceChart Component
+- **LIVE indicator**: Pulsing cyan dot + "LIVE 2m" badge (top-left)
+- **Right side labels** (compact, color-coded):
+  - `$76,468 FORWARD` (white text) + InfoTooltip
+  - `$76,290 STRIKE` (cyan text) + InfoTooltip
+  - `+$178 +0.23% DISTANCE` (green/red based on positive/negative)
+- **InfoTooltip component**: Hover info icon (?) showing explanations
+- **Strike line**: Cyan dashed reference line on chart
 
-## Color Theme
-- Primary: Cyan (#3EC4C0)
-- Background: Navy (#0a0a1a)
-- Accent: Blue/cyan gradients
-- Sidebar: dark surface with cyan highlights
+### Time Format (detailed, no seconds)
+- Uses detailed format: `4d 2h`, `1h 15m`, `12m`
+- Shows largest unit + next smaller unit (no seconds)
+- Same format in both left header and HotMarkets list
+
+## HotMarkets (Right Column)
+- BTC icon next to "ACTIVE MARKETS" header
+- Scrollable list of active markets
+- Selected market highlighted
+- Detailed time format (4d 2h, 1h 15m, 12m)
+
+## Recent Changes
+- Added LIVE indicator to PriceChart (pulsing cyan dot + "LIVE 2m")
+- Added InfoTooltip component for forward/strike explanations
+- Changed labels: SPOT → FORWARD, FORWARD → STRIKE
+- Added distance display (+$178, +0.23%)
+- Updated header to 2-column layout with tagline + market summary
+- Added BTC icon to question line and HotMarkets header
+- Enhanced time format to show more detail (no seconds)
 
 ## Key Patterns
-- Inline styles (no Tailwind in CLI app)
-- Space Mono font for monospace text
-- Glassmorphism effects: blur, semi-transparent backgrounds
-- Cyan accent color for active states and highlights
+- Glassmorphism styling: `backdropFilter: blur(20px)`, `rgba(255,255,255,0.04)`
+- Cyan (#3EC4C0) accent color
+- Mono font (`Space Mono`) for labels
+- BTC icon: `https://assets.coingecko.com/coins/images/1/standard/bitcoin.png?1696501400`
 
-## CLI Commands
-- `npm run dev` - Start frontend dev server (landing page)
-- `pnpm dev:server` - Start CLI server + app
-
-## Flow
-1. User opens `http://localhost:5173` → Landing page
-2. Click "Try Interface" → Redirects to app at /app
-3. Click "Download Desktop" → Download installer
-4. CLI app shows main menu with sidebar navigation
+## API Integration
+- Connects to `https://predict-server.testnet.mystenlabs.com`
+- Fetches oracles, prices, and SVI parameters
+- Real-time price history with 1s updates
