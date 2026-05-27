@@ -4,9 +4,9 @@ import { CYAN, monoFont, sansFont, MUTED } from '../../theme'
 import ConnectWallet from './ConnectWallet'
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', path: '/dashboard' },
+  // { id: 'dashboard', label: 'Dashboard', path: '/dashboard' },
   { id: 'spot', label: 'Spot', path: '/spot' },
-  { id: 'margin', label: 'Margin', path: '/margin', disabled: true },
+  { id: 'margin', label: 'Margin', path: '/margin' },
   { id: 'predict', label: 'Predict', path: '/predict' },
 ]
 
@@ -36,7 +36,6 @@ export default function Navbar() {
   }
 
   const handleNavClick = (item: typeof navItems[0]) => {
-    if (item.disabled) return
     navigate(item.path)
   }
 
@@ -104,30 +103,29 @@ export default function Navbar() {
             alignItems: 'center',
             flex: 1,
             justifyContent: 'center',
-            gap: 4,
+            gap: 12,
           }}
         >
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavClick(item)}
-              disabled={item.disabled}
               style={{
                 padding: '8px 14px',
-                background: isActive(item.path) && !item.disabled ? 'rgba(62,196,192,0.15)' : 'transparent',
-                border: isActive(item.path) && !item.disabled ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
+                background: isActive(item.path) ? 'rgba(62,196,192,0.15)' : 'transparent',
+                border: isActive(item.path) ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
                 borderRadius: 10,
-                cursor: item.disabled ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {
-                if (!item.disabled && !isActive(item.path)) {
+                if (!isActive(item.path)) {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
                 }
               }}
               onMouseLeave={(e) => {
-                if (!item.disabled && !isActive(item.path)) {
+                if (!isActive(item.path)) {
                   e.currentTarget.style.background = 'transparent'
                 }
               }}
@@ -136,8 +134,8 @@ export default function Navbar() {
                 style={{
                   fontFamily: sansFont,
                   fontSize: 14,
-                  fontWeight: isActive(item.path) && !item.disabled ? 600 : 400,
-                  color: item.disabled ? 'rgba(180,200,255,0.3)' : (isActive(item.path) ? CYAN : 'rgba(180,200,255,0.6)'),
+                  fontWeight: isActive(item.path) ? 600 : 400,
+                  color: isActive(item.path) ? CYAN : 'rgba(180,200,255,0.6)',
                   letterSpacing: '0.02em',
                 }}
               >
