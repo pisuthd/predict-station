@@ -25,7 +25,7 @@ export default function Dashboard() {
       fontFamily: "'Space Mono', monospace",
       padding: '0 24px',
     }}>
-      <div style={{ display: 'flex', height: '100vh' }}>
+      <div style={{ display: 'flex', height: '100vh', paddingLeft: 24 }}>
 
         {/* Left Column */}
         <div style={{
