@@ -89,7 +89,6 @@ export default function Landing() {
             <p
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                // fontFamily: "'Space Mono', monospace",
                 fontSize: 12,
                 color: 'rgba(180,200,255,0.5)',
                 margin: 0,

@@ -1,0 +1,81 @@
+.connect-wallet {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Style the connect button to match nav items - for both disconnected and connected */
+mysten-dapp-kit-connect-button {
+  --primary: #3EC4C0;
+  --primary-foreground: #000; 
+  --border: rgba(180, 200, 255, 0.12);
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: rgba(180, 200, 255, 0.6);
+  --popover: rgba(3, 6, 58, 0.95);
+  --popover-foreground: #fff;
+  --radius: 10px;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-weight-medium: 400;
+  --font-weight-semibold: 600;
+  --font-size: 12px;
+}
+
+/* Wallet address when connected */
+.wallet-address {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(180, 200, 255, 0.6);
+  letter-spacing: 0.02em;
+}
+
+/* Wallet dropdown */
+.wallet-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: rgba(3, 6, 58, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(180, 200, 255, 0.12);
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 140px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 200;
+}
+
+.wallet-dropdown-item {
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: rgba(180, 200, 255, 0.8);
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.wallet-dropdown-item:hover {
+  color: #3EC4C0;
+}
+
+/* Wallet modal theme overrides */
+mysten-dapp-kit-connect-modal {
+  --primary: #3EC4C0;
+  --primary-foreground: #000;
+  --background: rgba(3, 6, 58, 0.95);
+  --foreground: #fff;
+  --border: rgba(180, 200, 255, 0.12);
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: rgba(180, 200, 255, 0.6);
+  --popover: rgba(3, 6, 58, 0.95);
+  --popover-foreground: #fff;
+  --radius: 10px;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+}

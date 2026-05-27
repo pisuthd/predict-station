@@ -41,11 +41,11 @@ export default function HeroSection() {
       style={{
         flex: 1,
         display: 'flex',
-        padding: '0 56px',
+        padding: '3rem 56px',
         alignItems: 'center',
       }}
     >
-      <div style={{ maxWidth: '600px' }}>
+       <div style={{ maxWidth: 1200, flex : 1, margin: '0 auto'  }}>
         <p
           style={{
             fontSize: '11px',
@@ -78,7 +78,6 @@ export default function HeroSection() {
             style={{
               display: 'inline-block',
               color: '#fff',
-              // fontWeight: 600,
               minWidth: '120px'
             }}
             animate={{ opacity: 1 }}
@@ -102,6 +101,7 @@ export default function HeroSection() {
             color: 'rgba(180,200,255,0.6)',
             lineHeight: 1.6,
             marginBottom: '40px',
+            maxWidth: "600px"
           }}
         >
           Deploy local AI agents to monitor, analyze, and trade on Sui Finance via DeepBook — no API costs, and runs entirely on your device.

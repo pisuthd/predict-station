@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { CYAN, monoFont, sansFont, MUTED } from '../../theme'
+import ConnectWallet from './ConnectWallet'
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', path: '/app' },
-  { id: 'spot', label: 'Spot', path: '/app/spot' },
-  { id: 'margin', label: 'Margin', path: '/app/margin' },
-  { id: 'predict', label: 'Predict', path: '/app' },
+  { id: 'dashboard', label: 'Dashboard', path: '/dashboard' },
+  { id: 'spot', label: 'Spot', path: '/spot' },
+  { id: 'margin', label: 'Margin', path: '/margin', disabled: true },
+  { id: 'predict', label: 'Predict', path: '/predict' },
 ]
 
 const moreItems = [
@@ -17,12 +18,12 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [showMore, setShowMore] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const moreDropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (moreDropdownRef.current && !moreDropdownRef.current.contains(event.target as Node)) {
         setShowMore(false)
       }
     }
@@ -31,10 +32,12 @@ export default function Navbar() {
   }, [])
 
   const isActive = (path: string) => {
-    if (path === '/app') {
-      return location.pathname === '/app' || location.pathname === '/app/'
-    }
-    return location.pathname.startsWith(path)
+    return location.pathname === path || location.pathname.startsWith(path + '/')
+  }
+
+  const handleNavClick = (item: typeof navItems[0]) => {
+    if (item.disabled) return
+    navigate(item.path)
   }
 
   return (
@@ -107,23 +110,24 @@ export default function Navbar() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item)}
+              disabled={item.disabled}
               style={{
                 padding: '8px 14px',
-                background: isActive(item.path) ? 'rgba(62,196,192,0.15)' : 'transparent',
-                border: isActive(item.path) ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
+                background: isActive(item.path) && !item.disabled ? 'rgba(62,196,192,0.15)' : 'transparent',
+                border: isActive(item.path) && !item.disabled ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
                 borderRadius: 10,
-                cursor: 'pointer',
+                cursor: item.disabled ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {
-                if (!isActive(item.path)) {
+                if (!item.disabled && !isActive(item.path)) {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
                 }
               }}
               onMouseLeave={(e) => {
-                if (!isActive(item.path)) {
+                if (!item.disabled && !isActive(item.path)) {
                   e.currentTarget.style.background = 'transparent'
                 }
               }}
@@ -131,9 +135,9 @@ export default function Navbar() {
               <span
                 style={{
                   fontFamily: sansFont,
-                  fontSize: 12,
-                  fontWeight: isActive(item.path) ? 600 : 400,
-                  color: isActive(item.path) ? CYAN : 'rgba(180,200,255,0.6)',
+                  fontSize: 14,
+                  fontWeight: isActive(item.path) && !item.disabled ? 600 : 400,
+                  color: item.disabled ? 'rgba(180,200,255,0.3)' : (isActive(item.path) ? CYAN : 'rgba(180,200,255,0.6)'),
                   letterSpacing: '0.02em',
                 }}
               >
@@ -143,7 +147,7 @@ export default function Navbar() {
           ))}
 
           {/* More Dropdown */}
-          <div style={{ position: 'relative' }} ref={dropdownRef}>
+          <div style={{ position: 'relative' }} ref={moreDropdownRef}>
             <button
               onClick={() => setShowMore(!showMore)}
               style={{
@@ -172,9 +176,9 @@ export default function Navbar() {
               <span
                 style={{
                   fontFamily: sansFont,
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: 400,
-                  color: MUTED,
+                  color: 'rgba(180,200,255,0.6)',
                   letterSpacing: '0.02em',
                 }}
               >
@@ -232,13 +236,13 @@ export default function Navbar() {
                       borderRadius: 8,
                       cursor: 'pointer',
                       textDecoration: 'none',
-                      transition: 'all 0.2s ease',
+                      transition: 'color 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(62,196,192,0.1)'
+                      e.currentTarget.style.color = CYAN
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = 'rgba(180,200,255,0.8)'
                     }}
                   >
                     <svg
@@ -255,8 +259,9 @@ export default function Navbar() {
                     <span
                       style={{
                         fontFamily: sansFont,
-                        fontSize: 12,
+                        fontSize: 14,
                         color: 'rgba(180,200,255,0.8)',
+                        transition: 'color 0.2s ease',
                       }}
                     >
                       {item.label}
@@ -278,27 +283,8 @@ export default function Navbar() {
           }}
         />
 
-        {/* Connect Wallet - muted default, cyan on hover */}
-        <span
-          style={{
-            fontFamily: sansFont,
-            fontSize: 12,
-            fontWeight: 400,
-            color: 'rgba(180,200,255,0.6)',
-            letterSpacing: '0.02em',
-            cursor: 'pointer',
-            transition: 'color 0.2s ease',
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = CYAN
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'rgba(180,200,255,0.6)'
-          }}
-        >
-          Connect Wallet
-        </span>
+        {/* Connect Wallet - separated component */}
+        <ConnectWallet />
       </div>
     </nav>
   )
