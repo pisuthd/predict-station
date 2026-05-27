@@ -116,7 +116,7 @@ export default function HeroSection() {
               background: CYAN,
               border: 'none',
               borderRadius: 12,
-              fontFamily: monoFont,
+              //  fontFamily: monoFont,
               fontSize: 12,
               fontWeight: 700,
               color: '#000',
