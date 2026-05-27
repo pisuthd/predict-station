@@ -110,7 +110,7 @@ export default function HeroSection() {
         {/* CTA Buttons */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => navigate('/app')}
+            onClick={() => navigate('/predict')}
             style={{
               padding: '12px 28px',
               background: CYAN,
@@ -131,7 +131,7 @@ export default function HeroSection() {
               e.currentTarget.style.background = CYAN
             }}
           >
-            TRY INTERFACE
+            GET STARTED
           </button>
 
           <button
@@ -156,7 +156,7 @@ export default function HeroSection() {
               e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
             }}
           >
-            DOWNLOAD APP
+            DOWNLOAD AGENT
           </button>
         </div>
       </div>

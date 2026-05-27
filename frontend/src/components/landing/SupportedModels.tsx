@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { CYAN } from '../../theme'
 
 const models = [
-  { name: 'Qwen3.2-1.6B', desc: 'Lightweight & Fast' },
-  { name: 'Qwen3.2-4B', desc: 'Enhanced Accuracy' },
-  { name: '100% Local', desc: 'No Cloud Required' },
-  { name: 'Privacy First', desc: 'Your Data Stays Local' },
-  { name: 'On-Device AI', desc: 'Run Anywhere' },
+  { name: 'Hardware Specs', desc: 'Standard desktops ~2GB disk, 8GB+ RAM' },
+  { name: 'DeepBook Expert', desc: 'Sui DeepBook spot, margin & predict' },
+  { name: 'Supported Tools', desc: 'Analytics tools & trade execution' },
+  { name: 'Built-in CoT', desc: 'Chain-of-Thought reasoning on every decision' },
+  { name: '100% Local', desc: 'No cloud, your data stays private' },
+  { name: 'Prediction Specialist', desc: 'Binary outcomes & price-range trading' },
 ]
 
 export default function SupportedModels() {
@@ -19,7 +20,8 @@ export default function SupportedModels() {
 
     const animate = () => {
       setTranslateX(prev => {
-        const totalWidth = models.length * 244
+        const cardWidth = 244
+        const totalWidth = models.length * cardWidth
         if (prev <= -totalWidth) {
           return 0
         }
@@ -53,7 +55,7 @@ export default function SupportedModels() {
             marginBottom: '8px',
           }}
         >
-          Supported Models
+          Powered by LocalBook DeepTrader
         </p>
         <h2
           style={{
@@ -64,7 +66,7 @@ export default function SupportedModels() {
             lineHeight: 1.2,
           }}
         >
-          Powered by <strong style={{ fontWeight: 600, color: CYAN }}>Qwen3.2</strong> models
+          Purpose-built <strong style={{ fontWeight: 600, color: CYAN }}>1.7B AI model</strong> for trading
         </h2>
       </div>
 
