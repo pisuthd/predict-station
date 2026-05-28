@@ -1,29 +1,44 @@
 import { motion } from 'framer-motion';
-import { Bot, Check, Copy, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import { useTokenBalances } from '../../hooks';
+import { Wallet, Check, Copy, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import BalanceSection from './BalanceSection';
 
 interface AccountCardProps {
-  address: string | null;
-  network: 'mainnet' | 'testnet';
-  setNetwork: (network: 'mainnet' | 'testnet') => void;
-  hasWallet: boolean;
+  network?: 'mainnet' | 'testnet';
 }
 
-const COIN_IMAGES = {
-  SUI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/20947.png',
-  WAL: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36119.png',
-  USDC: 'https://assets.coingecko.com/coins/images/6319/standard/USDC.png?1769615602',
-};
-
-export default function AccountCard({ address, network, setNetwork, hasWallet }: AccountCardProps) {
+export default function AccountCard({ network = 'testnet' }: AccountCardProps) {
   const [copied, setCopied] = useState(false);
-  const [sliderIndex, setSliderIndex] = useState(0);
-  const { balances, isLoading } = useTokenBalances(address, network);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Auto-create wallet if no wallet exists
+  useEffect(() => {
+    const initWallet = async () => {
+      try {
+        const status = await window.api.wallet.getStatus();
+        if (status.hasWallet) {
+          const address = await window.api.wallet.getAddress();
+          setWalletAddress(address);
+        } else if (!isCreating) {
+          // Auto-create wallet
+          setIsCreating(true);
+          const newAddress = await window.api.wallet.createWallet();
+          setWalletAddress(newAddress);
+          setIsCreating(false);
+        }
+      } catch (error) {
+        console.error('Failed to init wallet:', error);
+        setIsCreating(false);
+      }
+    };
+
+    initWallet();
+  }, []);
 
   const handleCopy = async () => {
-    if (address) {
-      await navigator.clipboard.writeText(address);
+    if (walletAddress) {
+      await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -34,26 +49,6 @@ export default function AccountCard({ address, network, setNetwork, hasWallet }:
     return `${addr.slice(0, 8)}...${addr.slice(-8)}`;
   };
 
-  const tokens = [
-    { symbol: 'SUI', name: 'SUI', balance: balances.sui, image: COIN_IMAGES.SUI },
-    { symbol: 'WAL', name: 'WAL', balance: balances.wal, image: COIN_IMAGES.WAL },
-    { symbol: 'USDC', name: 'USDC', balance: '0', image: COIN_IMAGES.USDC },
-  ];
-
-  const handlePrev = () => {
-    setSliderIndex((prev) => (prev === 0 ? tokens.length - 2 : prev - 1));
-  };
-
-  const handleNext = () => {
-    setSliderIndex((prev) => (prev >= tokens.length - 2 ? 0 : prev + 1));
-  };
-
-  // Get visible tokens (2 at a time)
-  const visibleTokens = [
-    tokens[sliderIndex],
-    tokens[(sliderIndex + 1) % tokens.length],
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -62,7 +57,7 @@ export default function AccountCard({ address, network, setNetwork, hasWallet }:
     >
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-accent-primary-dim flex items-center justify-center">
-          <Bot size={20} className="text-accent-primary" />
+          <Wallet size={20} className="text-accent-primary" />
         </div>
         <div>
           <h3 className="font-semibold text-[var(--color-text-primary)]">Trading Wallet</h3>
@@ -74,10 +69,10 @@ export default function AccountCard({ address, network, setNetwork, hasWallet }:
         <div>
           <p className="text-xs text-[var(--color-text-muted)] mb-1">Wallet Address</p>
           <p className="text-sm font-mono text-[var(--color-text-muted)]">
-            {hasWallet && address ? truncateAddress(address) : '0x...'}
+            {walletAddress ? truncateAddress(walletAddress) : isCreating ? 'Creating...' : '0x...'}
           </p>
         </div>
-        {hasWallet && (
+        {walletAddress && (
           <button
             onClick={handleCopy}
             className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-accent-primary hover:bg-[var(--color-bg-surface)] transition-colors"
@@ -87,56 +82,10 @@ export default function AccountCard({ address, network, setNetwork, hasWallet }:
         )}
       </div>
 
-      {/* Token Balance Slider - 2 at a time */}
-      {hasWallet && (
-        <div className="mt-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrev}
-              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-accent-primary hover:bg-[var(--color-bg-elevated)] transition-colors"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <div className="flex-1 grid grid-cols-2 gap-3">
-              {visibleTokens.map((token) => (
-                <div
-                  key={token.symbol}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]"
-                >
-                  <img
-                    src={token.image}
-                    alt={token.symbol}
-                    className="w-6 h-6 rounded-full"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div>
-                    <p className="text-xs text-[var(--color-text-muted)]">{token.name}</p>
-                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                      {isLoading ? (
-                        <span className="animate-pulse">Loading...</span>
-                      ) : (
-                        token.balance
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleNext}
-              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-accent-primary hover:bg-[var(--color-bg-elevated)] transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
+      {/* Balance Section */}
+      {walletAddress && (
+        <BalanceSection walletAddress={walletAddress} network={network} />
       )}
-
-     
 
       {/* Network Row - AFTER balances */}
       <div className="flex items-center gap-3 mt-4">
@@ -156,7 +105,7 @@ export default function AccountCard({ address, network, setNetwork, hasWallet }:
         </div>
       </div>
 
-       {/* Notice */}
+      {/* Notice */}
       <p className="mt-4 text-xs text-[var(--color-text-muted)]">
         Manage your wallet: backup seed, reset, or import existing at Settings.
       </p>

@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PageWrapper from '../components/common/PageWrapper';
-import {  Cpu, Terminal } from 'lucide-react';
-import { StorageSettingsTab, AISettingsTab, CLISettingsTab } from './settings';
+import {  Cpu, Terminal, Wallet } from 'lucide-react';
+import { AISettingsTab, CLISettingsTab, WalletSettingsTab } from './settings';
 import SelectModelModal from '../components/common/SelectModelModal';
 import { useAI, AIModel } from '../context/AIContext';
 
-type TabId = 'storage' | 'ai' | 'cli';
+type TabId = 'wallet' | 'ai' | 'cli';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('cli');
+  const [activeTab, setActiveTab] = useState<TabId>('wallet');
   const [showModelModal, setShowModelModal] = useState(false);
   const { enableAI } = useAI();
 
   const tabs = [ 
+    { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
     { id: 'ai' as const, label: 'AI Settings', icon: Cpu },
     { id: 'cli' as const, label: 'CLI Tools', icon: Terminal },
   ];
@@ -25,8 +26,8 @@ export default function SettingsPage() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'storage':
-        return <StorageSettingsTab />;
+      case 'wallet':
+        return <WalletSettingsTab />;
       case 'ai':
         return <AISettingsTab onShowModelModal={() => setShowModelModal(true)} />;
       case 'cli':

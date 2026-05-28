@@ -1,7 +1,7 @@
 {
   "name": "localbook-desktop",
-  "productName": "Walrus Form Studio",
-  "version": "1.0.0",
+  "productName": "Localbook Desktop",
+  "version": "1.0.0-beta.1",
   "description": "Create forms on Walrus decentralized storage and manage results with local AI",
   "main": "./out/main/index.js",
   "author": "Pisuth D.",

@@ -103,12 +103,12 @@ export function useTokenBalances(
   }, [fetchBalances]);
 
   // Auto-refresh every 30 seconds
-  useEffect(() => {
-    if (!address) return;
+  // useEffect(() => {
+  //   if (!address) return;
 
-    const interval = setInterval(fetchBalances, 30000);
-    return () => clearInterval(interval);
-  }, [fetchBalances, address]);
+  //   const interval = setInterval(fetchBalances, 30000);
+  //   return () => clearInterval(interval);
+  // }, [fetchBalances, address]);
 
   return {
     balances,
