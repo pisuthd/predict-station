@@ -47,6 +47,23 @@ export default function PredictPage() {
             borderRight: '1px solid rgba(255,255,255,0.08)',
             overflow: 'hidden',
           }}>
+
+             {/* Header */}
+          <div style={{
+            padding: '16px 16px 12px',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <h2 style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: WHITE,
+              margin: 0,
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              Predict Markets
+            </h2>
+          </div>
+
             <MarketList
               markets={markets}
               selectedMarket={selected}

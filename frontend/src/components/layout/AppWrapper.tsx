@@ -12,9 +12,8 @@ export default function AppWrapper({ children }: AppWrapperProps) {
       <div>
         {children}
       </div>
-
-      {/* Bottom Glass Panel - Fade Up Animation */}
-      <motion.div
+ 
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -32,8 +31,7 @@ export default function AppWrapper({ children }: AppWrapperProps) {
           gap: 16,
           zIndex: 200,
         }}
-      >
-        {/* Message */}
+      > 
         <p
           style={{
             fontFamily: sansFont,
@@ -45,8 +43,7 @@ export default function AppWrapper({ children }: AppWrapperProps) {
         >
           Pair your local AI agent for personalized market analysis.
         </p>
-
-        {/* Pair Agent Button */}
+ 
         <button
           style={{
             padding: '8px 16px',
@@ -71,7 +68,7 @@ export default function AppWrapper({ children }: AppWrapperProps) {
         >
           PAIR NOW
         </button>
-      </motion.div>
+      </motion.div> */}
     </div>
   )
 }

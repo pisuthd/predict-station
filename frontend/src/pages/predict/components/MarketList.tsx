@@ -51,7 +51,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket, loading, e
     }}>
       {/* Header */}
       <div style={{
-        padding: '16px 16px 12px',
+        padding: '12px 16px 12px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
       

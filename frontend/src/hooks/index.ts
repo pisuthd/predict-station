@@ -1,3 +1,5 @@
 export { useMarkets, type Market, type VaultSummary, type Odds } from './useMarkets'
 export { useMarket, type MarketDetail, type RangeOdds } from './useMarket'
 export { useMarketPrices, type PricePoint, type PriceHistory } from './useMarketPrices'
+export { useSpotPools, type SpotPool, type OrderBook, type OrderBookLevel } from './useSpotPools'
+export { useMarginMarkets, type MarginPool, type MarginManager, type MarginPosition } from './useMarginMarkets'
