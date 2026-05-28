@@ -13,8 +13,7 @@ export default function SettingsPage() {
   const [showModelModal, setShowModelModal] = useState(false);
   const { enableAI } = useAI();
 
-  const tabs = [
-    // { id: 'storage' as const, label: 'Storage', icon: Database },
+  const tabs = [ 
     { id: 'ai' as const, label: 'AI Settings', icon: Cpu },
     { id: 'cli' as const, label: 'CLI Tools', icon: Terminal },
   ];

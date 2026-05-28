@@ -1,6 +1,6 @@
 import { createHashRouter } from 'react-router';
 import DashboardLayout from './components/layout/DashboardLayout';
-import DashboardPage from './pages/DashboardPage';
+import OverviewPage from './pages/OverviewPage';
 import ChatPage from './pages/ChatPage';
 import RecentFormsPage from './pages/RecentFormsPage';
 import FormDetailPage from './pages/FormDetailPage';
@@ -14,7 +14,7 @@ export const router = createHashRouter([
     path: '/',
     element: <DashboardLayout />,
     children: [
-      { index: true, element: <DashboardPage /> },
+      { index: true, element: <OverviewPage /> },
       { path: 'chat', element: <ChatPage /> },
       { path: 'new-form', element: <NewFormPage /> },
       { path: 'recent-forms', element: <RecentFormsPage /> },

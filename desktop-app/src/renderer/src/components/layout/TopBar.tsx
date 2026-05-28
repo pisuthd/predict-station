@@ -2,7 +2,7 @@ import { useLocation, Link } from 'react-router';
 import { Search, ChevronRight } from 'lucide-react';
 
 const routeMeta: Record<string, { category: string; label: string }> = {
-  '/': { category: 'General', label: 'Dashboard' },
+  '/': { category: 'Control', label: 'Overview' },
   '/chat': { category: 'Chat', label: 'Chat' },
   '/new-form': { category: 'General', label: 'Start New Form' },
   '/recent-forms': { category: 'General', label: 'Recent Forms' },
