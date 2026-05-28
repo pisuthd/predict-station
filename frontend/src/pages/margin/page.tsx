@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { NAVY } from '../../theme'
-import { useMarginMarkets, type MarginPosition } from '../../hooks'
-import { LeverageSelector } from './components'
+import { useMarginMarkets, type MarginMarket } from '../../hooks/useMarginMarkets'
+import { MarketList } from './components/MarketList'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -12,35 +12,8 @@ const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
 
 export default function MarginPage() {
-  const { positions, loading, error, refetch } = useMarginMarkets(5_000)
-  const [selectedPosition, setSelectedPosition] = useState<MarginPosition | null>(null)
-  const [leverage, setLeverage] = useState(10)
-
-  const handleSelectPosition = (position: MarginPosition) => {
-    setSelectedPosition(position)
-    if (position.leverage) {
-      setLeverage(Math.round(position.leverage))
-    }
-  }
-
-  const formatPrice = (price: number): string => {
-    if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    if (price >= 1) return price.toFixed(4)
-    return price.toFixed(6)
-  }
-
-  const formatVolume = (volume: number): string => {
-    if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`
-    if (volume >= 1e6) return `$${(volume / 1e6).toFixed(2)}M`
-    return `$${(volume / 1e3).toFixed(0)}K`
-  }
-
-  // Group positions by asset
-  const groupedPositions = positions.reduce((acc, pos) => {
-    if (!acc[pos.baseAssetSymbol]) acc[pos.baseAssetSymbol] = []
-    acc[pos.baseAssetSymbol].push(pos)
-    return acc
-  }, {} as Record<string, MarginPosition[]>)
+  const { markets, filteredMarkets } = useMarginMarkets()
+  const [selectedMarket, setSelectedMarket] = useState<MarginMarket | null>(filteredMarkets[0] || null)
 
   return (
     <AppWrapper>
@@ -51,7 +24,7 @@ export default function MarginPage() {
         fontFamily: "'Space Mono', monospace",
         display: 'flex',
       }}>
-        {/* Left Column - Margin Positions List */}
+        {/* Left Column - Margin Markets List */}
         <div style={{
           width: 320,
           height: '100vh',
@@ -73,121 +46,18 @@ export default function MarginPage() {
               margin: 0,
               fontFamily: "'DM Sans', sans-serif",
             }}>
-              Margin Positions
+              Margin Markets
             </h2>
-            {loading && (
-              <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>
-                Loading live data...
-              </div>
-            )}
           </div>
 
-          {/* Positions List */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-            {error ? (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 200,
-                gap: 12,
-              }}>
-                <div style={{ color: '#ef4444', fontSize: 13, textAlign: 'center' }}>
-                  ⚠ {error}
-                </div>
-                <button
-                  onClick={refetch}
-                  style={{
-                    padding: '8px 16px',
-                    background: 'rgba(62,196,192,0.15)',
-                    border: '1px solid rgba(62,196,192,0.25)',
-                    borderRadius: 6,
-                    color: CYAN,
-                    fontSize: 12,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Retry
-                </button>
-              </div>
-            ) : positions.length === 0 ? (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 120,
-                color: MUTED,
-                fontSize: 13,
-              }}>
-                No positions found
-              </div>
-            ) : (
-              Object.entries(groupedPositions).map(([asset, assetPositions]) => (
-                <div key={asset}>
-                  <div style={{
-                    padding: '8px 8px 4px',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: MUTED,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>
-                    {asset}
-                  </div>
-                  {assetPositions.map((pos) => (
-                    <div
-                      key={pos.id}
-                      onClick={() => handleSelectPosition(pos)}
-                      style={{
-                        padding: '10px 8px',
-                        borderRadius: 8,
-                        marginBottom: 2,
-                        background: selectedPosition?.id === pos.id ? 'rgba(62,196,192,0.1)' : 'transparent',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (selectedPosition?.id !== pos.id) {
-                          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedPosition?.id !== pos.id) {
-                          e.currentTarget.style.background = 'transparent'
-                        }
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: WHITE }}>
-                            {pos.baseAssetSymbol}/{pos.quoteAssetSymbol}
-                          </div>
-                          <div style={{ fontSize: 10, color: MUTED }}>
-                            {(pos.leverage || 0).toFixed(1)}x
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: WHITE }}>
-                            {formatPrice(pos.currentPrice)}
-                          </div>
-                          <div style={{ 
-                            fontSize: 10, 
-                            color: pos.riskRatio >= 2 ? '#22c55e' : pos.riskRatio >= 1.2 ? '#f97316' : '#ef4444' 
-                          }}>
-                            Risk: {pos.riskRatio.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
+          <MarketList
+            markets={filteredMarkets}
+            selectedMarket={selectedMarket}
+            onSelectMarket={setSelectedMarket}
+          />
         </div>
 
-        {/* Center Column - Position Details */}
+        {/* Center Column - Market Details */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -198,54 +68,82 @@ export default function MarginPage() {
           {/* AppNavbar */}
           <AppNavbar />
 
-          {/* Header */}
+          {/* Market Header */}
           <div style={{
             padding: '16px 24px',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}>
-            {selectedPosition ? (
+            {selectedMarket ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                {/* Overlapping coin icons */}
+                <div style={{ position: 'relative', width: 64, height: 32 }}>
+                  {/* Base asset icon */}
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    border: '2px solid #0a0a1a',
+                    position: 'absolute',
+                    left: 0,
+                    zIndex: 2,
+                    background: 'rgba(62,196,192,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: CYAN,
+                  }}>
+                    {selectedMarket.baseAssetSymbol.slice(0, 2)}
+                  </div>
+                  {/* Quote asset icon */}
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    border: '2px solid #0a0a1a',
+                    position: 'absolute',
+                    left: 16,
+                    zIndex: 1,
+                    background: 'rgba(255,255,255,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: WHITE,
+                  }}>
+                    {selectedMarket.quoteAssetSymbol.slice(0, 2)}
+                  </div>
+                </div>
                 <div>
                   <h1 style={{
                     fontSize: 20,
                     fontWeight: 700,
                     color: WHITE,
                     margin: 0,
+                    fontFamily: "'DM Sans', sans-serif",
                   }}>
-                    {selectedPosition.baseAssetSymbol}/{selectedPosition.quoteAssetSymbol}
+                    {selectedMarket.baseAssetSymbol}/{selectedMarket.quoteAssetSymbol}
                   </h1>
                   <span style={{
                     fontSize: 12,
                     color: CYAN,
                     fontWeight: 600,
                   }}>
-                    {(selectedPosition.leverage || 0).toFixed(1)}x
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                }}>
-                  <span style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: WHITE,
-                    fontFamily: "'Space Mono', monospace",
-                  }}>
-                    {formatPrice(selectedPosition.currentPrice)}
+                    Margin Market
                   </span>
                 </div>
               </div>
             ) : (
               <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
-                Select a position to view details
+                Select a market to view details
               </p>
             )}
           </div>
 
-          {/* Position Stats */}
-          {selectedPosition && (
+          {/* Market Info */}
+          {selectedMarket && (
             <div style={{
               padding: '16px 24px',
               borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -254,32 +152,29 @@ export default function MarginPage() {
               gap: 16,
             }}>
               <div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>RISK RATIO</div>
-                <div style={{ 
-                  fontSize: 13, 
-                  fontWeight: 600,
-                  color: selectedPosition.riskRatio >= 2 ? '#22c55e' : selectedPosition.riskRatio >= 1.2 ? '#f97316' : '#ef4444' 
-                }}>
-                  {selectedPosition.riskRatio.toFixed(2)}
-                </div>
-              </div>
-              <div>
                 <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>BASE ASSET</div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPosition.baseAsset}</div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedMarket.baseAssetSymbol}</div>
               </div>
               <div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>BASE DEBT</div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPosition.baseDebt}</div>
+                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>QUOTE ASSET</div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedMarket.quoteAssetSymbol}</div>
               </div>
               <div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>LIQ DISTANCE</div>
+                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>POOL ID</div>
                 <div style={{ 
-                  fontSize: 13, 
-                  fontWeight: 600,
-                  color: (selectedPosition.liquidationDistance || 0) >= 10 ? '#22c55e' : (selectedPosition.liquidationDistance || 0) >= 5 ? '#f97316' : '#ef4444'
-                }}>
-                  {(selectedPosition.liquidationDistance || 0).toFixed(1)}%
+                  fontSize: 11, 
+                  fontWeight: 400,
+                  color: MUTED,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 120,
+                }} title={selectedMarket.deepbookPoolId}>
+                  {selectedMarket.deepbookPoolId.slice(0, 10)}...
                 </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>MAX LEVERAGE</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: CYAN }}>20x</div>
               </div>
             </div>
           )}
@@ -292,7 +187,7 @@ export default function MarginPage() {
             justifyContent: 'center',
             color: MUTED,
           }}>
-            {selectedPosition ? 'Chart coming soon' : 'Select a position to view chart'}
+            {selectedMarket ? 'Chart coming soon' : 'Select a market to view chart'}
           </div>
         </div>
 
@@ -308,13 +203,6 @@ export default function MarginPage() {
           gap: 16,
           overflowY: 'auto',
         }}>
-          {/* Leverage Selector */}
-          <LeverageSelector
-            leverage={leverage}
-            onLeverageChange={setLeverage}
-            liquidationDistance={selectedPosition?.liquidationDistance ?? 10}
-          />
-
           {/* Margin Info */}
           <div style={{
             padding: '12px',
@@ -330,10 +218,14 @@ export default function MarginPage() {
               letterSpacing: '0.5px',
               marginBottom: 12,
             }}>
-              Margin Info
+              Market Info
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, color: MUTED }}>Available Markets</span>
+                <span style={{ fontSize: 11, color: WHITE }}>{markets.length}</span>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, color: MUTED }}>Max Leverage</span>
                 <span style={{ fontSize: 11, color: WHITE }}>20x</span>
@@ -341,10 +233,6 @@ export default function MarginPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, color: MUTED }}>Min Margin</span>
                 <span style={{ fontSize: 11, color: WHITE }}>5%</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, color: MUTED }}>Total Positions</span>
-                <span style={{ fontSize: 11, color: WHITE }}>{positions.length}</span>
               </div>
             </div>
           </div>
@@ -374,7 +262,7 @@ export default function MarginPage() {
                 <path d="M2 12L12 17L22 12" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span style={{ fontSize: 13 }}>Order form coming soon</span>
+            <span style={{ fontSize: 13 }}>Trade form coming soon</span>
           </div>
         </div>
       </div>

@@ -7,15 +7,14 @@ import { MarketList } from './components/MarketList'
 import { PredictChart } from './components/PredictChart'
 import { TradeTicket } from './components/TradeTicket'
 import { MyPositions } from './components/MyPositions'
-import { formatDetailedExpiry, getMarketName } from './utils'
+import { formatDetailedExpiry, getMarketName, formatUSD, PRICE_SCALE } from './utils'
+import { getCoinIcon } from '../../lib/coinIcons'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
 const CYAN = '#3EC4C0'
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
-
-const BTC_ICON = 'https://assets.coingecko.com/coins/images/1/standard/bitcoin.png?1696501400'
 
 export default function PredictPage() {
   const { markets, vault, loading, error, refetch } = useMarkets(30_000)
@@ -84,35 +83,57 @@ export default function PredictPage() {
          <AppNavbar />
 
 
+          {/* Market Header */}
           <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            paddingBottom: 16,
+            padding: '16px 24px',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
-            gap: 24,
           }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, color: MUTED, margin: 0, lineHeight: 1.4 }}>
-                Expiry-based prediction markets on Sui
-              </p>
-            </div>
-
-            {!loading && selected && (
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: WHITE, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                  {getMarketName(selected)}
-                  <img
-                    src={BTC_ICON}
-                    alt="BTC"
-                    width={16}
-                    height={16}
-                    style={{ borderRadius: '50%', flexShrink: 0 }}
-                  />
+            {selected ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {/* Left: Market name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ position: 'relative', width: 28, height: 28 }}>
+                    <img 
+                      src={getCoinIcon(selected.asset)}
+                      alt={selected.asset}
+                      style={{ 
+                        width: 28, 
+                        height: 28, 
+                        borderRadius: '50%', 
+                        position: 'absolute',
+                        left: 0,
+                        zIndex: 2,
+                      }}
+                    /> 
+                  </div>
+                  <div>
+                    <h1 style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: WHITE,
+                      margin: 0,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}>
+                      {selected.asset} Predict
+                    </h1>
+                    <span style={{ fontSize: 11, color: MUTED }}>
+                      {formatDetailedExpiry(selected.expiryMs)} remaining
+                    </span>
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>
-                  in {formatDetailedExpiry(selected.expiryMs)}
+                
+                {/* Right: Price info */}
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: WHITE, fontFamily: "'Space Mono', monospace" }}>
+                    {formatUSD(selected.spot / PRICE_SCALE)}
+                  </div>
+                  <span style={{ fontSize: 10, color: MUTED }}>Current Price</span>
                 </div>
               </div>
+            ) : (
+              <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
+                Select a market to view details
+              </p>
             )}
           </div>
 

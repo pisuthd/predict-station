@@ -22,10 +22,10 @@ interface PredictChartProps {
   market: Market
 }
 
-type ViewMode = 'price' | 'svi'
+
 
 export function PredictChart({ market }: PredictChartProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('price')
+
   const { history, loading } = useMarketPrices(market.oracle_id, 120, 1000)
 
   const chartData = useMemo(() => {
@@ -90,41 +90,7 @@ export function PredictChart({ market }: PredictChartProps) {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '12px 16px 8px',
-      }}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => setViewMode('price')}
-            style={{
-              padding: '6px 12px',
-              fontSize: 11,
-              fontFamily: "'Space Mono', monospace",
-              background: viewMode === 'price' ? 'rgba(62,196,192,0.15)' : 'transparent',
-              border: viewMode === 'price' ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
-              borderRadius: 6,
-              color: viewMode === 'price' ? CYAN : MUTED,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Price History
-          </button>
-          <button
-            onClick={() => setViewMode('svi')}
-            style={{
-              padding: '6px 12px',
-              fontSize: 11,
-              fontFamily: "'Space Mono', monospace",
-              background: viewMode === 'svi' ? 'rgba(62,196,192,0.15)' : 'transparent',
-              border: viewMode === 'svi' ? '1px solid rgba(62,196,192,0.25)' : '1px solid transparent',
-              borderRadius: 6,
-              color: viewMode === 'svi' ? CYAN : MUTED,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            SVI Parameters
-          </button>
-        </div>
+      }}> 
 
         {/* LIVE Indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
