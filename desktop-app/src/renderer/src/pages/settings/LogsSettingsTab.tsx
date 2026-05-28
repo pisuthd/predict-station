@@ -20,14 +20,14 @@ export default function LogsSettingsTab() {
         window.api.logs.getPath(),
       ]);
       setLogPath(path);
-      
+
       // Transform data into LogFile format
       const logFiles: LogFile[] = recentLogs.map(item => ({
         file: item.file,
         content: item.logs.join('\n'),
         lines: item.logs,
       }));
-      
+
       setLogs(logFiles);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
@@ -70,20 +70,9 @@ export default function LogsSettingsTab() {
       <p className="text-sm text-[var(--color-text-secondary)] mb-4">
         Application logs for debugging
       </p>
-      
-      {/* Log path */}
-      <div className="mb-4 p-3 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]">
-        <div className="flex items-center gap-2 mb-1">
-          <FileText size={14} className="text-[var(--color-text-muted)]" />
-          <span className="text-xs text-[var(--color-text-muted)]">Log Directory</span>
-        </div>
-        <p className="text-xs font-mono text-[var(--color-text-secondary)] break-all">
-          {logPath || 'Loading...'}
-        </p>
-      </div>
-      
+
       {/* Refresh button */}
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-start">
         <button
           onClick={fetchLogs}
           disabled={isLoading}
@@ -93,8 +82,8 @@ export default function LogsSettingsTab() {
           Refresh
         </button>
       </div>
-       
-      
+
+
       {/* Logs list */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -120,8 +109,8 @@ export default function LogsSettingsTab() {
                   logFile.lines.map((line, lineIndex) => {
                     const parsed = parseLogLine(line);
                     return (
-                      <div 
-                        key={lineIndex} 
+                      <div
+                        key={lineIndex}
                         className="px-4 py-2 border-b border-[var(--color-border-subtle)] last:border-b-0 font-mono text-xs hover:bg-[var(--color-bg-elevated)]"
                       >
                         {parsed.timestamp && (
@@ -134,7 +123,7 @@ export default function LogsSettingsTab() {
                             [{parsed.level}]
                           </span>
                         )}
-                        <span className="text-[var(--color-text-primary)]">{parsed.message}</span>
+                        <span className="text-[var(--color-text-primary)] word-break-break-all">{parsed.message}</span>
                       </div>
                     );
                   })
@@ -144,6 +133,18 @@ export default function LogsSettingsTab() {
           ))}
         </div>
       )}
+
+
+      {/* Log path */}
+      <div className="my-4 p-3 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]">
+        <div className="flex items-center gap-2 mb-1">
+          <FileText size={14} className="text-[var(--color-text-muted)]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Log Directory</span>
+        </div>
+        <p className="text-xs font-mono text-[var(--color-text-secondary)] break-all">
+          {logPath || 'Loading...'}
+        </p>
+      </div>
     </div>
   );
 }

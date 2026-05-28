@@ -48,6 +48,7 @@ export default function AIStatusCard() {
     { label: 'Status', value: getStatusValue(), valueColor: getStatusColor() },
     { label: 'Model', value: aiEnabled ? `Qwen3-${aiModel}` : (isLoading ? '...' : '-') },
     { label: 'Uptime', value: uptime || '-' },
+    { label: 'Sessions', value: 0 }
   ];
 
   const handleEnable = () => {
@@ -115,7 +116,7 @@ export default function AIStatusCard() {
       transition={{ delay: 0.1 }}
       className="bg-[var(--color-bg-card)] rounded-2xl p-6 border border-[var(--color-border-default)] shadow-sm"
     >
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 rounded-xl bg-accent-primary-dim flex items-center justify-center">
           <Sparkles size={20} className="text-accent-primary" />
         </div>
@@ -154,6 +155,10 @@ export default function AIStatusCard() {
 
       {/* Action Button */}
       {renderButton()}
+
+      <p className="mt-3 text-xs text-[var(--color-text-muted)]"> 
+        Load time: 2-3 minutes depending on model chosen.
+      </p>  
     </motion.div>
   );
 }

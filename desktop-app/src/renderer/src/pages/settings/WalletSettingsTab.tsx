@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, Trash2, Check, Copy, Download, Wallet } from 'lucide-react';
+import { Eye, Trash2, Check, Copy, Download } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import ImportWalletModal from '../../components/common/ImportWalletModal';
 
@@ -67,10 +67,7 @@ export default function WalletSettingsTab() {
     }
   };
 
-  const truncateAddress = (addr: string) => {
-    if (addr.length <= 16) return addr;
-    return `${addr.slice(0, 8)}...${addr.slice(-8)}`;
-  };
+  
 
   const hasWallet = walletAddress !== null;
 
@@ -143,17 +140,6 @@ export default function WalletSettingsTab() {
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
           Manage your wallet settings
         </p>
- 
-
-        {/* Wallet File Path */}
-        <div className="mb-6 p-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]">
-          <div className="flex items-center gap-3 mb-2"> 
-            <span className="text-sm font-medium text-[var(--color-text-primary)]">Wallet File Location</span>
-          </div>
-          <p className="text-xs text-[var(--color-text-muted)] font-mono break-all">
-            {walletPath || 'Loading...'}
-          </p>
-        </div>
 
         {hasWallet ? (
           <div className="space-y-4">
@@ -266,6 +252,17 @@ export default function WalletSettingsTab() {
             </div>
           </div>
         )}
+
+        {/* Wallet File Path */}
+        <div className="my-6 p-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-sm font-medium text-[var(--color-text-primary)]">Wallet File Location</span>
+          </div>
+          <p className="text-xs text-[var(--color-text-muted)] font-mono break-all">
+            {walletPath || 'Loading...'}
+          </p>
+        </div>
+
       </div>
     </>
   );

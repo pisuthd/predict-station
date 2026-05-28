@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PageWrapper from '../components/common/PageWrapper';
-import { Database, Terminal, Wallet, FileText } from 'lucide-react';
+import { Sparkles, Terminal, Wallet } from 'lucide-react';
 import { AISettingsTab, CLISettingsTab, WalletSettingsTab, LogsSettingsTab } from './settings';
 
 type TabId = 'wallet' | 'ai' | 'cli' | 'logs';
@@ -11,9 +11,8 @@ export default function SettingsPage() {
 
   const tabs = [ 
     { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
-    { id: 'ai' as const, label: 'AI Model', icon: Database },
-    { id: 'cli' as const, label: 'CLI Tools', icon: Terminal },
-    { id: 'logs' as const, label: 'Logs', icon: FileText },
+    { id: 'ai' as const, label: 'AI Model', icon: Sparkles }, 
+    { id: 'logs' as const, label: 'Logs', icon: Terminal },
   ];
 
   const renderTabContent = () => {
