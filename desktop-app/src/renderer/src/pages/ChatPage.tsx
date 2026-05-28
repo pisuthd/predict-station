@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import PageWrapper from '../components/common/PageWrapper';
-import CreateSessionModal from '../components/chat/CreateSessionModal';
 import ChatMessage from '../components/chat/ChatMessage';
 import SessionPicker from '../components/chat/SessionPicker';
 import ChatInput from '../components/chat/ChatInput';
@@ -30,7 +29,6 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [sessionOptions, setSessionOptions] = useState<{ value: string; label: string }[]>([]);
   const [showSessionPicker, setShowSessionPicker] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -92,25 +90,36 @@ export default function ChatPage() {
     return () => clearTimeout(saveTimeout);
   }, [messages, currentSession]);
 
-  // Set up streaming listeners
+  // Set up streaming listeners (only once on mount)
   useEffect(() => {
-    // Use ref for thinking so it persists and can be reset
+    // Prevent duplicate listener registration
+    let isInitialized = false;
+    
     const lastThinkingRef = { current: '' };
+    const lastTokenRef = { current: '' };
 
     const handleStreamToken = (token: string) => {
+      // Prevent duplicate tokens
+      if (token === lastTokenRef.current) return;
+      lastTokenRef.current = token;
+      
       if (token === '') {
-        // Completion - reset thinking ref for next chat
         setIsLoading(false);
         setCompletedThinking(lastThinkingRef.current);
-        lastThinkingRef.current = ''; // Reset for next chat
+        lastThinkingRef.current = '';
+        lastTokenRef.current = ''; // Reset for next message
       } else {
         setMessages(prev => {
           const lastMsg = prev[prev.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
-            return prev.map((msg, i) => 
+            // Skip if already ends with this token (duplicate)
+            if (lastMsg.content.endsWith(token)) {
+              return prev;
+            }
+            return prev.map((m, i) => 
               i === prev.length - 1 
-                ? { ...msg, content: (msg.content + token).replace(/^\s+/, '') }
-                : msg
+                ? { ...m, content: (m.content + token).replace(/^\s+/, '') }
+                : m
             );
           } else {
             return [...prev, { role: 'assistant', content: token.replace(/^\s+/, '') }];
@@ -125,8 +134,11 @@ export default function ChatPage() {
       setStreamingThinking(lastThinkingRef.current);
     };
 
-    window.api.ai.onStreamToken(handleStreamToken);
-    window.api.ai.onStreamThinking(handleStreamThinking);
+    if (!isInitialized) {
+      isInitialized = true;
+      window.api.ai.onStreamToken(handleStreamToken);
+      window.api.ai.onStreamThinking(handleStreamThinking);
+    }
 
     return () => {
       window.api.ai.removeStreamTokenListener(handleStreamToken);
@@ -175,8 +187,10 @@ export default function ChatPage() {
     }
   };
 
-  const handleCreateSession = async (name: string) => {
-    const slug = await createSession(name);
+  const handleNewSession = async () => {
+    const timestamp = Date.now().toString();
+    const sessionName = `session-${timestamp}`;
+    const slug = await createSession(sessionName);
     const allSessions = await getAllSessions();
     const options = allSessions.map(s => ({
       value: s.session,
@@ -214,7 +228,7 @@ export default function ChatPage() {
           />
           
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleNewSession}
             className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent-primary text-white hover:bg-accent-primary-hover transition-colors"
             title="New session"
           >
@@ -282,12 +296,6 @@ export default function ChatPage() {
           disabled={!input.trim() || isLoading}
         />
       </div>
-
-      <CreateSessionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreate={handleCreateSession}
-      />
     </PageWrapper>
   );
 }

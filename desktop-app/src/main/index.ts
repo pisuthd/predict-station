@@ -71,7 +71,7 @@ async function loadQVACModel(modelType: ModelType): Promise<string | null> {
       modelType: 'llamacpp-completion',
         modelConfig: {
           ctx_size: 4096,
-          tools: true, // Enable tools for form studio
+          tools: false, // Enable tools for form studio
         },
       onProgress: (progress) => {
         const progressMsg = typeof progress === 'string' ? progress : JSON.stringify(progress);
