@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { NAVY } from '../../theme'
 import { useMarginMarkets, type MarginPosition } from '../../hooks'
 import { LeverageSelector } from './components'
-import Navbar from '../../components/layout/Navbar'
+import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
 const WHITE = '#ffffff'
@@ -44,7 +44,6 @@ export default function MarginPage() {
 
   return (
     <AppWrapper>
-      <Navbar />
       <div style={{
         height: '100vh',
         background: NAVY,
@@ -196,6 +195,9 @@ export default function MarginPage() {
           minWidth: 0,
           overflow: 'hidden',
         }}>
+          {/* AppNavbar */}
+          <AppNavbar />
+
           {/* Header */}
           <div style={{
             padding: '16px 24px',

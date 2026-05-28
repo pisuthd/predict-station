@@ -5,7 +5,7 @@ import { NAVY } from '../../theme'
 import { useSpotPools, type SpotPool, type OrderBook as OrderBookType } from '../../hooks'
 import { PairList } from './components/PairList'
 import { OrderBook } from './components/OrderBook'
-import Navbar from '../../components/layout/Navbar'
+import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 import { getCoinIcon } from '../../lib/coinIcons'
 
@@ -45,7 +45,6 @@ export default function SpotPage() {
 
   return (
     <AppWrapper>
-      <Navbar />
       <div style={{
         height: '100vh',
         background: NAVY,
@@ -97,6 +96,9 @@ export default function SpotPage() {
           minWidth: 0,
           overflow: 'hidden',
         }}>
+          {/* AppNavbar */}
+          <AppNavbar />
+
           {/* Header with pair info */}
           <div style={{
             padding: '16px 24px',
