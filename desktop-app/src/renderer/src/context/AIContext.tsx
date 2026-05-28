@@ -13,6 +13,8 @@ interface AIContextType {
   showWelcomeModal: boolean;
   setShowWelcomeModal: (show: boolean) => void;
   welcomeDismissed: boolean;
+  // Load start time for uptime tracking
+  loadStartTime: number | null;
   // Actions
   enableAI: (model: AIModel) => Promise<boolean>;
   disableAI: () => Promise<boolean>;
@@ -32,6 +34,9 @@ export function AIProvider({ children }: { children: ReactNode }) {
   // Welcome modal state
   const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState<boolean>(false);
+  
+  // Load start time for uptime tracking
+  const [loadStartTime, setLoadStartTime] = useState<number | null>(null);
 
   // Get AI status from backend
   const refreshStatus = useCallback(async () => {
@@ -75,6 +80,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
   const enableAI = useCallback(async (model: AIModel): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
+    setLoadStartTime(Date.now());
     
     try {
       const result = await window.api.ai.selectModel(model);
@@ -84,16 +90,19 @@ export function AIProvider({ children }: { children: ReactNode }) {
         setAiEnabled(true);
         setShowWelcomeModal(false);
         setIsLoading(false);
+        setLoadStartTime(null);
         return true;
       } else {
         setError(result.error || 'Failed to enable AI');
         setIsLoading(false);
+        setLoadStartTime(null);
         return false;
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to enable AI';
       setError(message);
       setIsLoading(false);
+      setLoadStartTime(null);
       return false;
     }
   }, []);
@@ -131,6 +140,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       showWelcomeModal,
       setShowWelcomeModal: handleSetShowWelcomeModal,
       welcomeDismissed,
+      loadStartTime,
       enableAI, 
       disableAI,
       refreshStatus 

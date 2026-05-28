@@ -10,23 +10,28 @@ export default function WalletSettingsTab() {
   const [revealedPhrase, setRevealedPhrase] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletPath, setWalletPath] = useState<string>('');
   const [confirmInput, setConfirmInput] = useState('');
   const [resetInput, setResetInput] = useState('');
 
-  // Get wallet status on mount
+  // Get wallet status and path on mount
   useEffect(() => {
-    const getWalletStatus = async () => {
+    const getWalletInfo = async () => {
       try {
-        const status = await window.api.wallet.getStatus();
+        const [status, path] = await Promise.all([
+          window.api.wallet.getStatus(),
+          window.api.wallet.getWalletPath(),
+        ]);
+        setWalletPath(path);
         if (status.hasWallet) {
           const address = await window.api.wallet.getAddress();
           setWalletAddress(address);
         }
       } catch (error) {
-        console.error('Failed to get wallet status:', error);
+        console.error('Failed to get wallet info:', error);
       }
     };
-    getWalletStatus();
+    getWalletInfo();
   }, []);
 
   const handleRevealSeed = async () => {
@@ -138,21 +143,7 @@ export default function WalletSettingsTab() {
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
           Manage your wallet settings
         </p>
-
-        {/* Wallet Status */}
-        {/* <div className="mb-6">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${hasWallet ? 'bg-green-500' : 'bg-red-500'}`} />
-            <span className="text-sm text-[var(--color-text-secondary)]">
-              {hasWallet ? 'Wallet Created' : 'No Wallet'}
-            </span>
-          </div>
-          {hasWallet && walletAddress && (
-            <p className="text-xs text-[var(--color-text-muted)] mt-1 font-mono">
-              {truncateAddress(walletAddress)}
-            </p>
-          )}
-        </div> */}
+ 
 
         {/* Wallet File Path */}
         <div className="mb-6 p-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-default)]">
@@ -160,7 +151,7 @@ export default function WalletSettingsTab() {
             <span className="text-sm font-medium text-[var(--color-text-primary)]">Wallet File Location</span>
           </div>
           <p className="text-xs text-[var(--color-text-muted)] font-mono break-all">
-            %APPDATA%/LocalBook Desktop/wallet.json
+            {walletPath || 'Loading...'}
           </p>
         </div>
 

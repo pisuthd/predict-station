@@ -14,6 +14,7 @@ const api = {
     validateSeedPhrase: (seedPhrase: string) => ipcRenderer.invoke('wallet:validateSeedPhrase', seedPhrase),
     isEncryptionAvailable: () => ipcRenderer.invoke('wallet:isEncryptionAvailable'),
     revealSeedPhrase: () => ipcRenderer.invoke('wallet:revealSeedPhrase'),
+    getWalletPath: () => ipcRenderer.invoke('wallet:getWalletPath'),
   },
   ai: {
     getStatus: () => ipcRenderer.invoke('ai:getStatus'),
@@ -101,6 +102,10 @@ const api = {
     addField: (field: unknown) => ipcRenderer.invoke('form:addField', field),
     updateField: (id: string, updates: unknown) => ipcRenderer.invoke('form:updateField', id, updates),
     removeField: (id: string) => ipcRenderer.invoke('form:removeField', id),
+  },
+  logs: {
+    getRecent: (lines: number = 50) => ipcRenderer.invoke('logs:getRecent', lines),
+    getPath: () => ipcRenderer.invoke('logs:getPath'),
   }
 }
 

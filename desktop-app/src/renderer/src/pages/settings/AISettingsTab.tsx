@@ -5,7 +5,7 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 import WelcomeModelModal from '../../components/common/WelcomeModelModal';
 
 export default function AISettingsTab() {
-  const { aiEnabled, aiModel, isLoading: aiLoading, disableAI, setShowWelcomeModal, enableAI } = useAI();
+  const { aiEnabled, aiModel, isLoading: aiLoading, disableAI, enableAI } = useAI();
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [showModelModal, setShowModelModal] = useState(false);
 
@@ -45,7 +45,7 @@ export default function AISettingsTab() {
       />
 
       <div>
-        <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">AI Settings</h2>
+        <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">AI Model</h2>
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
           Configure your local AI assistant
         </p>
@@ -74,7 +74,7 @@ export default function AISettingsTab() {
                   <Sparkles size={20} className="text-accent-primary" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-[var(--color-text-primary)]">AI Assistant</h4>
+                  <h4 className="font-medium text-[var(--color-text-primary)]">Local AI Runtime</h4>
                   <p className="text-xs text-[var(--color-text-muted)]">
                     {aiLoading ? 'Loading...' : aiEnabled ? `Using Qwen3-${aiModel}` : 'Enable to use local AI'}
                   </p>

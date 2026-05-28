@@ -1,31 +1,53 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Check } from 'lucide-react';
+import { Sparkles, Check, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { useAI } from '../../context/AIContext';
 
 export default function AIStatusCard() {
-  const { aiEnabled, aiModel, isLoading, disableAI, setShowWelcomeModal } = useAI();
-  const [totalForms, setTotalForms] = useState(0);
+  const { aiEnabled, aiModel, isLoading, error, disableAI, setShowWelcomeModal } = useAI();
+  const [uptime, setUptime] = useState<string>('');
 
+  // Update uptime every second
   useEffect(() => {
-    fetchFormCount();
-  }, []);
-
-  const fetchFormCount = async () => {
-    try {
-      const deployments = await window.api.deployments.getAll();
-      setTotalForms(deployments?.length || 0);
-    } catch (error) {
-      console.error('Failed to fetch form count:', error);
-      setTotalForms(0);
+    if (!aiEnabled) {
+      setUptime('');
+      return;
     }
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const minutes = Math.floor((elapsed % 3600) / 60);
+
+      if (hours > 0) {
+        setUptime(`${hours}h ${minutes}m`);
+      } else if (minutes >= 1) {
+        setUptime(`${minutes}m`);
+      } else {
+        setUptime('<1m');
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [aiEnabled]);
+
+  const getStatusValue = () => {
+    if (isLoading) return 'Loading...';
+    if (error) return 'Error';
+    return aiEnabled ? 'Active' : 'Disabled';
+  };
+
+  const getStatusColor = () => {
+    if (isLoading) return 'text-yellow-500';
+    if (error) return 'text-red-500';
+    return aiEnabled ? 'text-green-500' : 'text-red-500';
   };
 
   const statusItems = [
-    { label: 'AI Status', value: aiEnabled ? 'Active' : 'Disabled', valueColor: aiEnabled ? 'text-green-500' : 'text-red-500' },
-    { label: 'Storage', value: 'Connected', valueColor: 'text-green-500' },
-    { label: 'AI Model', value: aiEnabled ? `Qwen3-${aiModel}` : '-' },
-    { label: 'Total Forms', value: totalForms.toString() },
+    { label: 'Status', value: getStatusValue(), valueColor: getStatusColor() },
+    { label: 'Model', value: aiEnabled ? `Qwen3-${aiModel}` : (isLoading ? '...' : '-') },
+    { label: 'Uptime', value: uptime || '-' },
   ];
 
   const handleEnable = () => {
@@ -34,6 +56,56 @@ export default function AIStatusCard() {
 
   const handleDisable = () => {
     disableAI();
+  };
+
+  const handleRetry = () => {
+    setShowWelcomeModal(true);
+  };
+
+  const renderButton = () => {
+    if (isLoading) {
+      return (
+        <button
+          disabled
+          className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl font-semibold text-sm bg-[var(--color-bg-surface)] text-[var(--color-text-muted)] cursor-not-allowed"
+        >
+          <Loader2 size={16} className="animate-spin" />
+          Loading...
+        </button>
+      );
+    }
+
+    if (error) {
+      return (
+        <button
+          onClick={handleRetry}
+          className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl font-semibold text-sm bg-red-500 text-white hover:bg-red-600 transition-colors"
+        >
+          <RefreshCw size={16} />
+          Retry
+        </button>
+      );
+    }
+
+    if (aiEnabled) {
+      return (
+        <button
+          onClick={handleDisable}
+          className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl font-semibold text-sm bg-accent-primary-dim text-accent-primary hover:opacity-80 transition-opacity"
+        >
+          Unload Model
+        </button>
+      );
+    }
+
+    return (
+      <button
+        onClick={handleEnable}
+        className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl font-semibold text-sm bg-accent-primary text-white hover:bg-accent-primary-hover transition-colors"
+      >
+        Enable AI
+      </button>
+    );
   };
 
   return (
@@ -66,23 +138,22 @@ export default function AIStatusCard() {
                 }`}
             >
               {item.value === 'Active' && <Check size={12} />}
+              {item.value === 'Error' && <AlertCircle size={12} />}
               {item.value}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Enable/Disable Button */}
-      <button
-        onClick={aiEnabled ? handleDisable : handleEnable}
-        disabled={isLoading}
-        className={`flex items-center gap-2 w-full justify-center mt-4 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 ${aiEnabled
-            ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200'
-            : 'bg-accent-primary text-white hover:bg-accent-primary-hover'
-          }`}
-      >
-        {isLoading ? 'Loading...' : aiEnabled ? 'Disable AI' : 'Enable AI'}
-      </button>
+      {/* Error message */}
+      {error && (
+        <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+          <p className="text-xs text-red-400">{error}</p>
+        </div>
+      )}
+
+      {/* Action Button */}
+      {renderButton()}
     </motion.div>
   );
 }

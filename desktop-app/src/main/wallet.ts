@@ -66,6 +66,11 @@ function loadWallet(): WalletData | null {
 
 // IPC Handlers
 export function setupWalletHandlers(ipcMain: any): void {
+  // Get wallet file path
+  ipcMain.handle('wallet:getWalletPath', async () => {
+    return WALLET_DATA_PATH;
+  });
+
   // Check if safeStorage is available
   ipcMain.handle('wallet:isEncryptionAvailable', async () => {
     return safeStorage.isEncryptionAvailable();

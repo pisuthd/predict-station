@@ -93,6 +93,7 @@ declare global {
         validateSeedPhrase: (seedPhrase: string) => Promise<boolean>;
         isEncryptionAvailable: () => Promise<boolean>;
         revealSeedPhrase: () => Promise<string>;
+        getWalletPath: () => Promise<string>;
       };
       ai: {
         getStatus: () => Promise<AIStatus>;
@@ -173,6 +174,10 @@ declare global {
         addField: (field: unknown) => Promise<{ success: boolean }>;
         updateField: (id: string, updates: unknown) => Promise<{ success: boolean }>;
         removeField: (id: string) => Promise<{ success: boolean }>;
+      };
+      logs: {
+        getRecent: (lines?: number) => Promise<{ logs: string[]; file: string }[]>;
+        getPath: () => Promise<string>;
       };
     };
   }

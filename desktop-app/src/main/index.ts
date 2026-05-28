@@ -17,6 +17,7 @@ import {
   loadModel,
   unloadModel,
 } from '@qvac/sdk';
+import { logInfo, logError, logQVAC, getRecentLogs, getLogFilePathForUI } from './logger';
 
 // Available models for selection
 export type ModelType = '4B' | '1.7B';
@@ -55,12 +56,15 @@ function getModelName(modelType: ModelType): string {
 let modelId: string | null = null;
 let currentModelType: ModelType | null = null;
 
+let modelLoadStartTime: number | null = null;
+
 async function loadQVACModel(modelType: ModelType): Promise<string | null> {
   try {
     const modelSource = getModelSource(modelType);
     const modelDisplayName = getModelName(modelType);
     
-    console.log(`[QVAC] Loading ${modelDisplayName}...`);
+    modelLoadStartTime = Date.now();
+    logInfo(`Loading ${modelDisplayName}...`, { modelType });
     
     modelId = await loadModel({
       modelSrc: modelSource,
@@ -71,17 +75,19 @@ async function loadQVACModel(modelType: ModelType): Promise<string | null> {
         },
       onProgress: (progress) => {
         const progressMsg = typeof progress === 'string' ? progress : JSON.stringify(progress);
-        console.log('[QVAC]', progressMsg);
+        logQVAC(progressMsg);
       }
     });
     
     currentModelType = modelType;
-    console.log('[QVAC] Model loaded:', modelId);
-    console.log(`[QVAC] ${modelDisplayName} loaded successfully`);
+    const loadTime = modelLoadStartTime ? ((Date.now() - modelLoadStartTime) / 1000).toFixed(1) : 'unknown';
+    logInfo(`${modelDisplayName} loaded successfully`, { modelId, loadTime: `${loadTime}s` });
+    modelLoadStartTime = null;
     
     return modelId;
   } catch (error) {
-    console.error('[QVAC] Failed to load:', error);
+    logError(`Failed to load model: ${modelType}`, error);
+    modelLoadStartTime = null;
     return null;
   }
 }
@@ -409,6 +415,17 @@ function registerQVACIpcHandlers(): void {
   });
 
   console.log('QVAC IPC handlers registered');
+
+  // Logs handler
+  ipcMain.handle('logs:getRecent', async (_event, lines: number = 50) => {
+    return getRecentLogs(lines);
+  });
+
+  ipcMain.handle('logs:getPath', async () => {
+    return getLogFilePathForUI();
+  });
+
+  console.log('Logs IPC handlers registered');
 }
 
 // ============================================
