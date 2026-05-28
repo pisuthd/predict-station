@@ -5,8 +5,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import * as bip39 from 'bip39';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { SuiGrpcClient } from '@mysten/sui/grpc';
-// import { walrus } from '@mysten/walrus';
+import { SuiGrpcClient } from '@mysten/sui/grpc'; 
 
 const execAsync = promisify(exec);
 

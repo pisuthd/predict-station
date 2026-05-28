@@ -64,7 +64,7 @@ async function loadQVACModel(modelType: ModelType): Promise<string | null> {
     
     modelId = await loadModel({
       modelSrc: modelSource,
-      modelType: 'llm',
+      modelType: 'llamacpp-completion',
         modelConfig: {
           ctx_size: 4096,
           tools: true, // Enable tools for form studio

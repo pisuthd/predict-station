@@ -2,26 +2,29 @@ import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useAI } from '../../context/AIContext';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import WelcomeModelModal from '../../components/common/WelcomeModelModal';
 
-interface AISettingsTabProps {
-  onShowModelModal: () => void;
-}
-
-export default function AISettingsTab({ onShowModelModal }: AISettingsTabProps) {
-  const { aiEnabled, aiModel, isLoading: aiLoading, disableAI } = useAI();
+export default function AISettingsTab() {
+  const { aiEnabled, aiModel, isLoading: aiLoading, disableAI, setShowWelcomeModal, enableAI } = useAI();
   const [showDisableModal, setShowDisableModal] = useState(false);
+  const [showModelModal, setShowModelModal] = useState(false);
 
   const handleToggleAI = async () => {
     if (aiEnabled) {
       setShowDisableModal(true);
     } else {
-      onShowModelModal();
+      setShowModelModal(true);
     }
   };
 
   const handleConfirmDisable = async () => {
     setShowDisableModal(false);
     await disableAI();
+  };
+
+  const handleModelSelect = async (model: '1.7B' | '4B') => {
+    setShowModelModal(false);
+    await enableAI(model);
   };
 
   return (
@@ -33,6 +36,12 @@ export default function AISettingsTab({ onShowModelModal }: AISettingsTabProps) 
         title="Disable AI"
         message="Are you sure you want to disable the AI assistant? You can enable it again anytime."
         confirmText="Disable"
+      />
+
+      <WelcomeModelModal
+        isOpen={showModelModal}
+        onClose={() => setShowModelModal(false)}
+        onSelect={handleModelSelect}
       />
 
       <div>
@@ -116,7 +125,7 @@ export default function AISettingsTab({ onShowModelModal }: AISettingsTabProps) 
                   </p>
                 </div>
                 <button
-                  onClick={onShowModelModal}
+                  onClick={() => setShowModelModal(true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] font-medium text-sm hover:bg-[var(--color-border-default)] transition-colors border border-[var(--color-border-default)]"
                 >
                   Change

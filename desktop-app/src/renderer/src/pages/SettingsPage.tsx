@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PageWrapper from '../components/common/PageWrapper';
-import {  Cpu, Terminal, Wallet } from 'lucide-react';
+import { Cpu, Terminal, Wallet } from 'lucide-react';
 import { AISettingsTab, CLISettingsTab, WalletSettingsTab } from './settings';
-import SelectModelModal from '../components/common/SelectModelModal';
-import { useAI, AIModel } from '../context/AIContext';
 
 type TabId = 'wallet' | 'ai' | 'cli';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('wallet');
-  const [showModelModal, setShowModelModal] = useState(false);
-  const { enableAI } = useAI();
 
   const tabs = [ 
     { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
@@ -19,17 +15,12 @@ export default function SettingsPage() {
     { id: 'cli' as const, label: 'CLI Tools', icon: Terminal },
   ];
 
-  const handleModelSelect = (model: AIModel) => {
-    setShowModelModal(false);
-    enableAI(model);
-  };
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'wallet':
         return <WalletSettingsTab />;
       case 'ai':
-        return <AISettingsTab onShowModelModal={() => setShowModelModal(true)} />;
+        return <AISettingsTab />;
       case 'cli':
         return <CLISettingsTab />;
       default:
@@ -39,11 +30,6 @@ export default function SettingsPage() {
 
   return (
     <PageWrapper title="Settings">
-      <SelectModelModal
-        isOpen={showModelModal}
-        onSelect={handleModelSelect}
-      />
-
       <div className="flex gap-8 max-w-4xl">
         {/* Tabs */}
         <div className="w-48 shrink-0">

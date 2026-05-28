@@ -9,6 +9,11 @@ interface AIContextType {
   aiModel: AIModel;
   isLoading: boolean;
   error: string | null;
+  // Welcome modal state
+  showWelcomeModal: boolean;
+  setShowWelcomeModal: (show: boolean) => void;
+  welcomeDismissed: boolean;
+  // Actions
   enableAI: (model: AIModel) => Promise<boolean>;
   disableAI: () => Promise<boolean>;
   refreshStatus: () => Promise<void>;
@@ -16,11 +21,17 @@ interface AIContextType {
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
 
+const WELCOME_DISMISSED_KEY = 'localbook_welcome_dismissed';
+
 export function AIProvider({ children }: { children: ReactNode }) {
   const [aiEnabled, setAiEnabled] = useState<boolean>(false);
   const [aiModel, setAiModel] = useState<AIModel>('1.7B');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Welcome modal state
+  const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(false);
+  const [welcomeDismissed, setWelcomeDismissed] = useState<boolean>(false);
 
   // Get AI status from backend
   const refreshStatus = useCallback(async () => {
@@ -30,17 +41,36 @@ export function AIProvider({ children }: { children: ReactNode }) {
       setAiModel(status.modelType || '1.7B');
       setIsLoading(false);
       setError(null);
+      
+      // Show welcome modal if AI is not enabled and not dismissed
+      if (!status.isReady && !welcomeDismissed) {
+        setShowWelcomeModal(true);
+      }
     } catch (e) {
       console.error('Failed to get AI status:', e);
       setError(e instanceof Error ? e.message : 'Failed to get AI status');
       setIsLoading(false);
     }
-  }, []);
+  }, [welcomeDismissed]);
 
   // Initial load
   useEffect(() => {
+    // Check if welcome was dismissed before
+    const dismissed = localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true';
+    setWelcomeDismissed(dismissed);
+    
     refreshStatus();
   }, [refreshStatus]);
+
+  const handleSetShowWelcomeModal = useCallback((show: boolean) => {
+    setShowWelcomeModal(show);
+    
+    // If dismissing, save to localStorage
+    if (!show) {
+      localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
+      setWelcomeDismissed(true);
+    }
+  }, []);
 
   const enableAI = useCallback(async (model: AIModel): Promise<boolean> => {
     setIsLoading(true);
@@ -52,6 +82,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       if (result.success) {
         setAiModel(model);
         setAiEnabled(true);
+        setShowWelcomeModal(false);
         setIsLoading(false);
         return true;
       } else {
@@ -97,6 +128,9 @@ export function AIProvider({ children }: { children: ReactNode }) {
       aiModel, 
       isLoading,
       error,
+      showWelcomeModal,
+      setShowWelcomeModal: handleSetShowWelcomeModal,
+      welcomeDismissed,
       enableAI, 
       disableAI,
       refreshStatus 
