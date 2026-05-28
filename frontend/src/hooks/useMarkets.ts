@@ -27,6 +27,9 @@ export interface Oracle {
   min_strike: number
   tick_size: number
   status: 'active' | 'settled' | 'pending'
+  underlying_asset?: string
+  settlement_price?: number
+  settled_at?: number
 }
 
 export interface OracleState {
@@ -64,6 +67,8 @@ export interface Market {
   status: 'active' | 'settled' | 'pending'
   minStrike: number
   tickSize: number
+  settlementPrice?: number  // For settled markets
+  settledAt?: number        // For settled markets (timestamp)
 }
 
 export interface VaultSummary {
@@ -130,10 +135,13 @@ async function fetchJSON<T>(url: string): Promise<T> {
 
 export async function listMarkets(): Promise<Market[]> {
   const oracles = await fetchJSON<Oracle[]>(`${SERVER}/predicts/${PREDICT_ID}/oracles`)
-  const active = oracles.filter(o => o.status === 'active')
 
-  const marketList = await Promise.all(
-    active.map(async (oracle) => {
+  // Only fetch oracle state for active/pending markets (settled don't have live data)
+  const marketsNeedingState = oracles.filter(o => o.status === 'active' || o.status === 'pending')
+  const settledMarkets = oracles.filter(o => o.status === 'settled')
+
+  const activeMarketList = await Promise.all(
+    marketsNeedingState.map(async (oracle) => {
       try {
         const state = await fetchJSON<OracleState>(`${SERVER}/oracles/${oracle.oracle_id}/state`)
         
@@ -163,8 +171,31 @@ export async function listMarkets(): Promise<Market[]> {
     })
   )
 
-  const valid = marketList.filter((m): m is Market => m !== null)
-  return valid.sort((a, b) => a.expiryMs - b.expiryMs)
+  // Add settled markets with settlement price
+  const settledMarketList = settledMarkets.map((oracle) => {
+    const asset = oracle.underlying_asset || 'BTC'
+    const settlementPrice = oracle.settlement_price ? oracle.settlement_price / PRICE_SCALE : 0
+    return {
+      oracle_id: oracle.oracle_id,
+      name: asset,
+      asset: asset,
+      expiryMs: oracle.expiry,
+      spot: settlementPrice,  // Use settlement price as spot for settled markets
+      forward: settlementPrice,
+      svi: null,
+      odds: null,
+      status: oracle.status as 'settled',
+      minStrike: oracle.min_strike / PRICE_SCALE,
+      tickSize: oracle.tick_size / PRICE_SCALE,
+      settlementPrice,
+      settledAt: oracle.settled_at,
+    }
+  }).sort((a, b) => b.expiryMs - a.expiryMs)
+
+  // Sort: active/pending by expiry (soonest first), settled by expiry (soonest first = most recent)
+  const activePending = activeMarketList.filter((m): m is Market => m !== null).sort((a, b) => a.expiryMs - b.expiryMs)
+  const allMarkets = [...activePending, ...settledMarketList]
+  return allMarkets
 }
 
 export async function fetchVault(): Promise<VaultSummary | null> {

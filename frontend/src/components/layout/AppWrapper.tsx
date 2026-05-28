@@ -7,9 +7,9 @@ interface AppWrapperProps {
 
 export default function AppWrapper({ children }: AppWrapperProps) {
   return (
-    <div style={{ minHeight: '100vh', position: 'relative' }}>
+    <div style={{ height: '100vh', position: 'relative' }}>
       {/* Page Content */}
-      <div style={{ paddingBottom: '80px' }}>
+      <div>
         {children}
       </div>
 
