@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
-import type { UTCTimestamp, IChartApi, IPriceLine, MouseEventParams } from 'lightweight-charts'
+import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
 import { useMarketPrices, type Market } from '../../../hooks'
 
 const WHITE = '#ffffff'
@@ -10,9 +10,7 @@ const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
 const UPPER_COLOR = '#EC4899' // pink for upper bound (range mode)
 
-// How many pixels away from the line counts as "close enough to grab"
-const DRAG_THRESHOLD_PX = 6
-
+const DRAG_THRESHOLD_PX = 8
 export type MarketMode = 'binary' | 'range'
 
 export interface StrikeValues {
@@ -39,12 +37,14 @@ export function PriceChart2({
 
   const strikeLine1Ref = useRef<IPriceLine | null>(null)
   const strikeLine2Ref = useRef<IPriceLine | null>(null)
-
   // Track if lines have been initialized
   const linesInitializedRef = useRef(false)
 
-  // Which line is being dragged: null | 1 | 2
+
+  // null = not dragging, 1 = dragging line1, 2 = dragging line2
   const draggingRef = useRef<null | 1 | 2>(null)
+  // track pointer down state independently — not cleared by price-scale clicks
+  const pointerDownRef = useRef(false)
 
   const [strike1, setStrike1] = useState<number | null>(null)
   const [strike2, setStrike2] = useState<number | null>(null)
@@ -53,6 +53,12 @@ export function PriceChart2({
 
   // Get initial strike from market data
   const initialStrike = market.odds?.strikeK ?? 0
+
+
+  const getLinePrice = (line: IPriceLine | null): number | null => {
+    if (!line) return null
+    try { return (line as any).options().price ?? null } catch { return null }
+  }
 
   const notifyParent = useCallback(
     (s1: number | null, s2: number | null) => {
@@ -80,10 +86,8 @@ export function PriceChart2({
         vertLines: { color: 'rgba(255,255,255,0.05)' },
         horzLines: { color: 'rgba(255,255,255,0.05)' },
       },
-      crosshair: { mode: 0 }, // disabled
-      rightPriceScale: { 
-        borderColor: 'rgba(255,255,255,0.08)' 
-      },
+      crosshair: { mode: 0 },
+      rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
       timeScale: {
         borderColor: 'rgba(255,255,255,0.08)',
         timeVisible: true,
@@ -105,35 +109,29 @@ export function PriceChart2({
     chart.timeScale().fitContent()
 
     const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
+      if (chartContainerRef.current && chartRef.current)
         chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth })
-      }
     }
     window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      chart.remove()
-    }
+    return () => { window.removeEventListener('resize', handleResize); chart.remove() }
   }, [])
 
   // ── Load series data ───────────────────────────────────────────────────
   useEffect(() => {
     if (!seriesRef.current || !history?.prices?.length) return
-    const chartData = history.prices.map(p => ({
+    const data = history.prices.map(p => ({
       time: (p.time / 1000) as UTCTimestamp,
       value: Number(p.price),
     }))
-    seriesRef.current.setData(chartData)
+    seriesRef.current.setData(data)
     chartRef.current?.timeScale().fitContent()
   }, [history])
 
-  // ── Create price lines only once (use initial strike from market) ────
+  // ── Create / recreate price lines when data or mode changes ───────────
   useEffect(() => {
     const series = seriesRef.current
-    if (!series || !history?.prices?.length || linesInitializedRef.current) return
+    if (!series || !history?.prices?.length  || linesInitializedRef.current) return
 
-    // Remove existing lines if any
     if (strikeLine1Ref.current) {
       try { series.removePriceLine(strikeLine1Ref.current) } catch (_) {}
       strikeLine1Ref.current = null
@@ -165,7 +163,7 @@ export function PriceChart2({
     if (mode === 'range') {
       // Calculate upper bound: strike + 100
       const init2 = parseFloat((useStrike + 100).toFixed(2))
-      
+
       strikeLine2Ref.current = series.createPriceLine({
         price: init2,
         color: UPPER_COLOR,
@@ -184,115 +182,65 @@ export function PriceChart2({
     linesInitializedRef.current = true
   }, [history, mode, initialStrike]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Drag logic via chart mouse events ─────────────────────────────────
+  // ── Drag via pointer events on the wrapper div ─────────────────────────
+  // We listen on the OUTER wrapper (not just the chart canvas) so that
+  // dragging into the price-scale area doesn't kill the drag.
+  // We use pointerdown/pointermove/pointerup so we can call setPointerCapture,
+  // which means ALL pointer events go to this element until release — no
+  // mouseup-on-price-scale problem.
   useEffect(() => {
-    const chart = chartRef.current
-    const series = seriesRef.current
-    if (!chart || !series) return
+    const wrapper = chartContainerRef.current?.parentElement as HTMLElement | null
+    if (!wrapper) return
 
-    const getLinePrice = (line: IPriceLine | null): number | null => {
-      if (!line) return null
-      return (line as any).options?.()?.price ?? null
-    }
+    const hitTest = (clientY: number): null | 1 | 2 => {
+      const series = seriesRef.current
+      const container = chartContainerRef.current
+      if (!series || !container) return null
 
-    const onMouseDown = (params: MouseEventParams) => {
-      if (!params.point) return
-      const priceToCoord = series.priceToCoordinate.bind(series)
+      const rect = container.getBoundingClientRect()
+      const y = clientY - rect.top
 
       const p1 = getLinePrice(strikeLine1Ref.current)
       const p2 = getLinePrice(strikeLine2Ref.current)
 
-      const coord1 = p1 !== null ? priceToCoord(p1) : null
-      const coord2 = p2 !== null ? priceToCoord(p2) : null
+      const c1 = p1 !== null ? series.priceToCoordinate(p1) : null
+      const c2 = p2 !== null ? series.priceToCoordinate(p2) : null
 
-      const dist1 = coord1 !== null ? Math.abs(params.point.y - coord1) : Infinity
-      const dist2 = coord2 !== null ? Math.abs(params.point.y - coord2) : Infinity
+      const d1 = c1 !== null ? Math.abs(y - (c1 as number)) : Infinity
+      const d2 = c2 !== null ? Math.abs(y - (c2 as number)) : Infinity
 
-      if (dist1 < DRAG_THRESHOLD_PX && dist1 <= dist2) {
-        draggingRef.current = 1
-      } else if (dist2 < DRAG_THRESHOLD_PX) {
-        draggingRef.current = 2
-      }
-
-      if (draggingRef.current && chartContainerRef.current) {
-        chartContainerRef.current.style.cursor = 'ns-resize'
-      }
+      if (d1 < DRAG_THRESHOLD_PX && d1 <= d2) return 1
+      if (d2 < DRAG_THRESHOLD_PX) return 2
+      return null
     }
 
-    const onMouseMove = (params: MouseEventParams) => {
-      if (!params.point) return
-      const priceToCoord = series.priceToCoordinate.bind(series)
-      const coordToPrice = series.coordinateToPrice.bind(series)
+    const onPointerDown = (e: PointerEvent) => {
+      const hit = hitTest(e.clientY)
+      if (!hit) return
 
-      // Hover cursor hint
-      if (draggingRef.current === null) {
-        const p1 = getLinePrice(strikeLine1Ref.current)
-        const p2 = getLinePrice(strikeLine2Ref.current)
-        const c1 = p1 !== null ? priceToCoord(p1) : null
-        const c2 = p2 !== null ? priceToCoord(p2) : null
-        const near =
-          (c1 !== null && Math.abs(params.point.y - c1) < DRAG_THRESHOLD_PX) ||
-          (c2 !== null && Math.abs(params.point.y - c2) < DRAG_THRESHOLD_PX)
-        if (chartContainerRef.current) {
-          chartContainerRef.current.style.cursor = near ? 'ns-resize' : 'default'
-        }
+      draggingRef.current = hit
+      pointerDownRef.current = true
+      // Capture: all future pointer events come here until pointerup
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      wrapper.style.cursor = 'ns-resize'
+      e.preventDefault()
+    }
+
+    const onPointerMove = (e: PointerEvent) => {
+      const series = seriesRef.current
+      const container = chartContainerRef.current
+      if (!series || !container) return
+
+      // Hover hint (when not dragging)
+      if (!pointerDownRef.current) {
+        const hit = hitTest(e.clientY)
+        wrapper.style.cursor = hit ? 'ns-resize' : 'default'
         return
       }
 
-      const newPrice = coordToPrice(params.point.y)
-      if (newPrice === null) return
+      if (draggingRef.current === null) return
 
-      const rounded = parseFloat(newPrice.toFixed(2))
-
-      if (draggingRef.current === 1 && strikeLine1Ref.current) {
-        strikeLine1Ref.current.applyOptions({ price: rounded })
-        setStrike1(rounded)
-        notifyParent(rounded, getLinePrice(strikeLine2Ref.current))
-      } else if (draggingRef.current === 2 && strikeLine2Ref.current) {
-        strikeLine2Ref.current.applyOptions({ price: rounded })
-        setStrike2(rounded)
-        notifyParent(getLinePrice(strikeLine1Ref.current), rounded)
-      }
-    }
-
-    const onMouseUp = () => {
-      draggingRef.current = null
-      if (chartContainerRef.current) {
-        chartContainerRef.current.style.cursor = 'default'
-      }
-    }
-
-    chart.subscribeClick(onMouseDown)
-    chart.subscribeCrosshairMove(onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-
-    // For actual drag (mousedown + move without click), attach to container
-    const container = chartContainerRef.current
-    const handleMouseDown = (e: MouseEvent) => {
-      // Convert raw mouse coords to chart point via bounding rect
-      if (!container || !series) return
-      const rect = container.getBoundingClientRect()
-      const y = e.clientY - rect.top
-      const priceToCoord = series.priceToCoordinate.bind(series)
-
-      const p1 = getLinePrice(strikeLine1Ref.current)
-      const p2 = getLinePrice(strikeLine2Ref.current)
-      const c1 = p1 !== null ? priceToCoord(p1) : null
-      const c2 = p2 !== null ? priceToCoord(p2) : null
-      const d1 = c1 !== null ? Math.abs(y - c1) : Infinity
-      const d2 = c2 !== null ? Math.abs(y - c2) : Infinity
-
-      if (d1 < DRAG_THRESHOLD_PX && d1 <= d2) draggingRef.current = 1
-      else if (d2 < DRAG_THRESHOLD_PX) draggingRef.current = 2
-
-      if (draggingRef.current) {
-        container.style.cursor = 'ns-resize'
-        e.preventDefault() // prevent chart pan while dragging line
-      }
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (draggingRef.current === null || !container || !series) return
+      // Convert clientY → price using chart pane bounding rect
       const rect = container.getBoundingClientRect()
       const y = e.clientY - rect.top
       const newPrice = series.coordinateToPrice(y as any)
@@ -310,15 +258,24 @@ export function PriceChart2({
       }
     }
 
-    container?.addEventListener('mousedown', handleMouseDown)
-    window.addEventListener('mousemove', handleMouseMove)
+    const onPointerUp = (e: PointerEvent) => {
+      if (!pointerDownRef.current) return
+      draggingRef.current = null
+      pointerDownRef.current = false
+      ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+      wrapper.style.cursor = 'default'
+    }
+
+    wrapper.addEventListener('pointerdown', onPointerDown)
+    wrapper.addEventListener('pointermove', onPointerMove)
+    wrapper.addEventListener('pointerup', onPointerUp)
+    wrapper.addEventListener('pointercancel', onPointerUp)
 
     return () => {
-      chart.unsubscribeClick(onMouseDown)
-      chart.unsubscribeCrosshairMove(onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-      container?.removeEventListener('mousedown', handleMouseDown)
-      window.removeEventListener('mousemove', handleMouseMove)
+      wrapper.removeEventListener('pointerdown', onPointerDown)
+      wrapper.removeEventListener('pointermove', onPointerMove)
+      wrapper.removeEventListener('pointerup', onPointerUp)
+      wrapper.removeEventListener('pointercancel', onPointerUp)
     }
   }, [mode, notifyParent])
 
@@ -332,6 +289,9 @@ export function PriceChart2({
         borderRadius: 12,
         overflow: 'hidden',
         backdropFilter: 'blur(12px)',
+        // wrapper needs position so pointer events from the price-scale
+        // area still bubble up to it
+        position: 'relative',
       }}
     >
       {/* Strike labels */}
