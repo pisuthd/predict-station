@@ -139,6 +139,28 @@ async function fetchOrderBook(poolName: string, depth = 20): Promise<OrderBookRe
   return response.json()
 }
 
+// Fetch OHLCV data from indexer
+async function fetchOHLCV(poolName: string, interval = '1h', limit = 100): Promise<OHLCVData> {
+  const response = await fetch(`${INDEXER_URL}/ohclv/${poolName}?interval=${interval}&limit=${limit}`)
+  if (!response.ok) throw new Error('Failed to fetch OHLCV data')
+  return response.json()
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface OHLCVCandle {
+  time: number // Unix timestamp in seconds
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+export interface OHLCVData {
+  candles: [number, number, number, number, number, number][] // [timestamp, open, high, low, close, volume]
+}
+
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 export function useSpotPools(refreshInterval = 5_000) {
@@ -277,12 +299,32 @@ export function useSpotPools(refreshInterval = 5_000) {
     return pools.find(p => p.baseAsset === baseAsset && p.quoteAsset === quoteAsset)
   }, [pools])
 
+  // Get OHLCV data for a specific pool
+  const getOHLCV = useCallback(async (poolName: string, interval = '1h', limit = 100): Promise<OHLCVCandle[]> => {
+    try {
+      const data = await fetchOHLCV(poolName, interval, limit)
+      // Convert array format to objects
+      return data.candles.map(([time, open, high, low, close, volume]) => ({
+        time,
+        open,
+        high,
+        low,
+        close,
+        volume,
+      }))
+    } catch (err) {
+      console.error('Error fetching OHLCV data:', err)
+      return []
+    }
+  }, [])
+
   return {
     pools,
     loading,
     error,
     refetch: load,
     getOrderBook,
+    getOHLCV,
     getPoolByName,
     getPoolByAssets,
     INDEXER_URL

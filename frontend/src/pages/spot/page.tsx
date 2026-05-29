@@ -1,26 +1,37 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { NAVY } from '../../theme'
 import { useSpotPools, type SpotPool, type OrderBook as OrderBookType } from '../../hooks'
+
+interface OHLCVCandle {
+  time: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
 import { PairList } from './components/PairList'
 import { OrderBook } from './components/OrderBook'
+import { PriceChart } from './components/PriceChart'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
-import { getCoinIcon } from '../../lib/coinIcons'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
-const CYAN = '#3EC4C0'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 
 export default function SpotPage() {
-  const { pools, loading, error, refetch, getOrderBook } = useSpotPools(5_000)
+  const { pools, loading, error, refetch, getOrderBook, getOHLCV } = useSpotPools(5_000)
 
   const [selectedPool, setSelectedPool] = useState<SpotPool | null>(pools[0] || null)
   const [orderBook, setOrderBook] = useState<OrderBookType | null>(null)
   const [orderBookLoading, setOrderBookLoading] = useState(false)
+  const [candles, setCandles] = useState<OHLCVCandle[]>([])
+  const [chartLoading, setChartLoading] = useState(false)
+  const [activeInterval, setActiveInterval] = useState('4h')
 
   // Auto-select first pool when pools are loaded
   useEffect(() => {
@@ -28,6 +39,7 @@ export default function SpotPage() {
       const firstPool = pools[0]
       setSelectedPool(firstPool)
       loadOrderBook(firstPool)
+      loadOHLCV(firstPool.poolName, activeInterval)
     }
   }, [pools])
 
@@ -38,12 +50,28 @@ export default function SpotPage() {
     setOrderBookLoading(false)
   }
 
+  const loadOHLCV = useCallback(async (poolName: string, interval: string) => {
+    setChartLoading(true)
+    const data = await getOHLCV(poolName, interval, 100)
+    setCandles(data)
+    setChartLoading(false)
+  }, [getOHLCV])
+
   const handleSelectPool = async (pool: SpotPool) => {
     setSelectedPool(pool)
     setOrderBookLoading(true)
     const ob = await getOrderBook(pool.poolName)
     setOrderBook(ob)
     setOrderBookLoading(false)
+    // Load OHLCV data
+    loadOHLCV(pool.poolName, activeInterval)
+  }
+
+  const handleIntervalChange = (interval: string) => {
+    setActiveInterval(interval)
+    if (selectedPool) {
+      loadOHLCV(selectedPool.poolName, interval)
+    }
   }
 
   const formatPrice = (price: number | undefined): string => {
@@ -52,15 +80,6 @@ export default function SpotPage() {
     if (price >= 1) return price.toFixed(4)
     return price.toFixed(6)
   }
-
-  const formatVolume = (volume: number | undefined): string => {
-    if (!volume && volume !== 0) return '--'
-    if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`
-    if (volume >= 1e6) return `$${(volume / 1e6).toFixed(2)}M`
-    return `$${(volume / 1e3).toFixed(0)}K`
-  }
-
-  const combinedVolume = selectedPool ? (selectedPool.baseVolume ?? 0) + (selectedPool.quoteVolume ?? 0) : 0
 
   return (
     <AppWrapper>
@@ -107,7 +126,7 @@ export default function SpotPage() {
           />
         </div>
 
-        {/* Center Column - Market Details */}
+        {/* Center Column - Market Details + Chart */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -154,16 +173,15 @@ export default function SpotPage() {
             )}
           </div>
 
-          {/* Placeholder for chart/price display */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: MUTED,
-          }}>
-            {selectedPool ? 'Chart coming soon' : 'Select a market to view chart'}
-          </div>
+          {/* Price Chart */}
+          {selectedPool && (
+            <PriceChart
+              candles={candles}
+              loading={chartLoading}
+              currentInterval={activeInterval}
+              onIntervalChange={handleIntervalChange}
+            />
+          )}
         </div>
 
         {/* Right Column - Order Book */}
