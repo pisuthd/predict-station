@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { NAVY } from '../../theme'
 import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
-import { PredictChart } from './components/PredictChart'
+import { PriceChart2 } from './components/PriceChart2'
 import { TradeTicket } from './components/TradeTicket'
 import { MyPositions } from './components/MyPositions'
-import { formatDetailedExpiry, getMarketName, formatUSD, PRICE_SCALE } from './utils'
+import { formatDetailedExpiry, formatUSD, PRICE_SCALE } from './utils'
 import { getCoinIcon } from '../../lib/coinIcons'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
@@ -17,11 +17,13 @@ const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
 
 export default function PredictPage() {
-  const { markets, vault, loading, error, refetch } = useMarkets(30_000)
+  const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
 
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
+
+  
 
   return (
     <AppWrapper>
@@ -158,7 +160,7 @@ export default function PredictPage() {
             </div>
           ) : selected ? (
             <>
-              <PredictChart market={selected} />
+              <PriceChart2 market={selected} />
             </>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
