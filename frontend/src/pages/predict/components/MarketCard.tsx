@@ -18,22 +18,6 @@ function getCurrencyIcon(asset: string): string {
   return CURRENCY_MAP[asset.toUpperCase()] || CURRENCY_MAP['BTC']
 }
 
-/**
- * Format date for settled markets
- */
-// function formatSettledDate(timestamp: number): string {
-//   const date = new Date(timestamp)
-//   return date.toLocaleDateString('en-US', { 
-//     month: 'short', 
-//     day: 'numeric',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//   })
-// }
-
-/**
- * Format expiry date for display
- */
 function formatExpiryDate(expiryMs: number): string {
   const date = new Date(expiryMs)
   return date.toLocaleDateString('en-US', { 
@@ -44,9 +28,6 @@ function formatExpiryDate(expiryMs: number): string {
   })
 }
 
-/**
- * Format expiry time into detailed countdown (no seconds)
- */
 function formatDetailedExpiry(expiryMs: number): string {
   const diff = expiryMs - Date.now()
   if (diff <= 0) return 'soon'
@@ -68,19 +49,18 @@ function formatDetailedExpiry(expiryMs: number): string {
 
 function isExpiringSoon(expiryMs: number): boolean {
   const diff = expiryMs - Date.now()
-  return diff > 0 && diff < 6 * 60 * 60 * 1000 // < 6 hours
+  return diff > 0 && diff < 6 * 60 * 60 * 1000
 }
 
 export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
   const odds = market.odds 
   const spotUSD = market.spot / 1e9
-  const strike = odds?.strikeK ?? 0
-  const upProb = (odds?.upProb ?? 0.5) * 100
+  const upProb = ((odds?.upProb ?? 0.5) * 100).toFixed(0)
+  const downProb = ((1 - (odds?.upProb ?? 0.5)) * 100).toFixed(0)
   const icon = getCurrencyIcon(market.asset)
   const isSettled = market.status === 'settled'
   const expiringSoon = isExpiringSoon(market.expiryMs)
 
-  // For settled markets - show expiry, asset, settled_at, settlement_price
   if (isSettled) {
     return (
       <div
@@ -105,7 +85,6 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
           }
         }}
       >
-        {/* Header Row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img 
@@ -124,10 +103,8 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
           </div>
         </div>
 
-        {/* Details Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            {/* Expiry */}
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 2 }}>
               EXPIRY
             </div>
@@ -136,7 +113,6 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
             </div>
           </div>
           
-          {/* Settlement Price */}
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 2 }}>
               SETTLEMENT PRICE
@@ -145,24 +121,11 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
               ${Math.round((market.settlementPrice as any)).toLocaleString()}
             </div>
           </div>
-        </div>
-
-        {/* Settled At */}
-        {/* {market.settledAt && (
-          <div style={{ 
-            fontSize: 10, 
-            color: MUTED, 
-            marginTop: 6,
-            fontFamily: "'Space Mono', monospace",
-          }}>
-            Settled {formatSettledDate(market.settledAt)}
-          </div>
-        )} */}
+        </div> 
       </div>
     )
   }
 
-  // For active/pending markets - show odds and trade info
   return (
     <div
       onClick={onClick}
@@ -187,7 +150,7 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
       }}
     >
       {/* Header Row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img 
             src={icon}
@@ -200,44 +163,41 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
             {market.asset}
           </span>
         </div>
-        <div style={{
-          fontSize: 14,
-          fontWeight: 700,
-          color: upProb > 50 ? GREEN : RED
+        <div style={{ 
+          fontSize: 13, 
+          fontWeight: 700, 
+          color: WHITE,
+          fontFamily: "'Space Mono', monospace",
         }}>
-          {upProb.toFixed(0)}%
+          ${Math.round(spotUSD).toLocaleString()}
         </div>
       </div>
 
       {/* Details Row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          {/* Strike info */}
-          <div style={{ fontSize: 10, color: MUTED, marginBottom: 2 }}>
-            STRIKE
+        {/* Bottom left: UP/DOWN with chevron icons */}
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 9, color: GREEN, fontFamily: "'Space Mono', monospace" }}>▲</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: GREEN }}>
+              {upProb}%
+            </span>
           </div>
-          <div style={{ fontSize: 12, color: WHITE }}>
-            {strike > spotUSD ? '>' : '<'} ${Math.round(strike).toLocaleString()}
-          </div> 
-        </div>
-        <div>  
-          <div style={{ 
-            fontSize: 11, 
-            color: expiringSoon ? RED : MUTED,
-            fontFamily: "'Space Mono', monospace",
-            marginTop: 4,
-          }}>
-            In {formatDetailedExpiry(market.expiryMs)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 9, color: RED, fontFamily: "'Space Mono', monospace" }}>▼</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: RED }}>
+              {downProb}%
+            </span>
           </div>
         </div>
-        {/* Spot Price */}
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 10, color: MUTED, marginBottom: 2 }}>
-            SPOT
-          </div>
-          <div style={{ fontSize: 12, color: WHITE }}>
-            ${Math.round(spotUSD).toLocaleString()}
-          </div>
+        
+        {/* Bottom right: Expiry countdown */}
+        <div style={{ 
+          fontSize: 11, 
+          color: expiringSoon ? RED : MUTED,
+          fontFamily: "'Space Mono', monospace",
+        }}>
+          exp in {formatDetailedExpiry(market.expiryMs)}
         </div>
       </div>
     </div>
