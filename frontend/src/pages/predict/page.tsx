@@ -6,8 +6,7 @@ import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
 import { PriceChart2 } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
-import { TradeTicket } from './components/TradeTicket'
-import { MyPositions } from './components/MyPositions'
+import { StrikeGrid } from './components/StrikeGrid'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -133,22 +132,17 @@ export default function PredictPage() {
           )}
         </div>
 
-        {/* Right Column - Trade Panel */}
+        {/* Right Column - Strike Grid */}
         <div style={{
-          width: 380,
+          width: 360,
           flexShrink: 0,
-          borderLeft: '1px solid rgba(255,255,255,0.08)',
-          padding: '16px 20px',
+          borderLeft: '1px solid rgba(255,255,255,0.08)', 
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
           overflowY: 'auto',
         }}>
           {selected ? (
-            <>
-              <TradeTicket market={selected} />
-              <MyPositions />
-            </>
+            <StrikeGrid market={selected} />
           ) : (
             <div style={{
               flex: 1,
@@ -158,7 +152,7 @@ export default function PredictPage() {
               color: MUTED,
               fontSize: 13,
             }}>
-              Select a market to trade
+              Select a market
             </div>
           )}
         </div>

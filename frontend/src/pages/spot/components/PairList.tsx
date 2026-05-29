@@ -86,22 +86,7 @@ export function PairList({ pools, selectedPool, onSelectPool, loading, error, on
             }}
           />
         </div>
-
-        {/* Column Headers */}
-        {/* <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '0 4px',
-          fontSize: 10,
-          color: MUTED,
-          fontFamily: "'Space Mono', monospace",
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          <span>Market</span>
-          <span>Price</span>
-          <span>Volume</span>
-        </div> */}
+ 
       </div>
 
       {/* Loading/Error/Empty States */}

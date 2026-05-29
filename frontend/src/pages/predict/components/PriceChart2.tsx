@@ -332,17 +332,42 @@ export function PriceChart2({
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 16,
         }}>
           {/* Spot */}
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Spot Price</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>${fmtUSD(spotPrice)}</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>
+              ${fmtUSD(spotPrice)}
+              <span style={{
+                fontSize: 11,
+                fontFamily: "'Space Mono', monospace",
+                fontWeight: 500,
+                color: priceChange && priceChange.change >= 0 ? GREEN : RED
+              }}>
+                {priceChange ? (
+                  <>
+                    {` `}{priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%
+                  </>
+                ) : '—'}
+              </span>
+            </div>
+            {/* <div style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: priceChange && priceChange.change >= 0 ? GREEN : RED
+            }}>
+              {priceChange ? (
+                <>
+                  {priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%
+                </>
+              ) : '—'}
+            </div> */}
           </div>
 
           {/* Change */}
-          <div>
+          {/* <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Change</div>
             <div style={{
               fontSize: 13,
@@ -355,7 +380,7 @@ export function PriceChart2({
                 </>
               ) : '—'}
             </div>
-          </div>
+          </div> */}
 
           {/* Expiry */}
           <div>
@@ -399,7 +424,7 @@ export function PriceChart2({
                 }}
               />
               <span style={{ fontSize: 11, color: MUTED }}>Range</span>
-            </div> 
+            </div>
 
           </div>
         </div>
