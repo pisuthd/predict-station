@@ -23,7 +23,7 @@ export default function PredictPage() {
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
 
-  
+
 
   return (
     <AppWrapper>
@@ -82,7 +82,7 @@ export default function PredictPage() {
           minWidth: 0,
         }}>
 
-         <AppNavbar />
+          <AppNavbar />
 
           {/* Market Header */}
           <div style={{
@@ -94,18 +94,18 @@ export default function PredictPage() {
                 {/* Left: Market name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ position: 'relative', width: 28, height: 28 }}>
-                    <img 
+                    <img
                       src={getCoinIcon(selected.asset)}
                       alt={selected.asset}
-                      style={{ 
-                        width: 28, 
-                        height: 28, 
-                        borderRadius: '50%', 
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
                         position: 'absolute',
                         left: 0,
                         zIndex: 2,
                       }}
-                    /> 
+                    />
                   </div>
                   <div>
                     <h1 style={{
@@ -122,7 +122,7 @@ export default function PredictPage() {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Right: Price info */}
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: WHITE, fontFamily: "'Space Mono', monospace" }}>
@@ -166,7 +166,11 @@ export default function PredictPage() {
             </div>
           ) : selected ? (
             <>
-              <PriceChart2 market={selected} />
+              <PriceChart2
+                market={selected}
+                mode="range" 
+                onStrikeChange={(price) => console.log('New strike:', price)}
+              />
             </>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
