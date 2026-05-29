@@ -101,10 +101,10 @@ export default function HeroSection() {
             color: 'rgba(180,200,255,0.6)',
             lineHeight: 1.6,
             marginBottom: '40px',
-            maxWidth: "600px"
+            maxWidth: "500px"
           }}
         >
-          Deploy local AI agents to monitor, analyze, and trade on Sui Finance via DeepBook — no API costs, and runs entirely on your device.
+          Deploy local AI agents to monitor, analyze, and trade on Sui via DeepBook — no API costs, and runs entirely on your device.
         </p>
 
         {/* CTA Buttons */}

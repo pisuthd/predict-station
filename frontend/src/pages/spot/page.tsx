@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NAVY } from '../../theme'
 import { useSpotPools, type SpotPool, type OrderBook as OrderBookType } from '../../hooks'
 import { PairList } from './components/PairList'
@@ -17,9 +17,25 @@ const RED = '#ef4444'
 export default function SpotPage() {
   const { pools, loading, error, refetch, getOrderBook } = useSpotPools(5_000)
 
-  const [selectedPool, setSelectedPool] = useState<SpotPool | null>(null)
+  const [selectedPool, setSelectedPool] = useState<SpotPool | null>(pools[0] || null)
   const [orderBook, setOrderBook] = useState<OrderBookType | null>(null)
   const [orderBookLoading, setOrderBookLoading] = useState(false)
+
+  // Auto-select first pool when pools are loaded
+  useEffect(() => {
+    if (pools.length > 0 && !selectedPool) {
+      const firstPool = pools[0]
+      setSelectedPool(firstPool)
+      loadOrderBook(firstPool)
+    }
+  }, [pools])
+
+  const loadOrderBook = async (pool: SpotPool) => {
+    setOrderBookLoading(true)
+    const ob = await getOrderBook(pool.poolName)
+    setOrderBook(ob)
+    setOrderBookLoading(false)
+  }
 
   const handleSelectPool = async (pool: SpotPool) => {
     setSelectedPool(pool)
