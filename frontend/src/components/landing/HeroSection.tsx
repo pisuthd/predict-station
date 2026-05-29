@@ -131,7 +131,7 @@ export default function HeroSection() {
               e.currentTarget.style.background = CYAN
             }}
           >
-            TRY PREDICT
+            PREDICT BTC
           </button>
 
           <button

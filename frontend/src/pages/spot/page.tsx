@@ -11,6 +11,7 @@ import { getCoinIcon } from '../../lib/coinIcons'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
+const CYAN = '#3EC4C0'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 
@@ -46,18 +47,20 @@ export default function SpotPage() {
   }
 
   const formatPrice = (price: number | undefined): string => {
-    if (!price) return '--'
+    if (!price && price !== 0) return '--'
     if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     if (price >= 1) return price.toFixed(4)
     return price.toFixed(6)
   }
 
   const formatVolume = (volume: number | undefined): string => {
-    if (!volume) return '--'
+    if (!volume && volume !== 0) return '--'
     if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`
     if (volume >= 1e6) return `$${(volume / 1e6).toFixed(2)}M`
     return `$${(volume / 1e3).toFixed(0)}K`
   }
+
+  const combinedVolume = selectedPool ? (selectedPool.baseVolume ?? 0) + (selectedPool.quoteVolume ?? 0) : 0
 
   return (
     <AppWrapper>
@@ -104,7 +107,7 @@ export default function SpotPage() {
           />
         </div>
 
-        {/* Center Column - Order Book */}
+        {/* Center Column - Market Details */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -121,82 +124,49 @@ export default function SpotPage() {
             borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}>
             {selectedPool ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {/* Overlapping coin icons */}
-                <div style={{ position: 'relative', width: 64, height: 32 }}>
-                  <img 
-                    src={getCoinIcon(selectedPool.baseAsset)} 
-                    alt={selectedPool.baseAsset}
-                    style={{ 
-                      width: 32, 
-                      height: 32, 
-                      borderRadius: '50%',
-                      border: '2px solid #0a0a1a',
-                      position: 'absolute',
-                      left: 0,
-                      zIndex: 2,
-                    }}
-                  />
-                  <img 
-                    src={getCoinIcon(selectedPool.quoteAsset)} 
-                    alt={selectedPool.quoteAsset}
-                    style={{ 
-                      width: 32, 
-                      height: 32, 
-                      borderRadius: '50%',
-                      border: '2px solid #0a0a1a',
-                      position: 'absolute',
-                      left: 16,
-                      zIndex: 1,
-                    }}
-                  />
+              /* Market data grid */
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 16,
+              }}>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>24h High</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{formatPrice(selectedPool.highestPrice24h)}</div>
                 </div>
                 <div>
-                  <h1 style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: WHITE,
-                    margin: 0,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}>
-                    {selectedPool.baseAsset}/{selectedPool.quoteAsset}
-                  </h1>
+                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>24h Low</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{formatPrice(selectedPool.lowestPrice24h)}</div>
                 </div>
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                }}>
-                  <span style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: WHITE,
-                    fontFamily: "'Space Mono', monospace",
-                  }}>
-                    {formatPrice(selectedPool.lastPrice)}
-                  </span>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Best Bid</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: GREEN }}>{formatPrice(selectedPool.highestBid)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Best Ask</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: RED }}>{formatPrice(selectedPool.lowestAsk)}</div>
                 </div>
               </div>
             ) : (
               <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
-                Select a trading pair to view the order book
+                Select a trading pair to view details
               </p>
             )}
           </div>
 
-          {/* Order Book */}
+          {/* Placeholder for chart/price display */}
           <div style={{
             flex: 1,
-            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: MUTED,
           }}>
-            <OrderBook
-              orderBook={orderBook}
-              loading={orderBookLoading}
-            />
+            {selectedPool ? 'Chart coming soon' : 'Select a market to view chart'}
           </div>
         </div>
 
-        {/* Right Column - Trading Panel */}
+        {/* Right Column - Order Book */}
         <div style={{
           width: 360,
           height: '100vh',
@@ -204,76 +174,17 @@ export default function SpotPage() {
           borderLeft: '1px solid rgba(255,255,255,0.08)',
           display: 'flex',
           flexDirection: 'column',
-          padding: '16px 20px',
+          overflow: 'hidden',
         }}>
-          {/* Pool Info */}
+          {/* Order Book */}
           {selectedPool && (
-            <div style={{
-              padding: '12px',
-              background: 'rgba(255,255,255,0.03)',
-              borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.05)',
-              marginBottom: 16,
-            }}>
-              <div style={{
-                fontSize: 11,
-                color: MUTED,
-                fontFamily: "'Space Mono', monospace",
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: 12,
-              }}>
-                Pool Info
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, color: MUTED }}>Last Price</span>
-                  <span style={{ fontSize: 11, color: WHITE }}>{formatPrice(selectedPool.lastPrice)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, color: MUTED }}>24h Volume</span>
-                  <span style={{ fontSize: 11, color: WHITE }}>{formatVolume(selectedPool.quoteVolume)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, color: MUTED }}>Tick Size</span>
-                  <span style={{ fontSize: 11, color: WHITE }}>{(selectedPool.tickSize / Math.pow(10, selectedPool.quoteAssetDecimals)).toFixed(selectedPool.quoteAssetDecimals > 6 ? 6 : selectedPool.quoteAssetDecimals)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, color: MUTED }}>Min Size</span>
-                  <span style={{ fontSize: 11, color: WHITE }}>{(selectedPool.minSize / Math.pow(10, selectedPool.baseAssetDecimals)).toFixed(4)}</span>
-                </div>
-              </div>
-            </div>
+            <OrderBook
+              orderBook={orderBook}
+              loading={orderBookLoading}
+              baseAsset={selectedPool.baseAsset}
+              quoteAsset={selectedPool.quoteAsset}
+            />
           )}
-
-          {/* Placeholder for Order Form */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: MUTED,
-            gap: 12,
-          }}>
-            <div style={{
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 13 }}>Order form coming soon</span>
-          </div>
         </div>
       </div>
     </AppWrapper>

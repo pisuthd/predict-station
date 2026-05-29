@@ -1,6 +1,7 @@
 'use client'
 
 import { type OrderBook as OrderBookType } from '../../../hooks'
+import { getCoinIcon } from '../../../lib/coinIcons'
 
 const GREEN = '#22c55e'
 const RED = '#ef4444'
@@ -11,9 +12,11 @@ const CYAN = '#3EC4C0'
 interface OrderBookProps {
   orderBook: OrderBookType | null
   loading: boolean
+  baseAsset?: string
+  quoteAsset?: string
 }
 
-export function OrderBook({ orderBook, loading }: OrderBookProps) {
+export function OrderBook({ orderBook, loading, baseAsset, quoteAsset }: OrderBookProps) {
   const formatPrice = (price: number): string => {
     if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     if (price >= 1) return price.toFixed(4)
@@ -81,23 +84,57 @@ export function OrderBook({ orderBook, loading }: OrderBookProps) {
       height: '100%',
       overflow: 'hidden',
     }}>
-      {/* Header */}
+      {/* Header with icons and name */}
       <div style={{
         padding: '12px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
-        <span style={{
-          fontSize: 11,
-          color: MUTED,
-          fontFamily: "'Space Mono', monospace",
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          Order Book
-        </span>
+        {/* Left: Icons + name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {baseAsset && quoteAsset && (
+            <div style={{ position: 'relative', width: 40, height: 20 }}>
+              <img 
+                src={getCoinIcon(baseAsset)} 
+                alt={baseAsset}
+                style={{ 
+                  width: 20, 
+                  height: 20, 
+                  borderRadius: '50%',
+                  border: '2px solid #0a0a1a',
+                  position: 'absolute',
+                  left: 0,
+                  zIndex: 2,
+                }}
+              />
+              <img 
+                src={getCoinIcon(quoteAsset)} 
+                alt={quoteAsset}
+                style={{ 
+                  width: 20, 
+                  height: 20, 
+                  borderRadius: '50%',
+                  border: '2px solid #0a0a1a',
+                  position: 'absolute',
+                  left: 10,
+                  zIndex: 1,
+                }}
+              />
+            </div>
+          )}
+          <span style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: WHITE,
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            {baseAsset}/{quoteAsset}
+          </span>
+        </div>
+        
+        {/* Right: Spread */}
         <span style={{
           fontSize: 10,
           color: MUTED,
