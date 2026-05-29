@@ -9,6 +9,8 @@ const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
 const UPPER_COLOR = '#EC4899' // pink for upper bound (range mode)
+const GREEN = '#22c55e'
+const RED = '#ef4444'
 
 const DRAG_THRESHOLD_PX = 8
 export type MarketMode = 'binary' | 'range'
@@ -23,6 +25,7 @@ interface PriceChart2Props {
   timeRange?: number
   mode?: MarketMode
   onStrikeChange?: (values: StrikeValues) => void
+  onModeChange?: (mode: MarketMode) => void
 }
 
 export function PriceChart2({
@@ -30,6 +33,7 @@ export function PriceChart2({
   timeRange = 1800,
   mode = 'binary',
   onStrikeChange,
+  onModeChange,
 }: PriceChart2Props) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -37,9 +41,9 @@ export function PriceChart2({
 
   const strikeLine1Ref = useRef<IPriceLine | null>(null)
   const strikeLine2Ref = useRef<IPriceLine | null>(null)
+
   // Track if lines have been initialized
   const linesInitializedRef = useRef(false)
-
 
   // null = not dragging, 1 = dragging line1, 2 = dragging line2
   const draggingRef = useRef<null | 1 | 2>(null)
@@ -54,6 +58,16 @@ export function PriceChart2({
   // Get initial strike from market data
   const initialStrike = market.odds?.strikeK ?? 0
 
+  // Calculate price change from history
+  const getPriceChange = () => {
+    if (!history?.prices?.length || history.prices.length < 2) return null
+    const prices = history.prices.map(p => Number(p.price))
+    const first = prices[0]
+    const last = prices[prices.length - 1]
+    const change = last - first
+    const changePct = first > 0 ? (change / first) * 100 : 0
+    return { change, changePct }
+  }
 
   const getLinePrice = (line: IPriceLine | null): number | null => {
     if (!line) return null
@@ -119,7 +133,13 @@ export function PriceChart2({
   // ── Load series data ───────────────────────────────────────────────────
   useEffect(() => {
     if (!seriesRef.current || !history?.prices?.length) return
-    const data = history.prices.map(p => ({
+
+    // Sort by time ascending and remove duplicates
+    const sortedPrices = [...history.prices]
+      .sort((a, b) => a.time - b.time)
+      .filter((p, i, arr) => i === 0 || p.time !== arr[i - 1].time)
+
+    const data = sortedPrices.map(p => ({
       time: (p.time / 1000) as UTCTimestamp,
       value: Number(p.price),
     }))
@@ -130,25 +150,25 @@ export function PriceChart2({
   // ── Create / recreate price lines when data or mode changes ───────────
   useEffect(() => {
     const series = seriesRef.current
-    if (!series || !history?.prices?.length  || linesInitializedRef.current) return
+    if (!series || !history?.prices?.length || linesInitializedRef.current) return
 
     if (strikeLine1Ref.current) {
-      try { series.removePriceLine(strikeLine1Ref.current) } catch (_) {}
+      try { series.removePriceLine(strikeLine1Ref.current) } catch (_) { }
       strikeLine1Ref.current = null
     }
     if (strikeLine2Ref.current) {
-      try { series.removePriceLine(strikeLine2Ref.current) } catch (_) {}
+      try { series.removePriceLine(strikeLine2Ref.current) } catch (_) { }
       strikeLine2Ref.current = null
     }
 
     // Use strikeK from market data, fallback to calculated value
-    const useStrike = initialStrike > 0 
-      ? initialStrike 
+    const useStrike = initialStrike > 0
+      ? initialStrike
       : (() => {
-          const prices = history.prices.map(p => Number(p.price))
-          const midPrice = prices[Math.floor(prices.length / 2)]
-          return parseFloat((midPrice * 0.99).toFixed(2))
-        })()
+        const prices = history.prices.map(p => Number(p.price))
+        const midPrice = prices[Math.floor(prices.length / 2)]
+        return parseFloat((midPrice * 0.99).toFixed(2))
+      })()
 
     strikeLine1Ref.current = series.createPriceLine({
       price: useStrike,
@@ -183,11 +203,6 @@ export function PriceChart2({
   }, [history, mode, initialStrike]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Drag via pointer events on the wrapper div ─────────────────────────
-  // We listen on the OUTER wrapper (not just the chart canvas) so that
-  // dragging into the price-scale area doesn't kill the drag.
-  // We use pointerdown/pointermove/pointerup so we can call setPointerCapture,
-  // which means ALL pointer events go to this element until release — no
-  // mouseup-on-price-scale problem.
   useEffect(() => {
     const wrapper = chartContainerRef.current?.parentElement as HTMLElement | null
     if (!wrapper) return
@@ -220,8 +235,7 @@ export function PriceChart2({
 
       draggingRef.current = hit
       pointerDownRef.current = true
-      // Capture: all future pointer events come here until pointerup
-      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        ; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
       wrapper.style.cursor = 'ns-resize'
       e.preventDefault()
     }
@@ -262,7 +276,7 @@ export function PriceChart2({
       if (!pointerDownRef.current) return
       draggingRef.current = null
       pointerDownRef.current = false
-      ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+        ; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
       wrapper.style.cursor = 'default'
     }
 
@@ -282,6 +296,25 @@ export function PriceChart2({
   const fmt = (v: number | null) =>
     v === null ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: 4 })
 
+  const fmtUSD = (v: number | null) => {
+    if (v === null) return '—'
+    return v >= 1000 ? v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v.toFixed(2)
+  }
+
+  const spotPrice = market.spot / 1e9
+  const priceChange = getPriceChange()
+
+  // Format expiry as compact datetime (e.g., "Jun 2, 14:30")
+  const expiryDate = new Date(market.expiryMs)
+  const expiryLabel = expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+    expiryDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  const handleModeChange = (newMode: MarketMode) => {
+    // Reset lines when mode changes so they recreate
+    linesInitializedRef.current = false
+    if (onModeChange) onModeChange(newMode)
+  }
+
   return (
     <div
       style={{
@@ -289,11 +322,89 @@ export function PriceChart2({
         borderRadius: 12,
         overflow: 'hidden',
         backdropFilter: 'blur(12px)',
-        // wrapper needs position so pointer events from the price-scale
-        // area still bubble up to it
         position: 'relative',
       }}
     >
+      {/* Header with market info grid */}
+      <div style={{
+        padding: '16px 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 16,
+        }}>
+          {/* Spot */}
+          <div>
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Spot Price</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>${fmtUSD(spotPrice)}</div>
+          </div>
+
+          {/* Change */}
+          <div>
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Change</div>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: priceChange && priceChange.change >= 0 ? GREEN : RED
+            }}>
+              {priceChange ? (
+                <>
+                  {priceChange.change >= 0 ? '+' : ''}{priceChange.change.toFixed(2)} ({priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%)
+                </>
+              ) : '—'}
+            </div>
+          </div>
+
+          {/* Expiry */}
+          <div>
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Expiry</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
+          </div>
+
+          {/* Mode Toggle - Radio circles */}
+          <div  >
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Mode</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => handleModeChange('binary')}
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  background: mode === 'binary' ? CYAN : 'transparent',
+                  border: `2px solid ${mode === 'binary' ? CYAN : MUTED}`,
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+              <span style={{ fontSize: 11, color: MUTED }}>Binary</span>
+              <button
+                onClick={() => handleModeChange('range')}
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  background: mode === 'range' ? CYAN : 'transparent',
+                  border: `2px solid ${mode === 'range' ? CYAN : MUTED}`,
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+              <span style={{ fontSize: 11, color: MUTED }}>Range</span>
+            </div> 
+
+          </div>
+        </div>
+      </div>
+
       {/* Strike labels */}
       {!loading && history?.prices?.length ? (
         <div

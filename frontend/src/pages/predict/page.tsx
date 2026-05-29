@@ -5,10 +5,9 @@ import { NAVY } from '../../theme'
 import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
 import { PriceChart2 } from './components/PriceChart2'
+import type { MarketMode } from './components/PriceChart2'
 import { TradeTicket } from './components/TradeTicket'
 import { MyPositions } from './components/MyPositions'
-import { formatDetailedExpiry, formatUSD, PRICE_SCALE } from './utils'
-import { getCoinIcon } from '../../lib/coinIcons'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -19,11 +18,10 @@ const MUTED = 'rgba(180,200,255,0.6)'
 export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
+  const [chartMode, setChartMode] = useState<MarketMode>('binary')
 
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
-
-
 
   return (
     <AppWrapper>
@@ -84,59 +82,16 @@ export default function PredictPage() {
 
           <AppNavbar />
 
-          {/* Market Header */}
-          <div style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-          }}>
-            {selected ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                {/* Left: Market name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ position: 'relative', width: 28, height: 28 }}>
-                    <img
-                      src={getCoinIcon(selected.asset)}
-                      alt={selected.asset}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        position: 'absolute',
-                        left: 0,
-                        zIndex: 2,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <h1 style={{
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: WHITE,
-                      margin: 0,
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}>
-                      {selected.asset} Predict
-                    </h1>
-                    <span style={{ fontSize: 11, color: MUTED }}>
-                      {formatDetailedExpiry(selected.expiryMs)} remaining
-                    </span>
-                  </div>
-                </div>
-
-                {/* Right: Price info */}
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: WHITE, fontFamily: "'Space Mono', monospace" }}>
-                    {formatUSD(selected.spot / PRICE_SCALE)}
-                  </div>
-                  <span style={{ fontSize: 10, color: MUTED }}>Current Price</span>
-                </div>
-              </div>
-            ) : (
+          {!selected && (
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+            }}>
               <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
                 Select a market to view details
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {error && (
             <div style={{ color: '#ef4444', padding: 16, background: 'rgba(239,68,68,0.1)', borderRadius: 8 }}>
@@ -165,13 +120,12 @@ export default function PredictPage() {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : selected ? (
-            <>
-              <PriceChart2
-                market={selected}
-                mode="range" 
-                onStrikeChange={(price) => console.log('New strike:', price)}
-              />
-            </>
+            <PriceChart2
+              market={selected}
+              mode={chartMode}
+              onModeChange={setChartMode}
+              onStrikeChange={(price) => console.log('New strike:', price)}
+            />
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
               No active markets
