@@ -11,16 +11,16 @@ import { useState, useEffect, useCallback } from 'react'
 const INDEXER_URL = 'https://deepbook-indexer.testnet.mystenlabs.com'
 
 // Asset decimals for conversion
-const ASSET_SCALARS: Record<string, number> = {
-  'SUI': 9,
-  'USDC': 6,
-  'DEEP': 6,
-  'WUSDC': 6,
-  'WUSDT': 6,
-  'xBTC': 8,
-  'BETH': 8,
-  'NS': 6,
-}
+// const ASSET_SCALARS: Record<string, number> = {
+//   'SUI': 9,
+//   'USDC': 6,
+//   'DEEP': 6,
+//   'WUSDC': 6,
+//   'WUSDT': 6,
+//   'xBTC': 8,
+//   'BETH': 8,
+//   'NS': 6,
+// }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,11 @@ export interface SpotPool {
   quoteVolume?: number
   change24h?: number
   isFrozen?: boolean
+  // Summary data
+  lowestPrice24h?: number
+  highestPrice24h?: number
+  lowestAsk?: number
+  highestBid?: number
 }
 
 export interface OrderBookLevel {
@@ -86,6 +91,20 @@ interface TickerResponse {
   }
 }
 
+interface SummaryItem {
+  trading_pairs: string
+  base_currency: string
+  quote_currency: string
+  last_price: number
+  base_volume: number
+  quote_volume: number
+  price_change_percent_24h: number
+  lowest_price_24h: number
+  highest_price_24h: number
+  lowest_ask: number
+  highest_bid: number
+}
+
 interface OrderBookResponse {
   timestamp: string
   bids: [string, string][]
@@ -106,23 +125,18 @@ async function fetchTicker(): Promise<TickerResponse> {
   return response.json()
 }
 
+// Fetch summary data from indexer
+async function fetchSummary(): Promise<SummaryItem[]> {
+  const response = await fetch(`${INDEXER_URL}/summary`)
+  if (!response.ok) throw new Error('Failed to fetch summary')
+  return response.json()
+}
+
 // Fetch order book from indexer
 async function fetchOrderBook(poolName: string, depth = 20): Promise<OrderBookResponse> {
   const response = await fetch(`${INDEXER_URL}/orderbook/${poolName}?level=2&depth=${depth}`)
   if (!response.ok) throw new Error('Failed to fetch order book')
   return response.json()
-}
-
-// ─── Conversion Helpers ───────────────────────────────────────────────────────
-
-function convertVolume(rawVolume: number, asset: string): number {
-  const scalar = ASSET_SCALARS[asset] || 6
-  return rawVolume / Math.pow(10, scalar)
-}
-
-function convertPrice(rawPrice: number, quoteDecimals: number, baseDecimals: number): number {
-  // Price is already in human-readable format from indexer
-  return rawPrice
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
@@ -134,18 +148,38 @@ export function useSpotPools(refreshInterval = 5_000) {
 
   const load = useCallback(async () => {
     try {
-      // Fetch pools and ticker data in parallel
-      const [poolsData, tickerData] = await Promise.all([
+      // Fetch pools, ticker data, and summary data in parallel
+      const [poolsData, tickerData, summaryData] = await Promise.all([
         fetchPools(),
-        fetchTicker()
+        fetchTicker(),
+        fetchSummary()
       ])
 
       console.log("poolsData:", poolsData)
       console.log("tickerData:", tickerData)
+      console.log("summaryData:", summaryData)
 
-      // Map pools with ticker data
+      // Create a map of summary data keyed by trading_pairs (BASE_QUOTE format)
+      const summaryMap = new Map<string, SummaryItem>()
+      summaryData.forEach(item => {
+        summaryMap.set(item.trading_pairs, item)
+      })
+
+      // Map pools with ticker data and summary data
       const mappedPools: SpotPool[] = poolsData.map(pool => {
         const ticker = tickerData[pool.pool_name]
+        // Try to find summary data using different formats
+        const formats = [
+          pool.pool_name, // e.g., "DEEP_SUI"
+          `${pool.base_asset_symbol}_${pool.quote_asset_symbol}`, // e.g., "DEEP_SUI"
+        ]
+        
+        let summary: SummaryItem | undefined
+        for (const format of formats) {
+          summary = summaryMap.get(format)
+          if (summary) break
+        }
+
         return {
           poolId: pool.pool_id,
           poolName: pool.pool_name,
@@ -158,14 +192,22 @@ export function useSpotPools(refreshInterval = 5_000) {
           minSize: pool.min_size,
           lotSize: pool.lot_size,
           tickSize: pool.tick_size,
-          lastPrice: ticker?.last_price ?? 0,
-          baseVolume: ticker?.base_volume ?? 0,
-          quoteVolume: ticker?.quote_volume ?? 0,
+          // Use summary data if available, otherwise ticker data
+          lastPrice: summary?.last_price ?? ticker?.last_price ?? 0,
+          baseVolume: summary?.base_volume ?? ticker?.base_volume ?? 0,
+          quoteVolume: summary?.quote_volume ?? ticker?.quote_volume ?? 0,
+          change24h: summary?.price_change_percent_24h,
+          lowestPrice24h: summary?.lowest_price_24h,
+          highestPrice24h: summary?.highest_price_24h,
+          lowestAsk: summary?.lowest_ask,
+          highestBid: summary?.highest_bid,
           isFrozen: ticker?.isFrozen === 1,
         }
-      })
+      }).reverse()
 
-      setPools(mappedPools)
+      setPools(mappedPools.filter(p =>
+        (p.lastPrice ?? 0) > 0 && !p.isFrozen
+      ))
       setError(null)
     } catch (err) {
       console.error('Error fetching pools:', err)
@@ -185,18 +227,18 @@ export function useSpotPools(refreshInterval = 5_000) {
   const getOrderBook = useCallback(async (poolName: string): Promise<OrderBook | null> => {
     try {
       const data = await fetchOrderBook(poolName, 20)
-      
+
       // Parse bids and asks
       let bidTotal = 0
       let askTotal = 0
-      
+
       const bids: OrderBookLevel[] = data.bids.map(([price, qty]) => {
         const priceNum = parseFloat(price)
         const qtyNum = parseFloat(qty)
         bidTotal += qtyNum
         return { price: priceNum, quantity: qtyNum, total: bidTotal }
       })
-      
+
       const asks: OrderBookLevel[] = data.asks.map(([price, qty]) => {
         const priceNum = parseFloat(price)
         const qtyNum = parseFloat(qty)
@@ -235,14 +277,14 @@ export function useSpotPools(refreshInterval = 5_000) {
     return pools.find(p => p.baseAsset === baseAsset && p.quoteAsset === quoteAsset)
   }, [pools])
 
-  return { 
-    pools, 
-    loading, 
-    error, 
-    refetch: load, 
+  return {
+    pools,
+    loading,
+    error,
+    refetch: load,
     getOrderBook,
     getPoolByName,
     getPoolByAssets,
-    INDEXER_URL 
+    INDEXER_URL
   }
 }

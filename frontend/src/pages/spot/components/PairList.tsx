@@ -8,6 +8,8 @@ import { getCoinIcon } from '../../../lib/coinIcons'
 const CYAN = '#3EC4C0'
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
+const GREEN = '#22c55e'
+const RED = '#ef4444'
 
 interface PairListProps {
   pools: SpotPool[]
@@ -65,8 +67,7 @@ export function PairList({ pools, selectedPool, onSelectPool, loading, error, on
           alignItems: 'center',
           background: 'rgba(255,255,255,0.05)',
           borderRadius: 8,
-          padding: '8px 12px',
-          marginBottom: 12,
+          padding: '8px 12px', 
         }}>
           <Search size={14} color={MUTED} style={{ marginRight: 8, flexShrink: 0 }} />
           <input
@@ -87,7 +88,7 @@ export function PairList({ pools, selectedPool, onSelectPool, loading, error, on
         </div>
 
         {/* Column Headers */}
-        <div style={{
+        {/* <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           padding: '0 4px',
@@ -100,7 +101,7 @@ export function PairList({ pools, selectedPool, onSelectPool, loading, error, on
           <span>Market</span>
           <span>Price</span>
           <span>Volume</span>
-        </div>
+        </div> */}
       </div>
 
       {/* Loading/Error/Empty States */}
@@ -274,20 +275,32 @@ function PairCard({ pool, isSelected, onClick, formatPrice, formatVolume }: Pair
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <span style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: WHITE,
-          fontFamily: "'Space Mono', monospace",
-        }}>
-          {formatPrice(pool.lastPrice)}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: WHITE,
+            fontFamily: "'Space Mono', monospace",
+          }}>
+            {formatPrice(pool.lastPrice)}
+          </span>
+          {pool.change24h !== undefined && pool.change24h !== 0 && (
+            <span style={{
+              fontSize: 11,
+              color: pool.change24h >= 0 ? GREEN : RED,
+              fontFamily: "'Space Mono', monospace",
+              fontWeight: 500,
+            }}>
+              {pool.change24h >= 0 ? '+' : ''}{pool.change24h.toFixed(2)}%
+            </span>
+          )}
+        </div>
         <span style={{
           fontSize: 11,
           color: MUTED,
           fontFamily: "'Space Mono', monospace",
         }}>
-          {formatVolume(pool.quoteVolume)}
+          Vol. {formatVolume((pool.baseVolume ?? 0) + (pool.quoteVolume ?? 0))}
         </span>
       </div>
     </div>
