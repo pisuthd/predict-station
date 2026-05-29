@@ -43,8 +43,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket }: MarketLi
           alignItems: 'center',
           background: 'rgba(255,255,255,0.05)',
           borderRadius: 8,
-          padding: '8px 12px',
-          marginBottom: 12,
+          padding: '8px 12px'
         }}>
           <Search size={14} color={MUTED} style={{ marginRight: 8, flexShrink: 0 }} />
           <input
@@ -63,20 +62,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket }: MarketLi
             }}
           />
         </div>
-
-        {/* Column Headers */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '0 4px',
-          fontSize: 10,
-          color: MUTED,
-          fontFamily: "'Space Mono', monospace",
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          <span>Market</span>
-        </div>
+ 
       </div>
 
       {/* Markets List */}

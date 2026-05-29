@@ -61,8 +61,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket, loading, e
           alignItems: 'center',
           background: 'rgba(255,255,255,0.05)',
           borderRadius: 8,
-          padding: '8px 12px',
-          marginBottom: 12,
+          padding: '8px 12px'
         }}>
           <Search size={14} color={MUTED} style={{ marginRight: 8, flexShrink: 0 }} />
           <input
@@ -83,7 +82,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket, loading, e
         </div>
 
         {/* Status Filter */}
-        <div style={{ display: 'flex', gap: 6 }}>
+        {/* <div style={{ display: 'flex', gap: 6 }}>
           {(['active', 'pending', 'settled'] as StatusFilter[]).map((status) => (
             <button
               key={status}
@@ -104,7 +103,7 @@ export function MarketList({ markets, selectedMarket, onSelectMarket, loading, e
               {status}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Loading/Error/Empty States */}

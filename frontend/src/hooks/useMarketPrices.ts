@@ -51,6 +51,7 @@ export async function getMarketPrices(
   limit = 60
 ): Promise<PriceHistory | null> {
   try {
+
     const raw = await fetchJSON<RawPriceEvent[]>(
       `${SERVER}/oracles/${oracleId}/prices?limit=${limit}`
     )
