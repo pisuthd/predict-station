@@ -3,11 +3,11 @@ import { CYAN } from '../../theme'
 
 const models = [
   { name: 'Hardware Specs', desc: 'Standard desktops ~2GB disk, 8GB+ RAM' },
-  { name: 'DeepBook Expert', desc: 'Sui DeepBook spot, margin & predict' },
-  { name: 'Supported Tools', desc: 'Analytics tools & trade execution' },
-  { name: 'Built-in CoT', desc: 'Chain-of-Thought reasoning on every decision' },
+  { name: 'DeepBook Expert', desc: 'Understands DeepBook spot, margin & predict' },
+  { name: 'Trade Optimized', desc: 'Fine-tuned for trading with many useful tools' }, 
+  { name: 'Built-in CoT', desc: 'Advanced reasoning on every decision' },
   { name: '100% Local', desc: 'No cloud, your data stays private' },
-  { name: 'Prediction Specialist', desc: 'Binary outcomes & price-range trading' },
+  { name: 'Seamless Agents', desc: 'With drag-and-drop agentic workflows' },
 ]
 
 export default function SupportedModels() {
