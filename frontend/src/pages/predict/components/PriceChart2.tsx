@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
 import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
 import { useMarketPrices, type Market } from '../../../hooks'
@@ -15,13 +15,17 @@ const RED = '#ef4444'
 const DRAG_THRESHOLD_PX = 8
 export type MarketMode = 'binary' | 'range'
 
+export type Direction = 'up' | 'down'
+
 interface PriceChart2Props {
   market: Market
   timeRange?: number
   mode?: MarketMode
   initialStrike1?: number
   initialStrike2?: number | null
-  onStrikeChange?: (s1: number, s2: number | null) => void
+  initialDirection?: Direction
+  onStrikeChange?: (s1: number, s2: number | null, direction: Direction) => void
+  onDirectionChange?: (direction: Direction) => void
   onModeChange?: (mode: MarketMode) => void
 }
 
@@ -31,7 +35,9 @@ export function PriceChart2({
   mode = 'binary',
   initialStrike1,
   initialStrike2,
+  initialDirection = 'up',
   onStrikeChange,
+  onDirectionChange,
   onModeChange,
 }: PriceChart2Props) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
@@ -45,9 +51,64 @@ export function PriceChart2({
   const draggingRef = useRef<null | 1 | 2>(null)
   const pointerDownRef = useRef(false)
 
+  // Direction state (UP = price above strike at expiry, DOWN = below strike)
+  const [direction, setDirection] = useState<Direction>(initialDirection ?? 'up')
+
+  // Sync local direction with prop changes from parent
+  useEffect(() => {
+    setDirection(initialDirection ?? 'up')
+  }, [initialDirection])
+
   // Use props directly for strikes (moved to parent)
   const strike1 = initialStrike1 ?? null
   const strike2 = initialStrike2 ?? null
+
+  // Calculate mint price using SVI model (same as StrikeGrid)
+  const mintPrice = useMemo(() => {
+    if (!strike1 || strike1 <= 0) return null
+    const forwardPrice = market.forward / 1e9
+    const T = Math.max(0, (market.expiryMs - Date.now()) / (365.25 * 24 * 3600 * 1000))
+    
+    // SVI parameters from market
+    const sviParams = market.svi ? {
+      a: market.svi.a,
+      b: market.svi.b,
+      rho: market.svi.rho,
+      m: market.svi.m,
+      sigma: market.svi.sigma
+    } : { a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806 }
+
+    // SVI functions (same as StrikeGrid)
+    const normCDF = (x: number): number => {
+      const sign = x < 0 ? -1 : 1
+      x = Math.abs(x) / Math.SQRT2
+      const t = 1 / (1 + 0.3275911 * x)
+      const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x)
+      return 0.5 * (1 + sign * y)
+    }
+
+    const sviVol = (K: number, F: number, T: number): number => {
+      if (T <= 0) return sviParams.sigma / 1e8
+      const a = sviParams.a / 1e8
+      const b = sviParams.b / 1e8
+      const rho = sviParams.rho / 1e9
+      const m = sviParams.m / 1e8
+      const sig = sviParams.sigma / 1e8
+      const k = Math.log(K / F)
+      const w = a + b * (rho * (k - m) + Math.sqrt((k - m) ** 2 + sig ** 2))
+      return w > 0 ? Math.sqrt(w / T) : sig
+    }
+
+    const binaryUpProb = (F: number, K: number, T: number, vol: number): number => {
+      if (T <= 0 || vol <= 0) return F > K ? 100 : 0
+      const d2 = (Math.log(F / K) - 0.5 * vol ** 2 * T) / (vol * Math.sqrt(T))
+      return normCDF(d2) * 100
+    }
+
+    const vol = sviVol(strike1, forwardPrice, T)
+    const upProb = binaryUpProb(forwardPrice, strike1, T, vol)
+    return { up: upProb, down: 100 - upProb }
+  }, [strike1, market.forward, market.expiryMs, market.svi])
 
   const { history, loading } = useMarketPrices(market.oracle_id, timeRange, 9000)
 
@@ -69,11 +130,11 @@ export function PriceChart2({
   }
 
   const notifyParent = useCallback(
-    (s1: number | null, s2: number | null) => {
+    (s1: number | null, s2: number | null, dir: Direction = direction) => {
       if (!onStrikeChange || s1 === null) return
-      onStrikeChange(s1, s2)
+      onStrikeChange(s1, s2, dir)
     },
-    [mode, onStrikeChange],
+    [mode, onStrikeChange, direction],
   )
 
   // ── Create chart once ──────────────────────────────────────────────────
@@ -428,24 +489,41 @@ export function PriceChart2({
           )}
 
           <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {mode === 'binary' ? (
+            {mode === 'binary' && strike1 ? (
               <>
-                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: strike1 && spotPrice ? (strike1 > spotPrice ? GREEN : RED) : MUTED,
-                }}>
-                  {strike1 && spotPrice ? (
-                    <>
-                      {strike1 > spotPrice ? '▲ UP' : '▼ DOWN'}
-                      {` `}
-                      <span style={{ fontSize: 10, opacity: 0.8 }}>
-                        ({((Math.abs(strike1 - spotPrice) / spotPrice) * 100).toFixed(1)}% from spot)
-                      </span>
-                    </>
-                  ) : '—'}
-                </span>
+                <span style={{ color: MUTED, fontSize: 11 }}>Direction:</span>
+              <button
+                  onClick={() => onDirectionChange?.('up')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: direction === 'up' ? GREEN : 'rgba(255,255,255,0.05)',
+                    color: direction === 'up' ? '#fff' : MUTED,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  ▲ UP {mintPrice ? `${mintPrice.up.toFixed(0)}¢` : ''}
+                </button>
+                <button
+                  onClick={() => onDirectionChange?.('down')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: direction === 'down' ? RED : 'rgba(255,255,255,0.05)',
+                    color: direction === 'down' ? '#fff' : MUTED,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  ▼ DOWN {mintPrice ? `${mintPrice.down.toFixed(0)}¢` : ''}
+                </button>
               </>
             ) : (
               <>

@@ -10,6 +10,8 @@ const CYAN = '#3EC4C0'
 export function TradePositions() {
   const { positions, loading } = usePredict()
 
+  console.log("positions: ", positions)
+
   const formatStrike = (raw: string) => {
     const n = Number(BigInt(raw)) / Number(PRICE_SCALE)
     return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 })
@@ -25,6 +27,22 @@ export function TradePositions() {
     const n = Number(BigInt(raw)) / Number(PRICE_SCALE)
     return n.toFixed(4)
   }
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    })
+  }
+
+  // Sort positions by creation time (newest first)
+  const sortedPositions = [...positions].sort((a, b) => 
+    (b.first_minted_at || 0) - (a.first_minted_at || 0)
+  )
 
   if (loading) {
     return (
@@ -53,10 +71,11 @@ export function TradePositions() {
             <th style={{ textAlign: 'right', padding: '8px 8px', color: MUTED, fontSize: 10, textTransform: 'uppercase' }}>ENTRY</th>
             <th style={{ textAlign: 'right', padding: '8px 8px', color: MUTED, fontSize: 10, textTransform: 'uppercase' }}>MARK</th>
             <th style={{ textAlign: 'right', padding: '8px 8px', color: MUTED, fontSize: 10, textTransform: 'uppercase' }}>uPnL</th>
+            <th style={{ textAlign: 'right', padding: '8px 8px', color: MUTED, fontSize: 10, textTransform: 'uppercase' }}>CREATED</th>
           </tr>
         </thead>
         <tbody>
-          {positions.map((pos, idx) => {
+          {sortedPositions.map((pos, idx) => {
             const isUp = pos.is_up
             return (
               <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -97,6 +116,15 @@ export function TradePositions() {
                   color: Number(pos.unrealized_pnl || 0) >= 0 ? GREEN : RED,
                 }}>
                   {Number(pos.unrealized_pnl || 0) >= 0 ? '+' : ''}{formatUsd(pos.unrealized_pnl)}
+                </td>
+                <td style={{ 
+                  padding: '12px 8px', 
+                  textAlign: 'right', 
+                  fontFamily: "'Space Mono', monospace",
+                  color: MUTED,
+                  fontSize: 11,
+                }}>
+                  {pos.first_minted_at ? formatTime(pos.first_minted_at) : '—'}
                 </td>
               </tr>
             )

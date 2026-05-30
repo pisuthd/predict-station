@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NAVY } from '../../theme'
 import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
-import { PriceChart2 } from './components/PriceChart2'
+import { PriceChart2, type Direction } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
 import { StrikeGrid } from './components/StrikeGrid'
 import { TradePanel } from './components/TradePanel'
@@ -24,13 +24,22 @@ export default function PredictPage() {
   // Strike states moved from PriceChart2 to parent
   const [strike1, setStrike1] = useState(0)
   const [strike2, setStrike2] = useState<number | null>(null)
+  const [direction, setDirection] = useState<Direction>('up')
 
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
 
-  // Initialize strikes when market changes
+  // Initialize strikes when market changes (only when selecting a new market)
+  // Use a ref to track the current oracle_id to avoid resetting on market updates
+  const prevOracleIdRef = useRef<string | null>(null)
+  
   useEffect(() => {
-    if (selected) {
+    if (!selected) return
+    const currentOracleId = selected.oracle_id
+    
+    // Only reset if market actually changed (not just updated)
+    if (prevOracleIdRef.current !== currentOracleId) {
+      prevOracleIdRef.current = currentOracleId
       const spotPrice = Number(selected.spot) / Number(PRICE_SCALE)
       setStrike1(spotPrice)
       setStrike2(null)
@@ -38,9 +47,15 @@ export default function PredictPage() {
   }, [selected])
 
   // Handle strike changes from PriceChart2
-  const handleStrikeChange = (s1: number, s2: number | null) => {
+  const handleStrikeChange = (s1: number, s2: number | null, dir: 'up' | 'down') => {
     setStrike1(s1)
     setStrike2(s2)
+    setDirection(dir)
+  }
+
+  // Handle direction changes from PriceChart2
+  const handleDirectionChange = (dir: 'up' | 'down') => {
+    setDirection(dir)
   }
 
   return (
@@ -147,12 +162,15 @@ export default function PredictPage() {
                 onModeChange={setChartMode}
                 initialStrike1={strike1}
                 initialStrike2={strike2}
+                initialDirection={direction}
                 onStrikeChange={handleStrikeChange}
+                onDirectionChange={handleDirectionChange}
               />
               <TradePanel
                 market={selected}
                 strike1={strike1}
                 strike2={strike2}
+                direction={direction}
               />
             </>
           ) : (
@@ -175,6 +193,7 @@ export default function PredictPage() {
             <StrikeGrid 
               market={selected} 
               mode={chartMode}
+              direction={direction}
               onStrikeChange={handleStrikeChange}
             />
           ) : loading ? (

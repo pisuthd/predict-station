@@ -36,6 +36,7 @@ export interface Position {
   mark_price: string | null
   unrealized_pnl: string
   underlying_asset: string
+  first_minted_at?: number
 }
 
 export interface AskBounds {

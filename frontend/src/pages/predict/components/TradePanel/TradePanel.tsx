@@ -19,11 +19,12 @@ interface TradePanelProps {
   market: Market
   strike1: number
   strike2?: number | null
+  direction?: 'up' | 'down'
 }
 
 type TabType = 'overview' | 'trade' | 'positions'
 
-export function TradePanel({ market, strike1, strike2 }: TradePanelProps) {
+export function TradePanel({ market, strike1, strike2, direction = 'up' }: TradePanelProps) {
   const account = useCurrentAccount()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
 
@@ -73,7 +74,7 @@ export function TradePanel({ market, strike1, strike2 }: TradePanelProps) {
         ) : activeTab === 'overview' ? (
           <TradeOverview />
         ) : activeTab === 'trade' ? (
-          <TradeTrade market={market} selectedStrike={strike1} />
+          <TradeTrade market={market} selectedStrike={strike1} direction={direction} />
         ) : (
           <TradePositions />
         )}

@@ -14,15 +14,19 @@ const CYAN = '#3EC4C0'
 interface TradeTradeProps {
   market: Market
   selectedStrike: number
+  direction?: 'up' | 'down'
 }
 
-export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
+export function TradeTrade({ market, selectedStrike, direction: propDirection = 'up' }: TradeTradeProps) {
   const dAppKit = useDAppKit()
   const { manager, mintPrice, fetchMintPrice, mint, error } = usePredict()
-  const [direction, setDirection] = useState<'up' | 'down'>('up')
   const [quantity, setQuantity] = useState('10')
   const [loading, setLoading] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+  
+  // Use prop direction, with local override capability
+  const [localDirection, setLocalDirection] = useState<'up' | 'down' | null>(null)
+  const direction = localDirection ?? propDirection
 
   // Fetch mint price when strike changes
   useEffect(() => {
@@ -91,7 +95,7 @@ export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
       {/* Direction */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <button
-          onClick={() => setDirection('up')}
+          onClick={() => setLocalDirection('up')}
           style={{
             flex: 1,
             padding: '16px 20px',
@@ -107,7 +111,7 @@ export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
           ▲ UP {mintPrice ? `(${mintPrice.up.toFixed(2)}%)` : ''}
         </button>
         <button
-          onClick={() => setDirection('down')}
+          onClick={() => setLocalDirection('down')}
           style={{
             flex: 1,
             padding: '16px 20px',

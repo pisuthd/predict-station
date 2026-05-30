@@ -15,7 +15,8 @@ export type StrikeGridMode = 'binary' | 'range'
 interface StrikeGridProps {
   market: Market
   mode?: StrikeGridMode
-  onStrikeChange?: (strike1: number, strike2: number | null) => void
+  direction?: 'up' | 'down'
+  onStrikeChange?: (strike1: number, strike2: number | null, direction: 'up' | 'down') => void
 }
 
 function normCDF(x: number): number {
@@ -58,7 +59,7 @@ interface StrikeEntry {
   downProb: number
 }
 
-export function StrikeGrid({ market, mode = 'binary', onStrikeChange }: StrikeGridProps) {
+export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrikeChange }: StrikeGridProps) {
   useMarketPrices(market.oracle_id, 300, 2000)
   
   const forwardPrice = market.forward / PRICE_SCALE
@@ -79,19 +80,19 @@ export function StrikeGrid({ market, mode = 'binary', onStrikeChange }: StrikeGr
   const handleSelectStrike = (strike: number) => {
     if (mode === 'range') {
       // Range: use strike as lower, add 1000 for upper
-      onStrikeChange?.(strike, strike + 1000)
+      onStrikeChange?.(strike, strike + 1000, direction)
     } else {
-      // Binary: use strike only
-      onStrikeChange?.(strike, null)
+      // Binary: use strike only, pass current direction
+      onStrikeChange?.(strike, null, direction)
     }
   }
 
   // Handle spot click
   const handleSelectSpot = () => {
     if (mode === 'range') {
-      onStrikeChange?.(spotPrice, spotPrice + 1000)
+      onStrikeChange?.(spotPrice, spotPrice + 1000, direction)
     } else {
-      onStrikeChange?.(spotPrice, null)
+      onStrikeChange?.(spotPrice, null, direction)
     }
   }
 
@@ -249,7 +250,7 @@ export function StrikeGrid({ market, mode = 'binary', onStrikeChange }: StrikeGr
                 background: 'rgba(34,197,94,0.12)',
                 pointerEvents: 'none',
               }} />
-              <span style={{ color: GREEN, position: 'relative', zIndex: 1, fontWeight: 600 }}>
+              <span style={{ color: WHITE, position: 'relative', zIndex: 1, fontWeight: 600 }}>
                 {fmtStrike(entry.strike)}
               </span>
               <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
@@ -322,7 +323,7 @@ export function StrikeGrid({ market, mode = 'binary', onStrikeChange }: StrikeGr
                 background: 'rgba(239,68,68,0.12)',
                 pointerEvents: 'none',
               }} />
-              <span style={{ color: RED, position: 'relative', zIndex: 1, fontWeight: 600 }}>
+              <span style={{ color: WHITE, position: 'relative', zIndex: 1, fontWeight: 600 }}>
                 {fmtStrike(entry.strike)}
               </span>
               <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>

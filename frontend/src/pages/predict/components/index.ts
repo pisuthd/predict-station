@@ -1,6 +1,5 @@
 export { MarketCard } from './MarketCard'
 export { MarketList } from './MarketList' 
 export { InfoTooltip } from './InfoTooltip'
-export { TradeTicket } from './TradeTicket'
-export { MyPositions } from './MyPositions'
+export { TradeTicket } from './TradeTicket' 
 export { OracleHeader } from './OracleHeader'
