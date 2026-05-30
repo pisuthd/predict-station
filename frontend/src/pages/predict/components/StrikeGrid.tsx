@@ -10,10 +10,12 @@ const WHITE = '#ffffff'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 
+export type StrikeGridMode = 'binary' | 'range'
+
 interface StrikeGridProps {
   market: Market
-  onSelectStrike?: (strike: number, direction: 'up' | 'down') => void
-  selectedStrike?: number
+  mode?: StrikeGridMode
+  onStrikeChange?: (strike1: number, strike2: number | null) => void
 }
 
 function normCDF(x: number): number {
@@ -56,7 +58,7 @@ interface StrikeEntry {
   downProb: number
 }
 
-export function StrikeGrid({ market, onSelectStrike, selectedStrike }: StrikeGridProps) {
+export function StrikeGrid({ market, mode = 'binary', onStrikeChange }: StrikeGridProps) {
   useMarketPrices(market.oracle_id, 300, 2000)
   
   const forwardPrice = market.forward / PRICE_SCALE
@@ -73,12 +75,32 @@ export function StrikeGrid({ market, onSelectStrike, selectedStrike }: StrikeGri
     a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806
   }
 
-  // Generate 20 strikes: 10 above + 10 below, tick = $1000
+  // Handle selection based on mode
+  const handleSelectStrike = (strike: number) => {
+    if (mode === 'range') {
+      // Range: use strike as lower, add 1000 for upper
+      onStrikeChange?.(strike, strike + 1000)
+    } else {
+      // Binary: use strike only
+      onStrikeChange?.(strike, null)
+    }
+  }
+
+  // Handle spot click
+  const handleSelectSpot = () => {
+    if (mode === 'range') {
+      onStrikeChange?.(spotPrice, spotPrice + 1000)
+    } else {
+      onStrikeChange?.(spotPrice, null)
+    }
+  }
+
+  // Generate 10 strikes: 5 above + 5 below, tick = $1000
   const strikes = useMemo(() => {
     const entries: StrikeEntry[] = []
     const tickSize = 1000
-    const numAbove = 10
-    const numBelow = 10
+    const numAbove = 5
+    const numBelow = 5
     
     const baseStrike = Math.round(forwardPrice / tickSize) * tickSize
     
@@ -164,13 +186,13 @@ export function StrikeGrid({ market, onSelectStrike, selectedStrike }: StrikeGri
           </span>
         </div>
         
-        {/* Right: Expiry */}
+        {/* Right: Mode indicator */}
         <span style={{
           fontSize: 10,
-          color: MUTED,
+          color: CYAN,
           fontFamily: "'Space Mono', monospace",
         }}>
-          Heatmap
+          {mode === 'binary' ? 'BINARY' : 'RANGE'}
         </span>
       </div>
 
@@ -196,65 +218,72 @@ export function StrikeGrid({ market, onSelectStrike, selectedStrike }: StrikeGri
         
         {/* Above spot section - UP bets (green) */}
         <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          {aboveStrikes.map((entry) => {
-            const isSelected = selectedStrike === entry.strike
-            return (
-              <div
-                key={entry.strike}
-                onClick={() => onSelectStrike?.(entry.strike, 'up')}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: 8,
-                  padding: '4px 16px',
-                  fontSize: 11,
-                  position: 'relative',
-                  cursor: 'pointer',
-                  background: isSelected ? 'rgba(62,196,192,0.15)' : 'transparent',
-                  borderLeft: isSelected ? `2px solid ${GREEN}` : '2px solid transparent',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
-                }}
-              >
-                {/* Depth bar background */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  width: `${entry.upProb}%`,
-                  background: 'rgba(34,197,94,0.12)',
-                  pointerEvents: 'none',
-                }} />
-                <span style={{ color: isSelected ? GREEN : GREEN, position: 'relative', zIndex: 1, fontWeight: 600 }}>
-                  {fmtStrike(entry.strike)}
-                </span>
-                <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
-                  —
-                </span>
-                <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
-                  {entry.upProb}%
-                </span>
-              </div>
-            )
-          })}
+          {aboveStrikes.map((entry) => (
+            <div
+              key={entry.strike}
+              onClick={() => handleSelectStrike(entry.strike)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: 8,
+                padding: '4px 16px',
+                fontSize: 11,
+                position: 'relative',
+                cursor: 'pointer',
+                background: 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent'
+              }}
+            >
+              {/* Depth bar background */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                right: 0,
+                width: `${entry.upProb}%`,
+                background: 'rgba(34,197,94,0.12)',
+                pointerEvents: 'none',
+              }} />
+              <span style={{ color: GREEN, position: 'relative', zIndex: 1, fontWeight: 600 }}>
+                {fmtStrike(entry.strike)}
+              </span>
+              <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
+                —
+              </span>
+              <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
+                {entry.upProb}%
+              </span>
+            </div>
+          ))}
         </div>
 
-        {/* SPOT Divider */}
-        <div style={{
-          padding: '8px 16px',
-          background: 'rgba(62,196,192,0.1)',
-          borderTop: '1px solid rgba(62,196,192,0.2)',
-          borderBottom: '1px solid rgba(62,196,192,0.2)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 12,
-        }}> 
+        {/* SPOT Divider - Clickable */}
+        <div 
+          onClick={handleSelectSpot}
+          style={{
+            padding: '8px 16px',
+            background: 'rgba(62,196,192,0.1)',
+            borderTop: '1px solid rgba(62,196,192,0.2)',
+            borderBottom: '1px solid rgba(62,196,192,0.2)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 12,
+            cursor: 'pointer',
+            transition: 'background 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(62,196,192,0.2)'
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(62,196,192,0.1)'
+          }}
+        > 
           <span style={{ fontSize: 16, fontWeight: 700, color: WHITE }}>
             ${spotPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
@@ -262,52 +291,48 @@ export function StrikeGrid({ market, onSelectStrike, selectedStrike }: StrikeGri
 
         {/* Below spot section - DOWN bets (red) */}
         <div style={{ flex: 1, overflow: 'auto' }}>
-          {belowStrikes.map((entry) => {
-            const isSelected = selectedStrike === entry.strike
-            return (
-              <div
-                key={entry.strike}
-                onClick={() => onSelectStrike?.(entry.strike, 'down')}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: 8,
-                  padding: '4px 16px',
-                  fontSize: 11,
-                  position: 'relative',
-                  cursor: 'pointer',
-                  background: isSelected ? 'rgba(62,196,192,0.15)' : 'transparent',
-                  borderLeft: isSelected ? `2px solid ${RED}` : '2px solid transparent',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
-                }}
-              >
-                {/* Depth bar background */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  width: `${entry.downProb}%`,
-                  background: 'rgba(239,68,68,0.12)',
-                  pointerEvents: 'none',
-                }} />
-                <span style={{ color: isSelected ? RED : RED, position: 'relative', zIndex: 1, fontWeight: 600 }}>
-                  {fmtStrike(entry.strike)}
-                </span>
-                <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
-                  —
-                </span>
-                <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
-                  {entry.downProb}%
-                </span>
-              </div>
-            )
-          })}
+          {belowStrikes.map((entry) => (
+            <div
+              key={entry.strike}
+              onClick={() => handleSelectStrike(entry.strike)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: 8,
+                padding: '4px 16px',
+                fontSize: 11,
+                position: 'relative',
+                cursor: 'pointer',
+                background: 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent'
+              }}
+            >
+              {/* Depth bar background */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                right: 0,
+                width: `${entry.downProb}%`,
+                background: 'rgba(239,68,68,0.12)',
+                pointerEvents: 'none',
+              }} />
+              <span style={{ color: RED, position: 'relative', zIndex: 1, fontWeight: 600 }}>
+                {fmtStrike(entry.strike)}
+              </span>
+              <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
+                —
+              </span>
+              <span style={{ color: MUTED, textAlign: 'right', position: 'relative', zIndex: 1 }}>
+                {entry.downProb}%
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

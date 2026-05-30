@@ -175,7 +175,15 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
 
       {/* Details Row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        {/* Bottom left: UP/DOWN with chevron icons */}
+ 
+        <div style={{ 
+          fontSize: 11, 
+          color: expiringSoon ? RED : MUTED,
+          fontFamily: "'Space Mono', monospace",
+        }}>
+          price in {formatDetailedExpiry(market.expiryMs)}
+        </div>
+
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 9, color: GREEN, fontFamily: "'Space Mono', monospace" }}>▲</span>
@@ -190,15 +198,8 @@ export function MarketCard({ market, isSelected, onClick }: MarketCardProps) {
             </span>
           </div>
         </div>
+         
         
-        {/* Bottom right: Expiry countdown */}
-        <div style={{ 
-          fontSize: 11, 
-          color: expiringSoon ? RED : MUTED,
-          fontFamily: "'Space Mono', monospace",
-        }}>
-          exp in {formatDetailedExpiry(market.expiryMs)}
-        </div>
       </div>
     </div>
   )

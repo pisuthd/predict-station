@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
 import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
 import { useMarketPrices, type Market } from '../../../hooks'
@@ -45,9 +45,9 @@ export function PriceChart2({
   const draggingRef = useRef<null | 1 | 2>(null)
   const pointerDownRef = useRef(false)
 
-  // Use initial values from parent
-  const [strike1, setStrike1] = useState<number | null>(initialStrike1 ?? null)
-  const [strike2, setStrike2] = useState<number | null>(initialStrike2 ?? null)
+  // Use props directly for strikes (moved to parent)
+  const strike1 = initialStrike1 ?? null
+  const strike2 = initialStrike2 ?? null
 
   const { history, loading } = useMarketPrices(market.oracle_id, timeRange, 9000)
 
@@ -136,6 +136,26 @@ export function PriceChart2({
     chartRef.current?.timeScale().fitContent()
   }, [history])
 
+  // ── Sync price lines when props change from parent (StrikeGrid click) ───────────
+  useEffect(() => {
+    // Only sync if lines already initialized and not currently dragging
+    if (!linesInitializedRef.current || pointerDownRef.current) return
+    if (!strikeLine1Ref.current) return
+
+    const currentPrice = getLinePrice(strikeLine1Ref.current)
+    if (currentPrice === null || currentPrice === initialStrike) return
+
+    // Update line position to match new prop value
+    strikeLine1Ref.current.applyOptions({ price: initialStrike })
+
+    if (strikeLine2Ref.current && initialStrike2 !== null) {
+      const current2 = getLinePrice(strikeLine2Ref.current)
+      if (current2 !== initialStrike2) {
+        strikeLine2Ref.current.applyOptions({ price: initialStrike2 })
+      }
+    }
+  }, [initialStrike, initialStrike2])
+
   // ── Create / recreate price lines when data or mode changes ───────────
   useEffect(() => {
     const series = seriesRef.current
@@ -166,7 +186,6 @@ export function PriceChart2({
       axisLabelVisible: true,
       title: mode === 'binary' ? 'Strike' : 'Lower',
     })
-    setStrike1(useStrike)
 
     if (mode === 'range') {
       const init2 = parseFloat((useStrike + 100).toFixed(2))
@@ -178,10 +197,8 @@ export function PriceChart2({
         axisLabelVisible: true,
         title: 'Upper',
       })
-      setStrike2(init2)
       notifyParent(useStrike, init2)
     } else {
-      setStrike2(null)
       notifyParent(useStrike, null)
     }
 
@@ -247,11 +264,9 @@ export function PriceChart2({
 
       if (draggingRef.current === 1 && strikeLine1Ref.current) {
         strikeLine1Ref.current.applyOptions({ price: rounded })
-        setStrike1(rounded)
         notifyParent(rounded, getLinePrice(strikeLine2Ref.current))
       } else if (draggingRef.current === 2 && strikeLine2Ref.current) {
         strikeLine2Ref.current.applyOptions({ price: rounded })
-        setStrike2(rounded)
         notifyParent(getLinePrice(strikeLine1Ref.current), rounded)
       }
     }
@@ -362,7 +377,7 @@ export function PriceChart2({
                   fontFamily: "'Space Mono', monospace",
                 }}
               >
-                Up or Down
+                Binary
               </button>
               <button
                 onClick={() => handleModeChange('range')}
@@ -434,7 +449,7 @@ export function PriceChart2({
               </>
             ) : (
               <>
-                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
+                {/* <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
                 <span style={{
                   fontSize: 12,
                   fontWeight: 600,
@@ -445,12 +460,12 @@ export function PriceChart2({
                     <>
                       {spotPrice >= strike1 && spotPrice <= strike2 ? '✓' : '✗'} IN RANGE
                       {` `}
-                      {/* <span style={{ fontSize: 10, opacity: 0.8 }}>
+                      <span style={{ fontSize: 10, opacity: 0.8 }}>
                         ${(strike1 / 1000).toFixed(0)}k-${(strike2 / 1000).toFixed(0)}k
-                      </span> */}
+                      </span>
                     </>
                   ) : '—'}
-                </span>
+                </span> */}
               </>
             )}
           </span>
