@@ -1,9 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
 import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
-import { useMarketPrices, type Market, sviVol, binaryUpProb } from '../../../hooks'
+import { useMarketPrices, type Market, 
+  // sviVol, binaryUpProb 
+} from '../../../hooks'
+import { getCoinIcon } from '../../../lib/coinIcons'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -37,9 +40,11 @@ export function PriceChart2({
   initialStrike2,
   initialDirection = 'up',
   onStrikeChange,
-  onDirectionChange,
+  // onDirectionChange,
   onModeChange,
 }: PriceChart2Props) {
+
+
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ReturnType<IChartApi['addSeries']> | null>(null)
@@ -64,24 +69,24 @@ export function PriceChart2({
   const strike2 = initialStrike2 ?? null
 
   // Calculate mint price using SVI model from shared hook
-  const mintPrice = useMemo(() => {
-    if (!strike1 || strike1 <= 0) return null
-    const forwardPrice = market.forward / 1e9
-    const T = Math.max(0, (market.expiryMs - Date.now()) / (365.25 * 24 * 3600 * 1000))
-    
-    // SVI parameters from market
-    const sviParams = market.svi ? {
-      a: market.svi.a,
-      b: market.svi.b,
-      rho: market.svi.rho,
-      m: market.svi.m,
-      sigma: market.svi.sigma
-    } : { a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806 }
+  // const mintPrice = useMemo(() => {
+  //   if (!strike1 || strike1 <= 0) return null
+  //   const forwardPrice = market.forward / 1e9
+  //   const T = Math.max(0, (market.expiryMs - Date.now()) / (365.25 * 24 * 3600 * 1000))
 
-    const vol = sviVol(strike1, forwardPrice, T, sviParams)
-    const upProb = binaryUpProb(forwardPrice, strike1, T, vol)
-    return { up: upProb, down: 100 - upProb }
-  }, [strike1, market.forward, market.expiryMs, market.svi])
+  //   // SVI parameters from market
+  //   const sviParams = market.svi ? {
+  //     a: market.svi.a,
+  //     b: market.svi.b,
+  //     rho: market.svi.rho,
+  //     m: market.svi.m,
+  //     sigma: market.svi.sigma
+  //   } : { a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806 }
+
+  //   const vol = sviVol(strike1, forwardPrice, T, sviParams)
+  //   const upProb = binaryUpProb(forwardPrice, strike1, T, vol)
+  //   return { up: upProb, down: 100 - upProb }
+  // }, [strike1, market.forward, market.expiryMs, market.svi])
 
   const { history, loading } = useMarketPrices(market.oracle_id, timeRange, 9000)
 
@@ -164,7 +169,7 @@ export function PriceChart2({
 
     const data = sortedPrices.map(p => ({
       time: (p.time / 1000) as UTCTimestamp,
-      value: Number(p.price),
+      value: Number(p.spot),
     }))
     seriesRef.current.setData(data)
     chartRef.current?.timeScale().fitContent()
@@ -366,6 +371,8 @@ export function PriceChart2({
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 16,
         }}>
+
+
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Spot Price</div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>
@@ -383,12 +390,38 @@ export function PriceChart2({
             </div>
           </div>
 
+          
+
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Expiry</div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
           </div>
 
-          <div style={{display:"flex"}}> 
+          <div>
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Market</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ position: 'relative', width: 20, height: 20 }}>
+                <img
+                  src={getCoinIcon('BTC')}
+                  alt="BTC"
+                  style={{
+                    width: 20, height: 20, borderRadius: '50%',
+                    border: '2px solid #0a0a1a', position: 'absolute', left: 0, zIndex: 2,
+                  }}
+                />
+              </div>
+              <span style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: WHITE,
+                fontFamily: "'DM Sans', sans-serif",
+              }}>
+                {market.name}
+              </span>
+            </div>
+          </div>
+
+          {/* <div style={{ display: "flex" }}>
             <div style={{
               margin: 'auto',
               background: 'rgba(255,255,255,0.05)',
@@ -431,7 +464,7 @@ export function PriceChart2({
                 Range
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -440,6 +473,7 @@ export function PriceChart2({
         <div
           style={{
             display: 'flex',
+            justifyContent: "space-between",
             gap: 16,
             padding: '8px 16px 0',
             fontFamily: "'Space Mono', monospace",
@@ -447,6 +481,49 @@ export function PriceChart2({
             userSelect: 'none',
           }}
         >
+
+          <div style={{
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: 8,
+            padding: 3,
+            gap: 2,
+          }}>
+            <button
+              onClick={() => handleModeChange('binary')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 6,
+                border: 'none',
+                background: mode === 'binary' ? CYAN : 'transparent',
+                color: mode === 'binary' ? '#0a0a1a' : MUTED,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: "'Space Mono', monospace",
+              }}
+            >
+              Binary
+            </button>
+            <button
+              onClick={() => handleModeChange('range')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 6,
+                border: 'none',
+                background: mode === 'range' ? CYAN : 'transparent',
+                color: mode === 'range' ? '#0a0a1a' : MUTED,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: "'Space Mono', monospace",
+              }}
+            >
+              Range
+            </button>
+          </div>
+
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 24, height: 2, background: CYAN, display: 'inline-block', borderRadius: 1 }} />
             <span style={{ color: MUTED }}>{mode === 'binary' ? 'Strike' : 'Lower'}</span>
@@ -461,7 +538,8 @@ export function PriceChart2({
             </span>
           )}
 
-          <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+
+          {/* <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             {mode === 'binary' && strike1 ? (
               <>
                 <span style={{ color: MUTED, fontSize: 11 }}>Direction:</span>
@@ -500,7 +578,7 @@ export function PriceChart2({
               </>
             ) : (
               <>
-                {/* <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
+                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
                 <span style={{
                   fontSize: 12,
                   fontWeight: 600,
@@ -516,10 +594,10 @@ export function PriceChart2({
                       </span>
                     </>
                   ) : '—'}
-                </span> */}
+                </span> 
               </>
             )}
-          </span>
+          </span> */}
         </div>
       ) : null}
 
