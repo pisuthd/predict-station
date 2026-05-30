@@ -227,7 +227,7 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
                 const pnl = Number(pos.unrealized_pnl || 0)
                 return (
                   <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '6px 8px', fontWeight: 600, color: WHITE, fontSize: 9 }}>
+                    <td style={{ padding: '6px 8px', fontFamily: "'Space Mono', monospace", color: WHITE, fontSize: 9 }}>
                       {formatMarket(pos.underlying_asset, pos.expiry)}
                     </td>
                     <td style={{ padding: '6px 8px' }}>

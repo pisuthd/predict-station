@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
 import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
-import { useMarketPrices, type Market, 
+import {
+  useMarketPrices, type Market,
   // sviVol, binaryUpProb 
 } from '../../../hooks'
 import { getCoinIcon } from '../../../lib/coinIcons'
@@ -361,63 +362,52 @@ export function PriceChart2({
         position: 'relative',
       }}
     >
-      {/* Header with market info grid */}
+      {/* Single line header */}
       <div style={{
-        padding: '16px 24px',
+        padding: '8px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: 11,
+        gap: 24,
       }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 16,
-        }}>
-
-
-          <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Spot Price</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              ${fmtUSD(spotPrice)}
-              <span style={{
-                fontSize: 11,
-                fontFamily: "'Space Mono', monospace",
-                fontWeight: 500,
-                color: priceChange && priceChange.change >= 0 ? GREEN : RED
-              }}>
-                {priceChange ? (
-                  <>{` `}{priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%</>
-                ) : '—'}
-              </span>
-            </div>
-          </div> 
-          <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Expiry</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Market</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ position: 'relative', width: 20, height: 20 }}>
-                <img
-                  src={getCoinIcon('BTC')}
-                  alt="BTC"
-                  style={{
-                    width: 20, height: 20, borderRadius: '50%',
-                    border: '2px solid #0a0a1a', position: 'absolute', left: 0, zIndex: 2,
-                  }}
-                />
-              </div>
-              <span style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: WHITE,
-                fontFamily: "'DM Sans', sans-serif",
-              }}>
-                {market.name}
-              </span>
-            </div>
-          </div> 
+        {/* Spot */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: MUTED, fontSize: 10 }}>SPOT</span>
+          <span style={{ fontWeight: 600 }}>${fmtUSD(spotPrice)}</span>
+          <span style={{
+            fontSize: 10,
+            fontFamily: "'Space Mono', monospace",
+            color: priceChange && priceChange.change >= 0 ? GREEN : RED
+          }}>
+            {priceChange ? `${priceChange.changePct >= 0 ? '+' : ''}${priceChange.changePct.toFixed(2)}%` : ''}
+          </span>
         </div>
+
+        {/* Divider */}
+        <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
+
+        {/* Market */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: MUTED, fontSize: 10 }}>MARKET</span>
+          <img
+            src={getCoinIcon('BTC')}
+            alt="BTC"
+            style={{ width: 16, height: 16, borderRadius: '50%' }}
+          />
+          <span style={{ fontWeight: 600 }}>{market.name}</span>
+        </div>
+
+        {/* Divider */}
+        <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
+
+        {/* Expiry */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: MUTED, fontSize: 10 }}>EXPIRES</span>
+          <span style={{ fontWeight: 600 }}>{expiryLabel}</span>
+        </div>
+
       </div>
 
       {/* Chart with overlay labels */}
