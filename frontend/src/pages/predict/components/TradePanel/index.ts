@@ -1,2 +1,2 @@
 export { TradePanel } from './TradePanel'
-export { PRICE_SCALE, DUSDC_SCALE } from './TradeOverview'
+export { PRICE_SCALE, DUSDC_SCALE } from '../../../../hooks'

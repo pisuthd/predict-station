@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useDAppKit, useCurrentAccount } from '@mysten/dapp-kit-react'
-import { Transaction } from '@mysten/sui/transactions'
+import { useDAppKit } from '@mysten/dapp-kit-react'
+import { usePredict } from '../../../../hooks'
 import type { Market } from '../../../../hooks'
 
 const WHITE = '#ffffff'
@@ -11,27 +11,6 @@ const GREEN = '#22c55e'
 const RED = '#ef4444'
 const CYAN = '#3EC4C0'
 
-const PREDICT_PACKAGE = '0xf5ea2b3749c65d6e56507cc35388719aadb28f9cab873696a2f8687f5c785138'
-const PREDICT_OBJECT = '0xc8736204d12f0a7277c86388a68bf8a194b0a14c5538ad13f22cbd8e2a38028a'
-const DUSDC_TYPE = '0xe95040085976bfd54a1a07225cd46c8a2b4e8e2b6732f140a0fc49850ba73e1a::dusdc::DUSDC'
-const CLOCK = '0x6'
-const PRICE_SCALE = 1_000_000_000n
-const DUSDC_SCALE = 1_000_000n
-
-const SERVER = 'https://predict-server.testnet.mystenlabs.com'
-
-interface ManagerData {
-  manager_id: string
-  owner: string
-}
-
-interface AskBounds {
-  lower: string
-  upper: string
-  ask: string
-  bid: string
-}
-
 interface TradeTradeProps {
   market: Market
   selectedStrike: number
@@ -39,55 +18,18 @@ interface TradeTradeProps {
 
 export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
   const dAppKit = useDAppKit()
-  const account = useCurrentAccount()
-  const [managerId, setManagerId] = useState<string | null>(null)
+  const { manager, mintPrice, fetchMintPrice, mint, error } = usePredict()
   const [direction, setDirection] = useState<'up' | 'down'>('up')
   const [quantity, setQuantity] = useState('10')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [mintPrice, setMintPrice] = useState<{ up: number; down: number } | null>(null)
+  const [localError, setLocalError] = useState<string | null>(null)
 
-  // Find manager
+  // Fetch mint price when strike changes
   useEffect(() => {
-    if (!account) return
-
-    const findManager = async () => {
-      try {
-        const res = await fetch(`${SERVER}/managers`)
-        const data = await res.json()
-        const userManager = data.find((m: ManagerData) => m.owner === account.address)
-        if (userManager) {
-          setManagerId(userManager.manager_id)
-        }
-      } catch (e) {
-        console.error('Failed to find manager:', e)
-      }
-    }
-    findManager()
-  }, [account])
-
-  // Fetch mint price from ask-bounds
-  useEffect(() => {
-    const fetchMintPrice = async () => {
-      try {
-        const res = await fetch(`${SERVER}/oracles/${market.oracle_id}/ask-bounds?strike=${selectedStrike}`)
-        const data: AskBounds = await res.json()
-        
-        // UP price from ask (convert from 1e9 to percentage)
-        const upPrice = Number(BigInt(data.ask) / BigInt(1e7)) / 100 // 1e9 -> 1e2 for percentage
-        const downPrice = 100 - upPrice
-        
-        setMintPrice({ up: upPrice, down: downPrice })
-      } catch (e) {
-        console.error('Failed to fetch mint price:', e)
-        setMintPrice({ up: 50, down: 50 }) // Fallback
-      }
-    }
-    
     if (market.oracle_id && selectedStrike > 0) {
-      fetchMintPrice()
+      fetchMintPrice(market.oracle_id, selectedStrike)
     }
-  }, [market.oracle_id, selectedStrike])
+  }, [market.oracle_id, selectedStrike, fetchMintPrice])
 
   // Round quantity to 2 decimals, min 0.01
   const getRoundedQuantity = (val: string): number => {
@@ -97,55 +39,29 @@ export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
   }
 
   const handleMint = async () => {
-    if (!account || !managerId) return
+    if (!manager) return
 
     const roundedQty = getRoundedQuantity(quantity)
     if (roundedQty < 0.01) {
-      setError('Minimum quantity is 0.01')
+      setLocalError('Minimum quantity is 0.01')
       return
     }
 
     setLoading(true)
-    setError(null)
+    setLocalError(null)
 
     try {
-      const tx = new Transaction()
-      const strikeScaled = BigInt(Math.round(selectedStrike)) * PRICE_SCALE
-      // Round to integer for BigInt (0.5 -> 1, 0.99 -> 1, etc.)
-      const qty = BigInt(Math.round(roundedQty)) * DUSDC_SCALE
-
-      const keyFn = direction === 'up' ? 'up' : 'down'
-      const key = tx.moveCall({
-        target: `${PREDICT_PACKAGE}::market_key::${keyFn}`,
-        arguments: [
-          tx.pure.id(market.oracle_id),
-          tx.pure.u64(market.expiryMs),
-          tx.pure.u64(strikeScaled),
-        ],
-      })
-
-      tx.moveCall({
-        target: `${PREDICT_PACKAGE}::predict::mint`,
-        typeArguments: [DUSDC_TYPE],
-        arguments: [
-          tx.object(PREDICT_OBJECT),
-          tx.object(managerId),
-          tx.object(market.oracle_id),
-          key,
-          tx.pure.u64(qty),
-          tx.object(CLOCK),
-        ],
-      })
-
-      const result = await dAppKit.signAndExecuteTransaction({ transaction: tx })
-
-      if (result.FailedTransaction) {
-        throw new Error(result.FailedTransaction.status.error?.message || 'Transaction failed')
-      }
-
+      await mint(
+        dAppKit.signAndExecuteTransaction,
+        market.oracle_id,
+        market.expiryMs,
+        selectedStrike,
+        direction,
+        roundedQty
+      )
       setQuantity('10')
     } catch (e: any) {
-      setError(e.message || 'Transaction failed')
+      setLocalError(e.message || 'Transaction failed')
     } finally {
       setLoading(false)
     }
@@ -243,7 +159,7 @@ export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
       </div>
 
       {/* Mint Button */}
-      {!managerId ? (
+      {!manager ? (
         <div style={{ textAlign: 'center', color: MUTED }}>
           Create a manager first in Overview tab
         </div>
@@ -268,9 +184,9 @@ export function TradeTrade({ market, selectedStrike }: TradeTradeProps) {
         </button>
       )}
 
-      {error && (
+      {(localError || error) && (
         <div style={{ marginTop: 16, padding: 12, background: 'rgba(239,68,68,0.1)', borderRadius: 8, color: RED, fontSize: 13 }}>
-          {error}
+          {localError || error}
         </div>
       )}
     </div>

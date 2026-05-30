@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useCurrentAccount } from '@mysten/dapp-kit-react'
+import { usePredict, PRICE_SCALE, DUSDC_SCALE } from '../../../../hooks'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -9,71 +8,16 @@ const GREEN = '#22c55e'
 const RED = '#ef4444'
 const CYAN = '#3EC4C0'
 
-const PRICE_SCALE = 1_000_000_000n
-const DUSDC_SCALE = 1_000_000n
-
-const SERVER = 'https://predict-server.testnet.mystenlabs.com'
-
-interface ManagerData {
-  manager_id: string
-  owner: string
-}
-
-interface Position {
-  oracle_id: string
-  expiry: number
-  strike: string
-  is_up: boolean
-  open_quantity: string
-  average_entry_price: string
-  mark_price: string | null
-  unrealized_pnl: string
-  underlying_asset: string
-}
-
 export function TradePositions() {
-  const account = useCurrentAccount()
-  const [positions, setPositions] = useState<Position[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!account) return
-
-    const fetchPositions = async () => {
-      setLoading(true)
-      try {
-        const mRes = await fetch(`${SERVER}/managers`)
-        const managers = await mRes.json()
-        const userManager = managers.find((m: ManagerData) => m.owner === account.address)
-
-        if (!userManager) {
-          setPositions([])
-          setLoading(false)
-          return
-        }
-
-        const res = await fetch(`${SERVER}/managers/${userManager.manager_id}/positions/summary`)
-        const data = await res.json()
-        setPositions(data.filter((p: Position) => Number(p.open_quantity) > 0))
-      } catch (e) {
-        console.error('Failed to fetch positions:', e)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPositions()
-    const interval = setInterval(fetchPositions, 30000)
-    return () => clearInterval(interval)
-  }, [account])
+  const { positions, loading } = usePredict()
 
   const formatStrike = (raw: string) => {
     const n = Number(BigInt(raw)) / Number(PRICE_SCALE)
     return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 })
   }
 
-  const formatUsd = (raw: string, scale: bigint = DUSDC_SCALE) => {
-    const n = Number(BigInt(raw || '0')) / Number(scale)
+  const formatUsd = (raw: string) => {
+    const n = Number(BigInt(raw || '0')) / Number(DUSDC_SCALE)
     return n.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }
 
