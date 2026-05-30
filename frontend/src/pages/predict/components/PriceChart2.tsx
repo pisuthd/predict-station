@@ -412,8 +412,47 @@ export function PriceChart2({
             </span>
           )}
 
-          <span style={{ marginLeft: 'auto', color: MUTED, fontSize: 11 }}>
-            drag lines to set price
+          <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {mode === 'binary' ? (
+              <>
+                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: strike1 && spotPrice ? (strike1 > spotPrice ? GREEN : RED) : MUTED,
+                }}>
+                  {strike1 && spotPrice ? (
+                    <>
+                      {strike1 > spotPrice ? '▲ UP' : '▼ DOWN'}
+                      {` `}
+                      <span style={{ fontSize: 10, opacity: 0.8 }}>
+                        ({((Math.abs(strike1 - spotPrice) / spotPrice) * 100).toFixed(1)}% from spot)
+                      </span>
+                    </>
+                  ) : '—'}
+                </span>
+              </>
+            ) : (
+              <>
+                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: strike1 && strike2 && spotPrice ? 
+                    (spotPrice >= strike1 && spotPrice <= strike2 ? GREEN : RED) : MUTED,
+                }}>
+                  {strike1 && strike2 && spotPrice ? (
+                    <>
+                      {spotPrice >= strike1 && spotPrice <= strike2 ? '✓' : '✗'} IN RANGE
+                      {` `}
+                      {/* <span style={{ fontSize: 10, opacity: 0.8 }}>
+                        ${(strike1 / 1000).toFixed(0)}k-${(strike2 / 1000).toFixed(0)}k
+                      </span> */}
+                    </>
+                  ) : '—'}
+                </span>
+              </>
+            )}
           </span>
         </div>
       ) : null}

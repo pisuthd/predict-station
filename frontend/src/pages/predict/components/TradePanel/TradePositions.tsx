@@ -1,8 +1,7 @@
 'use client'
 
 import { usePredict, PRICE_SCALE, DUSDC_SCALE } from '../../../../hooks'
-
-const WHITE = '#ffffff'
+ 
 const MUTED = 'rgba(180,200,255,0.6)'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
