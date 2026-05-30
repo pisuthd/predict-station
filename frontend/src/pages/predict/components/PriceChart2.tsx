@@ -388,10 +388,7 @@ export function PriceChart2({
                 ) : '—'}
               </span>
             </div>
-          </div>
-
-          
-
+          </div> 
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Expiry</div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
@@ -419,190 +416,107 @@ export function PriceChart2({
                 {market.name}
               </span>
             </div>
-          </div>
-
-          {/* <div style={{ display: "flex" }}>
-            <div style={{
-              margin: 'auto',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: 8,
-              padding: 3,
-              gap: 2,
-            }}>
-              <button
-                onClick={() => handleModeChange('binary')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: mode === 'binary' ? CYAN : 'transparent',
-                  color: mode === 'binary' ? '#0a0a1a' : MUTED,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  fontFamily: "'Space Mono', monospace",
-                }}
-              >
-                Binary
-              </button>
-              <button
-                onClick={() => handleModeChange('range')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: mode === 'range' ? CYAN : 'transparent',
-                  color: mode === 'range' ? '#0a0a1a' : MUTED,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  fontFamily: "'Space Mono', monospace",
-                }}
-              >
-                Range
-              </button>
-            </div>
-          </div> */}
+          </div> 
         </div>
       </div>
 
-      {/* Strike labels */}
-      {!loading && history?.prices?.length ? (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: "space-between",
-            gap: 16,
-            padding: '8px 16px 0',
-            fontFamily: "'Space Mono', monospace",
-            fontSize: 12,
-            userSelect: 'none',
-          }}
-        >
-
-          <div style={{
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: 8,
-            padding: 3,
-            gap: 2,
-          }}>
-            <button
-              onClick={() => handleModeChange('binary')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 6,
-                border: 'none',
-                background: mode === 'binary' ? CYAN : 'transparent',
-                color: mode === 'binary' ? '#0a0a1a' : MUTED,
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontFamily: "'Space Mono', monospace",
-              }}
-            >
-              Binary
-            </button>
-            <button
-              onClick={() => handleModeChange('range')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 6,
-                border: 'none',
-                background: mode === 'range' ? CYAN : 'transparent',
-                color: mode === 'range' ? '#0a0a1a' : MUTED,
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontFamily: "'Space Mono', monospace",
-              }}
-            >
-              Range
-            </button>
-          </div>
-
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 24, height: 2, background: CYAN, display: 'inline-block', borderRadius: 1 }} />
-            <span style={{ color: MUTED }}>{mode === 'binary' ? 'Strike' : 'Lower'}</span>
-            <span style={{ color: CYAN, fontWeight: 600 }}>{fmt(strike1)}</span>
-          </span>
-
-          {mode === 'range' && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 2, background: UPPER_COLOR, display: 'inline-block', borderRadius: 1 }} />
-              <span style={{ color: MUTED }}>Upper</span>
-              <span style={{ color: UPPER_COLOR, fontWeight: 600 }}>{fmt(strike2)}</span>
-            </span>
-          )}
-
-
-          {/* <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {mode === 'binary' && strike1 ? (
-              <>
-                <span style={{ color: MUTED, fontSize: 11 }}>Direction:</span>
-              <button
-                  onClick={() => onDirectionChange?.('up')}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: 'none',
-                    background: direction === 'up' ? GREEN : 'rgba(255,255,255,0.05)',
-                    color: direction === 'up' ? '#fff' : MUTED,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  ▲ UP {mintPrice ? `${mintPrice.up.toFixed(0)}¢` : ''}
-                </button>
-                <button
-                  onClick={() => onDirectionChange?.('down')}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: 'none',
-                    background: direction === 'down' ? RED : 'rgba(255,255,255,0.05)',
-                    color: direction === 'down' ? '#fff' : MUTED,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  ▼ DOWN {mintPrice ? `${mintPrice.down.toFixed(0)}¢` : ''}
-                </button>
-              </>
-            ) : (
-              <>
-                <span style={{ color: MUTED, fontSize: 11 }}>You predicted</span>
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: strike1 && strike2 && spotPrice ? 
-                    (spotPrice >= strike1 && spotPrice <= strike2 ? GREEN : RED) : MUTED,
-                }}>
-                  {strike1 && strike2 && spotPrice ? (
-                    <>
-                      {spotPrice >= strike1 && spotPrice <= strike2 ? '✓' : '✗'} IN RANGE
-                      {` `}
-                      <span style={{ fontSize: 10, opacity: 0.8 }}>
-                        ${(strike1 / 1000).toFixed(0)}k-${(strike2 / 1000).toFixed(0)}k
-                      </span>
-                    </>
-                  ) : '—'}
-                </span> 
-              </>
-            )}
-          </span> */}
-        </div>
-      ) : null}
-
-      {/* Chart */}
+      {/* Chart with overlay labels */}
       <div style={{ height: 280, position: 'relative' }}>
+        {/* Mode selector - top left overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 12,
+          left: 12,
+          zIndex: 10,
+          display: 'flex',
+          background: 'rgba(0,0,0,0.6)',
+          borderRadius: 8,
+          padding: 3,
+          backdropFilter: 'blur(8px)',
+        }}>
+          <button
+            onClick={() => handleModeChange('binary')}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 6,
+              border: 'none',
+              background: mode === 'binary' ? CYAN : 'transparent',
+              color: mode === 'binary' ? '#0a0a1a' : MUTED,
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: "'Space Mono', monospace",
+            }}
+          >
+            Binary
+          </button>
+          <button
+            onClick={() => handleModeChange('range')}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 6,
+              border: 'none',
+              background: mode === 'range' ? CYAN : 'transparent',
+              color: mode === 'range' ? '#0a0a1a' : MUTED,
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: "'Space Mono', monospace",
+            }}
+          >
+            Range
+          </button>
+        </div>
+
+        {/* Strike overlay labels - top right */}
+        {/* {!loading && history?.prices?.length && (
+          <> 
+            <div style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(0,0,0,0.6)',
+              borderRadius: 6,
+              padding: '4px 10px',
+              backdropFilter: 'blur(8px)',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 11,
+            }}>
+              <span style={{ width: 16, height: 2, background: CYAN, display: 'inline-block', borderRadius: 1 }} />
+              <span style={{ color: MUTED }}>{mode === 'binary' ? 'Strike' : 'Lower'}</span>
+              <span style={{ color: CYAN, fontWeight: 600 }}>{fmt(strike1)}</span>
+            </div>
+ 
+            {mode === 'range' && (
+              <div style={{
+                position: 'absolute',
+                top: 44,
+                right: 12,
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(0,0,0,0.6)',
+                borderRadius: 6,
+                padding: '4px 10px',
+                backdropFilter: 'blur(8px)',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 11,
+              }}>
+                <span style={{ width: 16, height: 2, background: UPPER_COLOR, display: 'inline-block', borderRadius: 1 }} />
+                <span style={{ color: MUTED }}>Upper</span>
+                <span style={{ color: UPPER_COLOR, fontWeight: 600 }}>{fmt(strike2)}</span>
+              </div>
+            )}
+          </>
+        )} */}
+
         {loading ? (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, gap: 16 }}>
             <div style={{ width: 24, height: 24, border: '2px solid rgba(62,196,192,0.2)', borderTopColor: CYAN, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
