@@ -166,10 +166,10 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
                 cursor: 'pointer',
               }}
             >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="redeemable">Redeemable</option>
-              <option value="lost">Lost</option>
+              <option value="all" style={{ background: '#1a1a2e', color: WHITE }}>All</option>
+              <option value="active" style={{ background: '#1a1a2e', color: WHITE }}>Active</option>
+              <option value="redeemable" style={{ background: '#1a1a2e', color: WHITE }}>Redeemable</option>
+              <option value="lost" style={{ background: '#1a1a2e', color: WHITE }}>Lost</option>
             </select>
           </div>
 
@@ -189,8 +189,8 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
                   cursor: 'pointer',
                 }}
               >
-                <option value="all">All</option>
-                <option value="selected">Current</option>
+                <option value="all" style={{ background: '#1a1a2e', color: WHITE }}>All</option>
+                <option value="selected" style={{ background: '#1a1a2e', color: WHITE }}>Current</option>
               </select>
             </div>
           )}

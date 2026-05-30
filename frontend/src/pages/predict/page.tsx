@@ -168,7 +168,6 @@ export default function PredictPage() {
                   onDirectionChange={handleDirectionChange}
                 />
               </div>
-
             </div>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
@@ -178,18 +177,18 @@ export default function PredictPage() {
 
           {/* Positions Table */}
           <div style={{
-            flex: 1,
-            minHeight: 120,
-            maxHeight: 150,
+            flex: 1, 
             borderTop: '1px solid rgba(255,255,255,0.08)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
           }}>
-            <TradePositions
-              selectedMarketOracleId={selected.oracle_id}
-              selectedMarketExpiry={selected.expiryMs}
-            />
+            {selected && (
+              <TradePositions
+                selectedMarketOracleId={selected.oracle_id}
+                selectedMarketExpiry={selected.expiryMs}
+              />
+            )}
           </div>
 
         </div>

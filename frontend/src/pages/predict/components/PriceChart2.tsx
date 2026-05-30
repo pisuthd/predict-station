@@ -429,7 +429,7 @@ export function PriceChart2({
           left: 12,
           zIndex: 10,
           display: 'flex',
-          background: 'rgba(0,0,0,0.6)',
+          background: 'rgba(255,255,255,0.05)',
           borderRadius: 8,
           padding: 3,
           backdropFilter: 'blur(8px)',
