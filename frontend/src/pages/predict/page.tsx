@@ -6,7 +6,7 @@ import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
 import { PriceChart2, type Direction } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
-import { StrikeGrid } from './components/StrikeGrid'
+import { RightColumnTabs } from './components/RightColumnTabs'
 import { TradePositions } from './components/TradePanel/TradePositions'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
@@ -193,7 +193,7 @@ export default function PredictPage() {
 
         </div>
 
-        {/* Right Column - Strike Grid */}
+        {/* Right Column - Tabs (Heatmap/Overview/Trade) */}
         <div style={{
           width: 360,
           flexShrink: 0,
@@ -203,9 +203,11 @@ export default function PredictPage() {
           overflowY: 'auto',
         }}>
           {selected ? (
-            <StrikeGrid
+            <RightColumnTabs
               market={selected}
               mode={chartMode}
+              strike1={strike1}
+              strike2={strike2}
               direction={direction}
               onStrikeChange={handleStrikeChange}
             />

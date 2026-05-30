@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { usePredict, PRICE_SCALE, DUSDC_SCALE } from '../../../../hooks'
 import { useCurrentAccount } from '@mysten/dapp-kit-react'
+import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 
 const MUTED = 'rgba(180,200,255,0.6)'
 const GREEN = '#22c55e'
@@ -36,18 +37,8 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
         justifyContent: 'center',
         height: '100%',
         gap: 12,
-      }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: '2px solid rgba(255,255,255,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: 18 }}>👛</span>
-        </div>
+      }}> 
+         <ConnectButton />
         <span style={{ color: MUTED, fontSize: 12 }}>Connect wallet to view positions</span>
       </div>
     )
