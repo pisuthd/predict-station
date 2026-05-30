@@ -16,6 +16,7 @@ frontend-next/
 frontend/coverage/
 
 deepbook-v3_examples/
+predict_workshop/
 
 # Misc
 .DS_Store

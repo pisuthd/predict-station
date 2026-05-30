@@ -1,26 +1,46 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NAVY } from '../../theme'
 import { useMarkets, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
 import { PriceChart2 } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
 import { StrikeGrid } from './components/StrikeGrid'
+import { TradePanel } from './components/TradePanel'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
 const CYAN = '#3EC4C0'
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
+const PRICE_SCALE = 1_000_000_000n
 
 export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
+  const [selectedStrike, setSelectedStrike] = useState(0)
 
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
+
+  // Initialize strike when market changes
+  useEffect(() => {
+    if (selected) {
+      // Convert spot from nanoseconds (bigint) to regular number
+      const spotPrice = Number(selected.spot) / Number(PRICE_SCALE)
+      setSelectedStrike(spotPrice)
+    }
+  }, [selected])
+
+  // Set default strike when market changes
+  const handleMarketSelect = (market: Market) => {
+    const idx = activeMarkets.findIndex(m => m.oracle_id === market.oracle_id)
+    if (idx >= 0) setSelectedIdx(idx)
+    // Set default strike to spot price (convert from bigint)
+    setSelectedStrike(Number(market.spot) / Number(PRICE_SCALE))
+  }
 
   return (
     <AppWrapper>
@@ -119,12 +139,23 @@ export default function PredictPage() {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : selected ? (
-            <PriceChart2
-              market={selected}
-              mode={chartMode}
-              onModeChange={setChartMode}
-              onStrikeChange={(price) => console.log('New strike:', price)}
-            />
+            <>
+              <PriceChart2
+                market={selected}
+                mode={chartMode}
+                onModeChange={setChartMode}
+                onStrikeChange={(values) => {
+                  if (values.strike > 0) {
+                    setSelectedStrike(values.strike)
+                  }
+                }}
+              />
+              <TradePanel
+                market={selected}
+                selectedStrike={selectedStrike > 0 ? selectedStrike : Number(selected.spot) / Number(PRICE_SCALE)}
+                onStrikeChange={setSelectedStrike}
+              />
+            </>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
               No active markets
