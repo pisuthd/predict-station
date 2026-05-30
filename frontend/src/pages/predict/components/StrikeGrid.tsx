@@ -1,14 +1,11 @@
 'use client'
 
 import { useMemo } from 'react'
-import { CYAN, MUTED } from '../../../theme'
+import {  MUTED } from '../../../theme'
 import type { Market } from '../../../hooks'
-import { useMarketPrices, sviVol, binaryUpProb, type SVIParams } from '../../../hooks'
-import { getCoinIcon } from '../../../lib/coinIcons'
+import { useMarketPrices, sviVol, binaryUpProb, type SVIParams } from '../../../hooks' 
 
 const WHITE = '#ffffff'
-const GREEN = '#22c55e'
-const RED = '#ef4444'
 const PRICE_SCALE = 1e9
 
 export type StrikeGridMode = 'binary' | 'range'
@@ -115,54 +112,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
       height: '100%',
       overflow: 'hidden',
       fontFamily: "'Space Mono', monospace",
-    }}>
-      {/* Header with icons and title */}
-      <div style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        {/* Left: Icons + title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ position: 'relative', width: 40, height: 20 }}>
-            <img 
-              src={getCoinIcon('BTC')} 
-              alt="BTC"
-              style={{ 
-                width: 20, height: 20, borderRadius: '50%',
-                border: '2px solid #0a0a1a', position: 'absolute', left: 0, zIndex: 2,
-              }}
-            />
-            <img 
-              src={getCoinIcon('USDC')} 
-              alt="DUSDC"
-              style={{ 
-                width: 20, height: 20, borderRadius: '50%',
-                border: '2px solid #0a0a1a', position: 'absolute', left: 10, zIndex: 1,
-              }}
-            />
-          </div>
-          <span style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: WHITE,
-            fontFamily: "'DM Sans', sans-serif",
-          }}>
-            BTC/DBUSDC
-          </span>
-        </div>
-        
-        {/* Right: Mode indicator */}
-        <span style={{
-          fontSize: 10,
-          color: CYAN,
-          fontFamily: "'Space Mono', monospace",
-        }}>
-          {mode === 'binary' ? 'BINARY' : 'RANGE'}
-        </span>
-      </div>
+    }}> 
 
       {/* Column Headers */}
       <div style={{
