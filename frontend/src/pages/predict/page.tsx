@@ -7,7 +7,7 @@ import { MarketList } from './components/MarketList'
 import { PriceChart2, type Direction } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
 import { StrikeGrid } from './components/StrikeGrid'
-import { TradePanel } from './components/TradePanel'
+import { TradePositions } from './components/TradePanel/TradePositions'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -20,7 +20,7 @@ export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
-  
+
   // Strike states moved from PriceChart2 to parent
   const [strike1, setStrike1] = useState(0)
   const [strike2, setStrike2] = useState<number | null>(null)
@@ -32,11 +32,11 @@ export default function PredictPage() {
   // Initialize strikes when market changes (only when selecting a new market)
   // Use a ref to track the current oracle_id to avoid resetting on market updates
   const prevOracleIdRef = useRef<string | null>(null)
-  
+
   useEffect(() => {
     if (!selected) return
     const currentOracleId = selected.oracle_id
-    
+
     // Only reset if market actually changed (not just updated)
     if (prevOracleIdRef.current !== currentOracleId) {
       prevOracleIdRef.current = currentOracleId
@@ -155,43 +155,57 @@ export default function PredictPage() {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : selected ? (
-            <>
-              <PriceChart2
-                market={selected}
-                mode={chartMode}
-                onModeChange={setChartMode}
-                initialStrike1={strike1}
-                initialStrike2={strike2}
-                initialDirection={direction}
-                onStrikeChange={handleStrikeChange}
-                onDirectionChange={handleDirectionChange}
-              />
-              <TradePanel
-                market={selected}
-                strike1={strike1}
-                strike2={strike2}
-                direction={direction}
-              />
-            </>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <div style={{ flex: 1 }}>
+                <PriceChart2
+                  market={selected}
+                  mode={chartMode}
+                  onModeChange={setChartMode}
+                  initialStrike1={strike1}
+                  initialStrike2={strike2}
+                  initialDirection={direction}
+                  onStrikeChange={handleStrikeChange}
+                  onDirectionChange={handleDirectionChange}
+                />
+              </div>
+
+            </div>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED }}>
               No active markets
             </div>
           )}
+
+          {/* Positions Table */}
+          <div style={{
+            flex: 1,
+            minHeight: 120,
+            maxHeight: 150,
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <TradePositions
+              selectedMarketOracleId={selected.oracle_id}
+              selectedMarketExpiry={selected.expiryMs}
+            />
+          </div>
+
         </div>
 
         {/* Right Column - Strike Grid */}
         <div style={{
           width: 360,
           flexShrink: 0,
-          borderLeft: '1px solid rgba(255,255,255,0.08)', 
+          borderLeft: '1px solid rgba(255,255,255,0.08)',
           display: 'flex',
           flexDirection: 'column',
           overflowY: 'auto',
         }}>
           {selected ? (
-            <StrikeGrid 
-              market={selected} 
+            <StrikeGrid
+              market={selected}
               mode={chartMode}
               direction={direction}
               onStrikeChange={handleStrikeChange}

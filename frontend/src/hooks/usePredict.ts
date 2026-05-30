@@ -37,6 +37,7 @@ export interface Position {
   unrealized_pnl: string
   underlying_asset: string
   first_minted_at?: number
+  status?: string
 }
 
 export interface AskBounds {
