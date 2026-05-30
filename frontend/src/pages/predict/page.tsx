@@ -20,26 +20,27 @@ export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
-  const [selectedStrike, setSelectedStrike] = useState(0)
+  
+  // Strike states moved from PriceChart2 to parent
+  const [strike1, setStrike1] = useState(0)
+  const [strike2, setStrike2] = useState<number | null>(null)
 
   const activeMarkets = markets.filter((m: Market) => m.status === 'active')
   const selected = activeMarkets[selectedIdx] || null
 
-  // Initialize strike when market changes
+  // Initialize strikes when market changes
   useEffect(() => {
     if (selected) {
-      // Convert spot from nanoseconds (bigint) to regular number
       const spotPrice = Number(selected.spot) / Number(PRICE_SCALE)
-      setSelectedStrike(spotPrice)
+      setStrike1(spotPrice)
+      setStrike2(null)
     }
   }, [selected])
 
-  // Set default strike when market changes
-  const handleMarketSelect = (market: Market) => {
-    const idx = activeMarkets.findIndex(m => m.oracle_id === market.oracle_id)
-    if (idx >= 0) setSelectedIdx(idx)
-    // Set default strike to spot price (convert from bigint)
-    setSelectedStrike(Number(market.spot) / Number(PRICE_SCALE))
+  // Handle strike changes from PriceChart2
+  const handleStrikeChange = (s1: number, s2: number | null) => {
+    setStrike1(s1)
+    setStrike2(s2)
   }
 
   return (
@@ -144,16 +145,14 @@ export default function PredictPage() {
                 market={selected}
                 mode={chartMode}
                 onModeChange={setChartMode}
-                onStrikeChange={(values) => {
-                  if (values.strike > 0) {
-                    setSelectedStrike(values.strike)
-                  }
-                }}
+                initialStrike1={strike1}
+                initialStrike2={strike2}
+                onStrikeChange={handleStrikeChange}
               />
               <TradePanel
                 market={selected}
-                selectedStrike={selectedStrike > 0 ? selectedStrike : Number(selected.spot) / Number(PRICE_SCALE)}
-                onStrikeChange={setSelectedStrike}
+                strike1={strike1}
+                strike2={strike2}
               />
             </>
           ) : (

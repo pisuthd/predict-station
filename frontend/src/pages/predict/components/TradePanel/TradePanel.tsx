@@ -17,13 +17,13 @@ export const DUSDC_SCALE = 1_000_000n
 
 interface TradePanelProps {
   market: Market
-  selectedStrike: number
-  onStrikeChange: (strike: number) => void
+  strike1: number
+  strike2?: number | null
 }
 
 type TabType = 'overview' | 'trade' | 'positions'
 
-export function TradePanel({ market, selectedStrike, onStrikeChange }: TradePanelProps) {
+export function TradePanel({ market, strike1, strike2 }: TradePanelProps) {
   const account = useCurrentAccount()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
 
@@ -73,7 +73,7 @@ export function TradePanel({ market, selectedStrike, onStrikeChange }: TradePane
         ) : activeTab === 'overview' ? (
           <TradeOverview />
         ) : activeTab === 'trade' ? (
-          <TradeTrade market={market} selectedStrike={selectedStrike} />
+          <TradeTrade market={market} selectedStrike={strike1} />
         ) : (
           <TradePositions />
         )}

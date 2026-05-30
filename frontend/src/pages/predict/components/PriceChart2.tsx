@@ -8,23 +8,20 @@ import { useMarketPrices, type Market } from '../../../hooks'
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
-const UPPER_COLOR = '#EC4899' // pink for upper bound (range mode)
+const UPPER_COLOR = '#EC4899'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 
 const DRAG_THRESHOLD_PX = 8
 export type MarketMode = 'binary' | 'range'
 
-export interface StrikeValues {
-  strike: number
-  strikeUpper?: number
-}
-
 interface PriceChart2Props {
   market: Market
   timeRange?: number
   mode?: MarketMode
-  onStrikeChange?: (values: StrikeValues) => void
+  initialStrike1?: number
+  initialStrike2?: number | null
+  onStrikeChange?: (s1: number, s2: number | null) => void
   onModeChange?: (mode: MarketMode) => void
 }
 
@@ -32,6 +29,8 @@ export function PriceChart2({
   market,
   timeRange = 1800,
   mode = 'binary',
+  initialStrike1,
+  initialStrike2,
   onStrikeChange,
   onModeChange,
 }: PriceChart2Props) {
@@ -42,23 +41,18 @@ export function PriceChart2({
   const strikeLine1Ref = useRef<IPriceLine | null>(null)
   const strikeLine2Ref = useRef<IPriceLine | null>(null)
 
-  // Track if lines have been initialized
   const linesInitializedRef = useRef(false)
-
-  // null = not dragging, 1 = dragging line1, 2 = dragging line2
   const draggingRef = useRef<null | 1 | 2>(null)
-  // track pointer down state independently — not cleared by price-scale clicks
   const pointerDownRef = useRef(false)
 
-  const [strike1, setStrike1] = useState<number | null>(null)
-  const [strike2, setStrike2] = useState<number | null>(null)
+  // Use initial values from parent
+  const [strike1, setStrike1] = useState<number | null>(initialStrike1 ?? null)
+  const [strike2, setStrike2] = useState<number | null>(initialStrike2 ?? null)
 
   const { history, loading } = useMarketPrices(market.oracle_id, timeRange, 9000)
 
-  // Get initial strike from market data
-  const initialStrike = market.odds?.strikeK ?? 0
+  const initialStrike = initialStrike1 ?? market.odds?.strikeK ?? 0
 
-  // Calculate price change from history
   const getPriceChange = () => {
     if (!history?.prices?.length || history.prices.length < 2) return null
     const prices = history.prices.map(p => Number(p.price))
@@ -77,11 +71,7 @@ export function PriceChart2({
   const notifyParent = useCallback(
     (s1: number | null, s2: number | null) => {
       if (!onStrikeChange || s1 === null) return
-      onStrikeChange(
-        mode === 'range' && s2 !== null
-          ? { strike: Math.min(s1, s2), strikeUpper: Math.max(s1, s2) }
-          : { strike: s1 },
-      )
+      onStrikeChange(s1, s2)
     },
     [mode, onStrikeChange],
   )
@@ -134,7 +124,6 @@ export function PriceChart2({
   useEffect(() => {
     if (!seriesRef.current || !history?.prices?.length) return
 
-    // Sort by time ascending and remove duplicates
     const sortedPrices = [...history.prices]
       .sort((a, b) => a.time - b.time)
       .filter((p, i, arr) => i === 0 || p.time !== arr[i - 1].time)
@@ -161,7 +150,6 @@ export function PriceChart2({
       strikeLine2Ref.current = null
     }
 
-    // Use strikeK from market data, fallback to calculated value
     const useStrike = initialStrike > 0
       ? initialStrike
       : (() => {
@@ -181,9 +169,7 @@ export function PriceChart2({
     setStrike1(useStrike)
 
     if (mode === 'range') {
-      // Calculate upper bound: strike + 100
       const init2 = parseFloat((useStrike + 100).toFixed(2))
-
       strikeLine2Ref.current = series.createPriceLine({
         price: init2,
         color: UPPER_COLOR,
@@ -200,7 +186,7 @@ export function PriceChart2({
     }
 
     linesInitializedRef.current = true
-  }, [history, mode, initialStrike]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [history, mode, initialStrike])
 
   // ── Drag via pointer events on the wrapper div ─────────────────────────
   useEffect(() => {
@@ -235,7 +221,7 @@ export function PriceChart2({
 
       draggingRef.current = hit
       pointerDownRef.current = true
-        ; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      ; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
       wrapper.style.cursor = 'ns-resize'
       e.preventDefault()
     }
@@ -245,7 +231,6 @@ export function PriceChart2({
       const container = chartContainerRef.current
       if (!series || !container) return
 
-      // Hover hint (when not dragging)
       if (!pointerDownRef.current) {
         const hit = hitTest(e.clientY)
         wrapper.style.cursor = hit ? 'ns-resize' : 'default'
@@ -254,7 +239,6 @@ export function PriceChart2({
 
       if (draggingRef.current === null) return
 
-      // Convert clientY → price using chart pane bounding rect
       const rect = container.getBoundingClientRect()
       const y = e.clientY - rect.top
       const newPrice = series.coordinateToPrice(y as any)
@@ -276,7 +260,7 @@ export function PriceChart2({
       if (!pointerDownRef.current) return
       draggingRef.current = null
       pointerDownRef.current = false
-        ; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+      ; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
       wrapper.style.cursor = 'default'
     }
 
@@ -304,13 +288,11 @@ export function PriceChart2({
   const spotPrice = market.spot / 1e9
   const priceChange = getPriceChange()
 
-  // Format expiry as compact datetime (e.g., "Jun 2, 14:30")
   const expiryDate = new Date(market.expiryMs)
   const expiryLabel = expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
     expiryDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   const handleModeChange = (newMode: MarketMode) => {
-    // Reset lines when mode changes so they recreate
     linesInitializedRef.current = false
     if (onModeChange) onModeChange(newMode)
   }
@@ -335,7 +317,6 @@ export function PriceChart2({
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 16,
         }}>
-          {/* Spot */}
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Spot Price</div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>
@@ -347,49 +328,18 @@ export function PriceChart2({
                 color: priceChange && priceChange.change >= 0 ? GREEN : RED
               }}>
                 {priceChange ? (
-                  <>
-                    {` `}{priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%
-                  </>
+                  <>{` `}{priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%</>
                 ) : '—'}
               </span>
             </div>
-            {/* <div style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: priceChange && priceChange.change >= 0 ? GREEN : RED
-            }}>
-              {priceChange ? (
-                <>
-                  {priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%
-                </>
-              ) : '—'}
-            </div> */}
           </div>
 
-          {/* Change */}
-          {/* <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Change</div>
-            <div style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: priceChange && priceChange.change >= 0 ? GREEN : RED
-            }}>
-              {priceChange ? (
-                <>
-                  {priceChange.change >= 0 ? '+' : ''}{priceChange.change.toFixed(2)} ({priceChange.changePct >= 0 ? '+' : ''}{priceChange.changePct.toFixed(2)}%)
-                </>
-              ) : '—'}
-            </div>
-          </div> */}
-
-          {/* Expiry */}
           <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Expiry</div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
           </div>
 
-          {/* Mode Toggle - Radio circles */}
-          <div  >
+          <div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Mode</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
@@ -425,7 +375,6 @@ export function PriceChart2({
               />
               <span style={{ fontSize: 11, color: MUTED }}>Range</span>
             </div>
-
           </div>
         </div>
       </div>
