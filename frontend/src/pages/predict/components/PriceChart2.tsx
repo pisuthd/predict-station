@@ -221,7 +221,7 @@ export function PriceChart2({
 
       draggingRef.current = hit
       pointerDownRef.current = true
-      ; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        ; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
       wrapper.style.cursor = 'ns-resize'
       e.preventDefault()
     }
@@ -260,7 +260,7 @@ export function PriceChart2({
       if (!pointerDownRef.current) return
       draggingRef.current = null
       pointerDownRef.current = false
-      ; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+        ; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
       wrapper.style.cursor = 'default'
     }
 
@@ -339,41 +339,48 @@ export function PriceChart2({
             <div style={{ fontSize: 13, fontWeight: 600 }}>{expiryLabel}</div>
           </div>
 
-          <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Mode</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{display:"flex"}}> 
+            <div style={{
+              margin: 'auto',
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: 8,
+              padding: 3,
+              gap: 2,
+            }}>
               <button
                 onClick={() => handleModeChange('binary')}
                 style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  border: 'none',
                   background: mode === 'binary' ? CYAN : 'transparent',
-                  border: `2px solid ${mode === 'binary' ? CYAN : MUTED}`,
+                  color: mode === 'binary' ? '#0a0a1a' : MUTED,
+                  fontSize: 11,
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  fontFamily: "'Space Mono', monospace",
                 }}
-              />
-              <span style={{ fontSize: 11, color: MUTED }}>Binary</span>
+              >
+                Up or Down
+              </button>
               <button
                 onClick={() => handleModeChange('range')}
                 style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  border: 'none',
                   background: mode === 'range' ? CYAN : 'transparent',
-                  border: `2px solid ${mode === 'range' ? CYAN : MUTED}`,
+                  color: mode === 'range' ? '#0a0a1a' : MUTED,
+                  fontSize: 11,
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  fontFamily: "'Space Mono', monospace",
                 }}
-              />
-              <span style={{ fontSize: 11, color: MUTED }}>Range</span>
+              >
+                Range
+              </button>
             </div>
           </div>
         </div>
