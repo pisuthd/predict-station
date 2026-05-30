@@ -24,7 +24,6 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
   const { positions, loading } = usePredict()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [marketFilter, setMarketFilter] = useState<MarketFilter>('all')
-  const [showFilters, setShowFilters] = useState(false)
 
   // Not connected state
   if (!account) {
@@ -54,15 +53,10 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
     )
   }
 
-  // Format helpers - matching portfolio.html format
+  // Format helpers
   const formatMarket = (underlying: string, expiry: number) => {
     const date = new Date(expiry)
     return `${underlying} ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-  }
-
-  const formatExpiry = (expiry: number) => {
-    const date = new Date(expiry)
-    return date.toISOString().replace('T', ' ').slice(0, 16) + 'Z'
   }
 
   const formatStrike = (raw: string) => {
@@ -78,23 +72,16 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
   }
 
   const formatPrice = (raw: string | null) => {
-    // Entry/Mark prices are scaled by 1e9 (PRICE_SCALE), show 4 decimals
     if (!raw || raw === '0') return '—'
     const n = Number(BigInt(raw)) / Number(PRICE_SCALE)
     return n.toFixed(4)
   }
 
   const formatUsd = (raw: string | number) => { 
-    // Always divide by DUSDC_SCALE since unrealized_pnl is in DUSDC units (1e6)
     const n = typeof raw === 'string' ? Number(raw) : raw
     const scaled = Number(n) / Number(DUSDC_SCALE)
     const sign = scaled >= 0 ? '+' : ''
     return `${sign}$${scaled.toFixed(2)}`
-  }
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
   const getStatusBadge = (status?: string) => {
@@ -138,7 +125,7 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
       height: '100%',
       minHeight: 0,
     }}>
-      {/* Header */}
+      {/* Header with filters inline */}
       <div style={{
         padding: '10px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -161,41 +148,11 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
             </span>
           )}
         </div>
-        
-        {/* Filter button */}
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          style={{
-            background: showFilters ? 'rgba(62,196,192,0.2)' : 'transparent',
-            border: 'none',
-            color: showFilters ? CYAN : MUTED,
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 4,
-            fontSize: 12,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <span style={{ fontSize: 10 }}>⚙</span>
-          <span style={{ fontSize: 10 }}>Filter</span>
-        </button>
-      </div>
 
-      {/* Filter overlay */}
-      {showFilters && (
-        <div style={{
-          padding: '8px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          display: 'flex',
-          gap: 16,
-          fontSize: 10,
-          background: 'rgba(0,0,0,0.2)',
-          flexShrink: 0,
-        }}>
+        {/* Inline filters */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: MUTED }}>Status:</span>
+            <span style={{ color: MUTED, fontSize: 10 }}>Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
@@ -218,7 +175,7 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
 
           {selectedMarketOracleId && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: MUTED }}>Market:</span>
+              <span style={{ color: MUTED, fontSize: 10 }}>Market:</span>
               <select
                 value={marketFilter}
                 onChange={(e) => setMarketFilter(e.target.value as MarketFilter)}
@@ -238,7 +195,7 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Table */}
       <div style={{ flex: 1, overflow: 'auto' }}>
@@ -257,7 +214,6 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
                 <th style={{ textAlign: 'left', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>MARKET</th>
                 <th style={{ textAlign: 'left', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>SIDE</th>
                 <th style={{ textAlign: 'left', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>STRIKE</th>
-                <th style={{ textAlign: 'left', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>EXPIRY</th>
                 <th style={{ textAlign: 'right', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>QTY</th>
                 <th style={{ textAlign: 'right', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>ENTRY</th>
                 <th style={{ textAlign: 'right', padding: '6px 8px', color: MUTED, fontSize: 9, textTransform: 'uppercase' }}>MARK</th>
@@ -285,9 +241,6 @@ export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }:
                     </td>
                     <td style={{ padding: '6px 8px', fontFamily: "'Space Mono', monospace", color: CYAN }}>
                       {formatStrike(pos.strike)}
-                    </td>
-                    <td style={{ padding: '6px 8px', fontFamily: "'Space Mono', monospace", color: MUTED, fontSize: 9 }}>
-                      {formatExpiry(pos.expiry)}
                     </td>
                     <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: "'Space Mono', monospace" }}>
                       {formatQty(pos.open_quantity)}
