@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { createChart, ColorType, LineSeries, LineStyle } from 'lightweight-charts'
 import type { UTCTimestamp, IChartApi, IPriceLine } from 'lightweight-charts'
-import { useMarketPrices, type Market } from '../../../hooks'
+import { useMarketPrices, type Market, sviVol, binaryUpProb } from '../../../hooks'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -63,7 +63,7 @@ export function PriceChart2({
   const strike1 = initialStrike1 ?? null
   const strike2 = initialStrike2 ?? null
 
-  // Calculate mint price using SVI model (same as StrikeGrid)
+  // Calculate mint price using SVI model from shared hook
   const mintPrice = useMemo(() => {
     if (!strike1 || strike1 <= 0) return null
     const forwardPrice = market.forward / 1e9
@@ -78,34 +78,7 @@ export function PriceChart2({
       sigma: market.svi.sigma
     } : { a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806 }
 
-    // SVI functions (same as StrikeGrid)
-    const normCDF = (x: number): number => {
-      const sign = x < 0 ? -1 : 1
-      x = Math.abs(x) / Math.SQRT2
-      const t = 1 / (1 + 0.3275911 * x)
-      const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x)
-      return 0.5 * (1 + sign * y)
-    }
-
-    const sviVol = (K: number, F: number, T: number): number => {
-      if (T <= 0) return sviParams.sigma / 1e8
-      const a = sviParams.a / 1e8
-      const b = sviParams.b / 1e8
-      const rho = sviParams.rho / 1e9
-      const m = sviParams.m / 1e8
-      const sig = sviParams.sigma / 1e8
-      const k = Math.log(K / F)
-      const w = a + b * (rho * (k - m) + Math.sqrt((k - m) ** 2 + sig ** 2))
-      return w > 0 ? Math.sqrt(w / T) : sig
-    }
-
-    const binaryUpProb = (F: number, K: number, T: number, vol: number): number => {
-      if (T <= 0 || vol <= 0) return F > K ? 100 : 0
-      const d2 = (Math.log(F / K) - 0.5 * vol ** 2 * T) / (vol * Math.sqrt(T))
-      return normCDF(d2) * 100
-    }
-
-    const vol = sviVol(strike1, forwardPrice, T)
+    const vol = sviVol(strike1, forwardPrice, T, sviParams)
     const upProb = binaryUpProb(forwardPrice, strike1, T, vol)
     return { up: upProb, down: 100 - upProb }
   }, [strike1, market.forward, market.expiryMs, market.svi])

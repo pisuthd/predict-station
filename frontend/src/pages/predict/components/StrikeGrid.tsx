@@ -3,12 +3,13 @@
 import { useMemo } from 'react'
 import { CYAN, MUTED } from '../../../theme'
 import type { Market } from '../../../hooks'
-import { useMarketPrices } from '../../../hooks'
+import { useMarketPrices, sviVol, binaryUpProb, type SVIParams } from '../../../hooks'
 import { getCoinIcon } from '../../../lib/coinIcons'
 
 const WHITE = '#ffffff'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
+const PRICE_SCALE = 1e9
 
 export type StrikeGridMode = 'binary' | 'range'
 
@@ -17,40 +18,6 @@ interface StrikeGridProps {
   mode?: StrikeGridMode
   direction?: 'up' | 'down'
   onStrikeChange?: (strike1: number, strike2: number | null, direction: 'up' | 'down') => void
-}
-
-function normCDF(x: number): number {
-  const sign = x < 0 ? -1 : 1
-  x = Math.abs(x) / Math.SQRT2
-  const t = 1 / (1 + 0.3275911 * x)
-  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x)
-  return 0.5 * (1 + sign * y)
-}
-
-const SVI_SCALE = 1e8
-const RHO_SCALE = 1e9
-const PRICE_SCALE = 1e9
-
-interface SVIParams {
-  a: number; b: number; rho: number; m: number; sigma: number
-}
-
-function sviVol(K: number, F: number, T: number, svi: SVIParams): number {
-  if (T <= 0) return svi.sigma / SVI_SCALE
-  const a = svi.a / SVI_SCALE
-  const b = svi.b / SVI_SCALE
-  const rho = svi.rho / RHO_SCALE
-  const m = svi.m / SVI_SCALE
-  const sig = svi.sigma / SVI_SCALE
-  const k = Math.log(K / F)
-  const w = a + b * (rho * (k - m) + Math.sqrt((k - m) ** 2 + sig ** 2))
-  return w > 0 ? Math.sqrt(w / T) : sig
-}
-
-function binaryUpProb(F: number, K: number, T: number, vol: number): number {
-  if (T <= 0 || vol <= 0) return F > K ? 1 : 0
-  const d2 = (Math.log(F / K) - 0.5 * vol ** 2 * T) / (vol * Math.sqrt(T))
-  return normCDF(d2)
 }
 
 interface StrikeEntry {
@@ -112,8 +79,8 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
       const upProb = binaryUpProb(forwardPrice, strike, T, vol)
       entries.push({
         strike,
-        upProb: Math.round(upProb * 100),
-        downProb: Math.round((1 - upProb) * 100)
+        upProb: Math.round(upProb),
+        downProb: Math.round(100 - upProb)
       })
     }
     
@@ -125,8 +92,8 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
       const upProb = binaryUpProb(forwardPrice, strike, T, vol)
       entries.push({
         strike,
-        upProb: Math.round(upProb * 100),
-        downProb: Math.round((1 - upProb) * 100)
+        upProb: Math.round(upProb),
+        downProb: Math.round(100 - upProb)
       })
     }
     
