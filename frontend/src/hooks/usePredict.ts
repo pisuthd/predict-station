@@ -367,8 +367,8 @@ export function usePredict(): UsePredictReturn {
       const costRaw = Number(bcs.U64.parse(returnValues[0].bcs))
       const redeemRaw = Number(bcs.U64.parse(returnValues[1].bcs))
 
-      const cost = costRaw / Number(DUSDC_SCALE)
-      const redeem = redeemRaw / Number(DUSDC_SCALE)
+      const cost = (costRaw / Number(DUSDC_SCALE)) / quantity
+      const redeem = (redeemRaw / Number(DUSDC_SCALE)) / quantity
       const premium = cost - redeem
 
       return {

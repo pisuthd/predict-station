@@ -6,6 +6,7 @@ import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 import { ModalWrapper } from '../../../components/ModalWrapper'
 import type { ManagerData, TradeQuote } from '../../../hooks'
 import type { Market } from '../../../hooks'
+import { useInterval } from 'usehooks-ts'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.5)'
@@ -44,11 +45,15 @@ function formatTimeRemaining(expiryMs: number): string {
   const now = Date.now()
   const diff = expiryMs - now
   if (diff <= 0) return 'Expired'
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
   if (days > 0) return `${days}d ${hours}h`
-  if (hours > 0) return `${hours}h`
-  return '< 1h'
+  if (hours > 0) return `${hours}h ${minutes}m`
+  if (minutes > 0) return `${minutes}m`
+  return '< 1m'
 }
 
 export function BinaryTradeModal({
@@ -69,22 +74,19 @@ export function BinaryTradeModal({
   const [localError, setLocalError] = useState<string | null>(null)
   const [upQuote, setUpQuote] = useState<TradeQuote | null>(null)
   const [downQuote, setDownQuote] = useState<TradeQuote | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const roundedAmount = parseFloat(amount) || 0
   const activeQuote = direction === 'up' ? upQuote : downQuote
 
-  // Get per-$1 values
   const costPer = activeQuote?.cost ?? 0.5
-  const redeemPer = activeQuote?.redeem ?? 1.0
   const premiumPer = activeQuote?.premium ?? 0
 
-  // Calculate totals
-  const totalCost = costPer * roundedAmount
-  const payoutIfWin = (redeemPer + (1 - redeemPer)) * roundedAmount
-  const profitIfWin = payoutIfWin - totalCost
+  // Calculate totals 
+  const payoutIfWin = (1 + (1 - costPer - premiumPer)) * roundedAmount
+
+  const profitIfWin = payoutIfWin - roundedAmount
 
   // Reset on modal open
   useEffect(() => {
@@ -94,7 +96,7 @@ export function BinaryTradeModal({
       setDownQuote(null)
       setLocalError(null)
       setDirection('up')
-      setRefreshing(false)
+      // setRefreshing(false)
     }
 
     return () => {
@@ -105,39 +107,32 @@ export function BinaryTradeModal({
     }
   }, [isOpen])
 
-  // Fetch quotes with 3s interval
-  useEffect(() => {
-    if (!isOpen || !getTradeQuote || !market.oracle_id || !market.expiryMs || strike <= 0) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      return
-    }
+  useInterval(
+    () => {
 
-    // Only set up interval once
-    if (!intervalRef.current) {
-      const fetchQuotes = async () => {
-        const qty = roundedAmount > 0 ? roundedAmount : 1
-        setRefreshing(true)
-        try {
-          const [up, down] = await Promise.all([
-            getTradeQuote(market.oracle_id, market.expiryMs, strike, 'up', qty),
-            getTradeQuote(market.oracle_id, market.expiryMs, strike, 'down', qty),
-          ])
-          setUpQuote(up)
-          setDownQuote(down)
-        } catch (e) {
-          console.error('Quote fetch failed:', e)
-        } finally {
-          setRefreshing(false)
+      if (!isOpen || !getTradeQuote || !market.oracle_id || !market.expiryMs || strike <= 0) {
+
+      } else {
+        const fetchQuotes = async () => {
+          const qty = roundedAmount > 0 ? roundedAmount : 1
+          try {
+
+            const [up, down] = await Promise.all([
+              getTradeQuote(market.oracle_id, market.expiryMs, strike, 'up', qty),
+              getTradeQuote(market.oracle_id, market.expiryMs, strike, 'down', qty),
+            ])
+            setUpQuote(up)
+            setDownQuote(down)
+          } catch (e) {
+            console.error('Quote fetch failed:', e)
+          }
         }
-      }
 
-      fetchQuotes()
-      intervalRef.current = setInterval(fetchQuotes, 3000)
-    }
-  }, [isOpen, getTradeQuote, market.oracle_id, market.expiryMs, strike])
+        fetchQuotes()
+      }
+    },
+    upQuote === null ? 1000 : 3000,
+  )
 
   // Format expiry
   const expiryLabel = useMemo(() => {
@@ -177,12 +172,10 @@ export function BinaryTradeModal({
       {/* Header - Question as title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
-          <h2 style={{ color: WHITE, fontSize: 13, fontWeight: 600, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+          <h2 style={{ color: WHITE, fontSize: 16, fontWeight: 600, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
             {questionTitle}
           </h2>
-          <p style={{ color: MUTED, fontSize: 10, margin: '2px 0 0', fontFamily: "'DM Sans', sans-serif" }}>
-            {expiryLabel}
-          </p>
+
         </div>
         <button
           onClick={onClose}
@@ -204,156 +197,144 @@ export function BinaryTradeModal({
         </button>
       </div>
 
-      {!account ? (
-        <div style={{ textAlign: 'center', padding: '16px 0' }}>
-          <ConnectButton />
-          <p style={{ color: MUTED, fontSize: 11, marginTop: 8 }}>Connect wallet to trade</p>
-        </div>
-      ) : !manager ? (
-        <div style={{ textAlign: 'center', padding: '16px 0', color: MUTED, fontSize: 11 }}>
-          Create a manager first
-        </div>
-      ) : (
-        <>
+      <>
+        {/* Direction Buttons */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {(['up', 'down'] as const).map((d) => {
+            const isActive = direction === d
+            const quote = d === 'up' ? upQuote : downQuote
 
-          {/* Direction Buttons */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {(['up', 'down'] as const).map((d) => {
-              const isActive = direction === d
-              const quote = d === 'up' ? upQuote : downQuote
+            const pricePer = quote?.cost ?? null
+            const color = d === 'up' ? GREEN : RED
 
-              console.log("quote / amount : ", quote, amount)
-
-              const pricePer = quote?.cost ?? null
-              const color = d === 'up' ? GREEN : RED
-
-              return (
-                <button
-                  key={d}
-                  onClick={() => setDirection(d)}
-                  style={{
-                    flex: 1,
-                    padding: '8px 6px',
-                    borderRadius: 6,
-                    border: `1.5px solid ${isActive ? color : 'rgba(255,255,255,0.08)'}`,
-                    background: isActive
-                      ? d === 'up' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'
-                      : 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ color: isActive ? color : MUTED, fontSize: 11, fontWeight: 600 }}>
-                    {d === 'up' ? '▲ UP' : '▼ DOWN'}
-                  </div>
-                  <div style={{ color: isActive ? color : MUTED, fontSize: 13, fontWeight: 600, fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
-                    {refreshing ? '...' : pricePer !== null ? `$${pricePer.toFixed(2)}` : '—'}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Amount Input */}
-          <div style={{ marginBottom: 10 }}>
-            <div style={{
-              display: 'flex',
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: 6,
-              border: '1px solid rgba(255,255,255,0.08)',
-              overflow: 'hidden',
-              marginBottom: 6,
-            }}>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="10"
-                step="1"
-                min="1"
+            return (
+              <button
+                key={d}
+                onClick={() => setDirection(d)}
                 style={{
                   flex: 1,
-                  padding: '8px 10px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: WHITE,
-                  fontSize: 13,
-                  fontFamily: "'Space Mono', monospace",
-                  outline: 'none',
+                  padding: '8px 6px',
+                  borderRadius: 6,
+                  border: `1.5px solid ${isActive ? color : 'rgba(255,255,255,0.08)'}`,
+                  background: isActive
+                    ? d === 'up' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'
+                    : 'rgba(255,255,255,0.02)',
+                  cursor: 'pointer',
                 }}
-              />
-              <span style={{ padding: '8px 10px', color: MUTED, fontSize: 11 }}>
-                DUSDC
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {PRESETS.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setAmount(String(p))}
-                  style={{
-                    flex: 1,
-                    padding: '6px 0',
-                    background: roundedAmount === p ? 'rgba(62,196,192,0.15)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${roundedAmount === p ? 'rgba(62,196,192,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                    borderRadius: 4,
-                    color: roundedAmount === p ? CYAN : MUTED,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: "'Space Mono', monospace",
-                  }}
-                >
-                  ${p}
-                </button>
-              ))}
-            </div>
-          </div>
+              >
+                <div style={{ color: isActive ? color : MUTED, fontSize: 11, fontWeight: 600 }}>
+                  {d === 'up' ? '▲ UP' : '▼ DOWN'}
+                </div>
+                <div style={{ color: isActive ? color : MUTED, fontSize: 13, fontWeight: 600, fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+                  {pricePer !== null ? `$${pricePer.toFixed(2)}` : '—'}
+                </div>
+              </button>
+            )
+          })}
+        </div>
 
-          {/* Payout Details */}
-          {roundedAmount > 0 && hasQuote && (
-            <div style={{
-              background: 'rgba(255,255,255,0.02)',
-              borderRadius: 6,
-              padding: '10px 12px',
-              marginBottom: 10,
-            }}> 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED }}>Premium</div>
-                  <div style={{ fontSize: 12, color: WHITE, fontFamily: "'Space Mono', monospace" }}>
-                    {refreshing ? '...' : `$${costPer.toFixed(2)}`}
-                  </div>
+        <p style={{ color: MUTED, fontSize: 10, textAlign: "center", margin: '2px 0 0', paddingBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>
+          {expiryLabel}
+        </p>
+
+        {/* Amount Input */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: 6,
+            border: '1px solid rgba(255,255,255,0.08)',
+            overflow: 'hidden',
+            marginBottom: 6,
+          }}>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="10"
+              step="1"
+              min="1"
+              style={{
+                flex: 1,
+                padding: '8px 10px',
+                background: 'transparent',
+                border: 'none',
+                color: WHITE,
+                fontSize: 13,
+                fontFamily: "'Space Mono', monospace",
+                outline: 'none',
+              }}
+            />
+            <span style={{ padding: '8px 10px', color: MUTED, fontSize: 11 }}>
+              DBUSDC
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {PRESETS.map((p) => (
+              <button
+                key={p}
+                onClick={() => setAmount(String(p))}
+                style={{
+                  flex: 1,
+                  padding: '6px 0',
+                  background: roundedAmount === p ? 'rgba(62,196,192,0.15)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${roundedAmount === p ? 'rgba(62,196,192,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                  borderRadius: 4,
+                  color: roundedAmount === p ? CYAN : MUTED,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: "'Space Mono', monospace",
+                }}
+              >
+                ${p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Payout Details */}
+        {roundedAmount > 0 && hasQuote && (
+          <div style={{
+            background: 'rgba(255,255,255,0.02)',
+            borderRadius: 6,
+            padding: '10px 12px',
+            marginBottom: 10,
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <div>
+                <div style={{ fontSize: 10, color: MUTED }}>Payout If Win</div>
+                <div style={{ fontSize: 12, color: CYAN, fontFamily: "'Space Mono', monospace" }}>
+                  {`$${payoutIfWin.toFixed(2)}`}
                 </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED }}>Payout</div>
-                  <div style={{ fontSize: 12, color: CYAN, fontFamily: "'Space Mono', monospace" }}>
-                    {refreshing ? '...' : `$${redeemPer.toFixed(2)}`}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED }}>Profit</div>
-                  <div style={{ fontSize: 12, color: profitIfWin >= 0 ? GREEN : RED, fontFamily: "'Space Mono', monospace" }}>
-                    {refreshing ? '...' : `${profitIfWin >= 0 ? '+' : ''}$${profitIfWin.toFixed(2)}`}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED }}>Premium</div>
-                  <div style={{ fontSize: 12, color: MUTED, fontFamily: "'Space Mono', monospace" }}>
-                    {refreshing ? '...' : `-$${premiumPer.toFixed(2)}`}
-                  </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: MUTED }}>Profit If Win</div>
+                <div style={{ fontSize: 12, color: profitIfWin >= 0 ? GREEN : RED, fontFamily: "'Space Mono', monospace" }}>
+                  {`${profitIfWin >= 0 ? '+' : ''}$${profitIfWin.toFixed(2)}`}
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Error */}
-          {(localError || error) && (
-            <div style={{ marginBottom: 8, padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 4, color: RED, fontSize: 10 }}>
-              {localError || error}
-            </div>
-          )}
+        {/* Error */}
+        {(localError || error) && (
+          <div style={{ marginBottom: 8, padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 4, color: RED, fontSize: 10 }}>
+            {localError || error}
+          </div>
+        )}
 
-          {/* Mint Button */}
+        {!account ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <ConnectButton />
+            <p style={{ color: MUTED, fontSize: 11, marginTop: 8 }}>Connect wallet to trade</p>
+          </div>
+        ) : !manager ? (
+          <div style={{ textAlign: 'center', padding: '16px 0', color: MUTED, fontSize: 11 }}>
+            Create a manager first
+          </div>
+        ) : (
           <button
             onClick={handleTrade}
             disabled={loading || !mint || !hasQuote}
@@ -371,11 +352,13 @@ export function BinaryTradeModal({
               opacity: loading ? 0.6 : 1,
             }}
           >
-            {loading ? 'Processing...' : refreshing ? 'Updating...' : !hasQuote ? 'Loading...' : `Mint ${direction === 'up' ? '▲ UP' : '▼ DOWN'}`}
+            {loading ? 'Processing...' : !hasQuote ? 'Loading...' : `Mint ${direction === 'up' ? '▲ UP' : '▼ DOWN'}`}
           </button>
+        )}
 
-        </>
-      )}
+
+
+      </>
     </ModalWrapper>
   )
 }

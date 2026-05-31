@@ -8,6 +8,7 @@ import {
   // sviVol, binaryUpProb 
 } from '../../../hooks'
 import { getCoinIcon } from '../../../lib/coinIcons'
+import { Plus } from 'lucide-react'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -482,9 +483,14 @@ export function PriceChart2({
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               fontFamily: "'Space Mono', monospace",
+              display: "flex",
+              flexDirection: "row"
             }}
           >
-            + Predict
+            <Plus size={12} style={{ marginTop: "auto", marginBottom: "auto", marginRight: "3px" }} />
+            <div style={{margin: "auto"}}>
+              Predict
+            </div> 
           </button>
         </div>
 

@@ -19,6 +19,7 @@ const MUTED = 'rgba(180,200,255,0.6)'
 const PRICE_SCALE = 1_000_000_000n
 
 export default function PredictPage() {
+  
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const { manager, summary, positions, createManager, deposit, withdraw, mint, getTradeQuote, error: predictError, loading: predictLoading } = usePredict()
   
