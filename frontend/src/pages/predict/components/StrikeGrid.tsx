@@ -29,7 +29,7 @@ interface Signal {
 }
 
 export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrikeChange }: StrikeGridProps) {
-  useMarketPrices(market.oracle_id, 300, 2000)
+
   
   const forwardPrice = market.forward / PRICE_SCALE
   const spotPrice = market.spot / PRICE_SCALE
