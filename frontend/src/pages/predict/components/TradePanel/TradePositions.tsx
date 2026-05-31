@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePredict, PRICE_SCALE, DUSDC_SCALE } from '../../../../hooks'
+import { PRICE_SCALE, DUSDC_SCALE, type Position } from '../../../../hooks'
 import { useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 
@@ -18,11 +18,12 @@ type MarketFilter = 'all' | 'selected'
 interface TradePositionsProps {
   selectedMarketOracleId?: string
   selectedMarketExpiry?: number
+  positions: Position[]
+  loading: boolean
 }
 
-export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry }: TradePositionsProps) {
+export function TradePositions({ selectedMarketOracleId, selectedMarketExpiry, positions, loading }: TradePositionsProps) {
   const account = useCurrentAccount()
-  const { positions, loading } = usePredict()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [marketFilter, setMarketFilter] = useState<MarketFilter>('all')
 

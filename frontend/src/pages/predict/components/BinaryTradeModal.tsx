@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useDAppKit, useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 import { ModalWrapper } from '../../../components/ModalWrapper'
-import { usePredict } from '../../../hooks'
+import type { ManagerData } from '../../../hooks'
 import type { Direction } from './PriceChart2'
 import type { Market } from '../../../hooks'
 
@@ -20,6 +20,10 @@ interface BinaryTradeModalProps {
   onClose: () => void
   market: Market
   strike: number
+  manager: ManagerData | null
+  mintPrice: { up: number; down: number } | null
+  mint: (signAndExecute: any, oracleId: string, expiryMs: number, strike: number, direction: 'up' | 'down', amount: number) => Promise<void>
+  error: string | null
 }
 
 export function BinaryTradeModal({
@@ -27,10 +31,13 @@ export function BinaryTradeModal({
   onClose,
   market,
   strike,
+  manager,
+  mintPrice,
+  mint,
+  error,
 }: BinaryTradeModalProps) {
   const dAppKit = useDAppKit()
   const account = useCurrentAccount()
-  const { manager, mintPrice, mint, error } = usePredict()
   const [direction, setDirection] = useState<Direction>('up')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)

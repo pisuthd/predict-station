@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useDAppKit } from '@mysten/dapp-kit-react'
-import { usePredict, DUSDC_SCALE } from '../../../../hooks'
+import { DUSDC_SCALE, type ManagerData, type ManagerSummary } from '../../../../hooks'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -10,9 +10,17 @@ const GREEN = '#22c55e'
 const CYAN = '#3EC4C0'
 const RED = '#ef4444'
 
-export function TradeOverview() {
+interface TradeOverviewProps {
+  manager: ManagerData | null
+  summary: ManagerSummary | null
+  createManager: (signAndExecute: any) => Promise<void>
+  deposit: (signAndExecute: any, amount: string) => Promise<void>
+  withdraw: (signAndExecute: any, amount: string) => Promise<void>
+  error: string | null
+}
+
+export function TradeOverview({ manager, summary, createManager, deposit, withdraw, error }: TradeOverviewProps) {
   const dAppKit = useDAppKit()
-  const { manager, summary, createManager, deposit, withdraw, error } = usePredict()
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)

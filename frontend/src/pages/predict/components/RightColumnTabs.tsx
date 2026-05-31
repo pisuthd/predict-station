@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 import { Flame, LayoutDashboard } from 'lucide-react'
-import type { Market } from '../../../hooks'
+import type { Market, ManagerData, ManagerSummary } from '../../../hooks'
 import { StrikeGrid, type StrikeGridMode } from './StrikeGrid'
 import { TradeOverview } from './TradePanel/TradeOverview'
 
@@ -21,9 +21,28 @@ interface RightColumnTabsProps {
   strike2?: number | null
   direction?: 'up' | 'down'
   onStrikeChange?: (strike1: number, strike2: number | null, direction: 'up' | 'down') => void
+  manager?: ManagerData | null
+  summary?: ManagerSummary | null
+  createManager?: (signAndExecute: any) => Promise<void>
+  deposit?: (signAndExecute: any, amount: string) => Promise<void>
+  withdraw?: (signAndExecute: any, amount: string) => Promise<void>
+  predictError?: string | null
 }
 
-export function RightColumnTabs({ market, mode = 'binary', strike1, strike2, direction = 'up', onStrikeChange }: RightColumnTabsProps) {
+export function RightColumnTabs({ 
+  market, 
+  mode = 'binary', 
+  strike1, 
+  strike2, 
+  direction = 'up', 
+  onStrikeChange,
+  manager,
+  summary,
+  createManager,
+  deposit,
+  withdraw,
+  predictError,
+}: RightColumnTabsProps) {
   const account = useCurrentAccount()
   const [activeTab, setActiveTab] = useState<TabType>('heatmap')
 
@@ -98,7 +117,14 @@ export function RightColumnTabs({ market, mode = 'binary', strike1, strike2, dir
             onStrikeChange={onStrikeChange}
           />
         ) : (
-          <TradeOverview />
+          <TradeOverview 
+            manager={manager ?? null}
+            summary={summary ?? null}
+            createManager={createManager!}
+            deposit={deposit!}
+            withdraw={withdraw!}
+            error={predictError ?? null}
+          />
         )}
       </div>
     </div>

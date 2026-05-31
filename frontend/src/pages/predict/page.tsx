@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { NAVY } from '../../theme'
-import { useMarkets, type Market } from '../../hooks'
+import { useMarkets, usePredict, type Market } from '../../hooks'
 import { MarketList } from './components/MarketList'
 import { PriceChart2, type Direction } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
@@ -20,6 +20,8 @@ const PRICE_SCALE = 1_000_000_000n
 
 export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
+  const { manager, summary, positions, mintPrice, createManager, deposit, withdraw, mint, error: predictError, loading: predictLoading } = usePredict()
+  
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
   const [showBinaryModal, setShowBinaryModal] = useState(false)
@@ -201,6 +203,8 @@ export default function PredictPage() {
               <TradePositions
                 selectedMarketOracleId={selected.oracle_id}
                 selectedMarketExpiry={selected.expiryMs}
+                positions={positions}
+                loading={predictLoading}
               />
             )}
           </div>
@@ -224,6 +228,12 @@ export default function PredictPage() {
               strike2={strike2}
               direction={direction}
               onStrikeChange={handleStrikeChange}
+              manager={manager}
+              summary={summary}
+              createManager={createManager}
+              deposit={deposit}
+              withdraw={withdraw}
+              predictError={predictError}
             />
           ) : loading ? (
             <div style={{
@@ -265,6 +275,10 @@ export default function PredictPage() {
             onClose={() => setShowBinaryModal(false)}
             market={selected}
             strike={strike1}
+            manager={manager}
+            mintPrice={mintPrice}
+            mint={mint}
+            error={predictError}
           />
         )}
         <RangeTradeModal
