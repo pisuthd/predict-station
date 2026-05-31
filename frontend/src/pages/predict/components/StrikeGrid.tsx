@@ -41,15 +41,15 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
   }
 
   // Handle selection based on mode
-  const handleSelectStrike = (strike: number) => {
-    if (mode === 'range') {
-      // Range: use strike as lower, add 1000 for upper
-      onStrikeChange?.(strike, strike + 1000, direction)
-    } else {
-      // Binary: use strike only, pass current direction
-      onStrikeChange?.(strike, null, direction)
-    }
-  }
+  // const handleSelectStrike = (strike: number) => {
+  //   if (mode === 'range') {
+  //     // Range: use strike as lower, add 1000 for upper
+  //     onStrikeChange?.(strike, strike + 1000, direction)
+  //   } else {
+  //     // Binary: use strike only, pass current direction
+  //     onStrikeChange?.(strike, null, direction)
+  //   }
+  // }
 
   // Handle spot click
   const handleSelectSpot = () => {
@@ -60,12 +60,12 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
     }
   }
 
-  // Generate 10 strikes: 5 above + 5 below, tick = $1000
+  // Generate 20 strikes: 10 above + 10 below, tick = $1000
   const strikes = useMemo(() => {
     const entries: StrikeEntry[] = []
     const tickSize = 1000
-    const numAbove = 5
-    const numBelow = 5
+    const numAbove = 10
+    const numBelow = 10
     
     const baseStrike = Math.round(forwardPrice / tickSize) * tickSize
     
@@ -139,7 +139,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
           {aboveStrikes.map((entry) => (
             <div
               key={entry.strike}
-              onClick={() => handleSelectStrike(entry.strike)}
+              // onClick={() => handleSelectStrike(entry.strike)}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr 1fr',
@@ -147,7 +147,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
                 padding: '4px 16px',
                 fontSize: 11,
                 position: 'relative',
-                cursor: 'pointer',
+                // cursor: 'pointer',
                 background: 'transparent',
               }}
               onMouseEnter={(e) => {
@@ -212,7 +212,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
           {belowStrikes.map((entry) => (
             <div
               key={entry.strike}
-              onClick={() => handleSelectStrike(entry.strike)}
+              // onClick={() => handleSelectStrike(entry.strike)}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr 1fr',
@@ -220,7 +220,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
                 padding: '4px 16px',
                 fontSize: 11,
                 position: 'relative',
-                cursor: 'pointer',
+                // cursor: 'pointer',
                 background: 'transparent',
               }}
               onMouseEnter={(e) => {
