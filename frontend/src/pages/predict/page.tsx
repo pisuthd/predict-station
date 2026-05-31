@@ -20,7 +20,7 @@ const PRICE_SCALE = 1_000_000_000n
 
 export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
-  const { manager, summary, positions, mintPrice, createManager, deposit, withdraw, mint, error: predictError, loading: predictLoading } = usePredict()
+  const { manager, summary, positions, createManager, deposit, withdraw, mint, getTradeQuote, error: predictError, loading: predictLoading } = usePredict()
   
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
@@ -276,8 +276,8 @@ export default function PredictPage() {
             market={selected}
             strike={strike1}
             manager={manager}
-            mintPrice={mintPrice}
             mint={mint}
+            getTradeQuote={getTradeQuote}
             error={predictError}
           />
         )}

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useCurrentAccount } from '@mysten/dapp-kit-react'
+import { useCurrentAccount, useCurrentClient } from '@mysten/dapp-kit-react'
+import { bcs } from '@mysten/sui/bcs'
 
 const SERVER = 'https://predict-server.testnet.mystenlabs.com'
 const TESTNET_RPC = 'https://fullnode.testnet.sui.io'
@@ -47,6 +48,12 @@ export interface AskBounds {
   bid: string
 }
 
+export interface TradeQuote {
+  cost: number    // Mint cost per $1 face value (e.g., $0.60)
+  redeem: number  // Redeem price per $1 face value (e.g., $0.55)
+  premium: number // Fee/premium (e.g., $0.05)
+}
+
 // Helper to call Sui RPC
 async function suiRpcCall(method: string, params: any): Promise<any> {
   const response = await fetch(TESTNET_RPC, {
@@ -75,10 +82,12 @@ interface UsePredictReturn {
   mint: (signAndExecute: any, oracleId: string, expiryMs: number, strike: number, direction: 'up' | 'down', amount: number) => Promise<void>
   fetchMintPrice: (oracleId: string, strike: number) => void
   refreshData: () => Promise<void>
+  getTradeQuote: (oracleId: string, expiryMs: number, strike: number, direction: 'up' | 'down', quantity: number) => Promise<TradeQuote | null>
 }
 
 export function usePredict(): UsePredictReturn {
   const account = useCurrentAccount()
+  const client = useCurrentClient()
   const [manager, setManager] = useState<ManagerData | null>(null)
   const [summary, setSummary] = useState<ManagerSummary | null>(null)
   const [positions, setPositions] = useState<Position[]>([])
@@ -242,9 +251,9 @@ export function usePredict(): UsePredictReturn {
       const CLOCK = '0x6'
 
       const tx = new Transaction()
-      const strikeScaled = BigInt(Math.round(strike * 1e9))
+      const strikeScaled = BigInt(Math.round(strike) * 1e9)
       const qty = BigInt(Math.round(amount * 1e6))
- 
+
       const keyFn = direction === 'up' ? 'up' : 'down'
       const key = tx.moveCall({
         target: `${PREDICT_PACKAGE}::market_key::${keyFn}`,
@@ -296,6 +305,83 @@ export function usePredict(): UsePredictReturn {
       })
   }
 
+  // Get real trade quote from the contract via devInspect
+  const getTradeQuote = async (
+    oracleId: string,
+    expiryMs: number,
+    strike: number,
+    direction: 'up' | 'down',
+    quantity: number
+  ): Promise<TradeQuote | null> => {
+    if (!oracleId || !expiryMs || strike <= 0 || quantity <= 0) {
+      return null
+    }
+
+    try {
+      const { Transaction } = await import('@mysten/sui/transactions')
+      const PREDICT_OBJECT_ID = '0xc8736204d12f0a7277c86388a68bf8a194b0a14c5538ad13f22cbd8e2a38028a'
+      const CLOCK = '0x6'
+
+      // Use account address for devInspect (or fallback to ZERO_ADDR)
+      const senderAddr = account?.address || '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+      const tx = new Transaction()
+      tx.setSender(senderAddr)
+      const strikeScaled = BigInt(Math.round(strike) * 1_000_000_000)
+      const qty = BigInt(Math.round(quantity * 1e6))
+
+      const keyFn = direction === 'up' ? 'up' : 'down'
+      const key = tx.moveCall({
+        target: `${PREDICT_PACKAGE}::market_key::${keyFn}`,
+        arguments: [
+          tx.pure.id(oracleId),
+          tx.pure.u64(expiryMs),
+          tx.pure.u64(strikeScaled),
+        ],
+      })
+
+      tx.moveCall({
+        target: `${PREDICT_PACKAGE}::predict::get_trade_amounts`,
+        arguments: [
+          tx.object(PREDICT_OBJECT_ID),
+          tx.object(oracleId),
+          key,
+          tx.pure.u64(qty),
+          tx.object(CLOCK),
+        ],
+      })
+
+      // Use SDK client to simulate transaction
+      const result = await client.core.simulateTransaction({
+        transaction: tx,
+        checksEnabled: false,
+        include: { commandResults: true },
+      })
+      const returnValues = result.commandResults?.[1]?.returnValues
+
+      if (!returnValues || returnValues.length < 2) {
+        console.warn('getTradeQuote: no return values', result.commandResults)
+        return null
+      }
+
+      const costRaw = Number(bcs.U64.parse(returnValues[0].bcs))
+      const redeemRaw = Number(bcs.U64.parse(returnValues[1].bcs))
+
+      const cost = costRaw / Number(DUSDC_SCALE)
+      const redeem = redeemRaw / Number(DUSDC_SCALE)
+      const premium = cost - redeem
+
+      return {
+        cost,
+        redeem,
+        premium,
+      }
+    } catch (e: any) {
+      console.warn('getTradeQuote failed:', e.message)
+      return null
+    }
+  }
+
   return {
     manager,
     summary,
@@ -309,5 +395,6 @@ export function usePredict(): UsePredictReturn {
     mint,
     fetchMintPrice,
     refreshData,
+    getTradeQuote,
   }
 }

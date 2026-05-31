@@ -1,19 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useDAppKit, useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 import { ModalWrapper } from '../../../components/ModalWrapper'
-import type { ManagerData } from '../../../hooks'
-import type { Direction } from './PriceChart2'
+import type { ManagerData, TradeQuote } from '../../../hooks'
 import type { Market } from '../../../hooks'
 
 const WHITE = '#ffffff'
-const MUTED = 'rgba(180,200,255,0.6)'
+const MUTED = 'rgba(180,200,255,0.5)'
 const CYAN = '#3EC4C0'
 const GREEN = '#22c55e'
 const RED = '#ef4444'
 const NAVY = '#0a0a1a'
+
+const PRESETS = [1, 5, 10, 25]
 
 interface BinaryTradeModalProps {
   isOpen: boolean
@@ -21,9 +22,33 @@ interface BinaryTradeModalProps {
   market: Market
   strike: number
   manager: ManagerData | null
-  mintPrice: { up: number; down: number } | null
-  mint: (signAndExecute: any, oracleId: string, expiryMs: number, strike: number, direction: 'up' | 'down', amount: number) => Promise<void>
-  error: string | null
+  mint?: (
+    signAndExecute: any,
+    oracleId: string,
+    expiryMs: number,
+    strike: number,
+    direction: 'up' | 'down',
+    amount: number
+  ) => Promise<void>
+  getTradeQuote?: (
+    oracleId: string,
+    expiryMs: number,
+    strike: number,
+    direction: 'up' | 'down',
+    quantity: number
+  ) => Promise<TradeQuote | null>
+  error?: string | null
+}
+
+function formatTimeRemaining(expiryMs: number): string {
+  const now = Date.now()
+  const diff = expiryMs - now
+  if (diff <= 0) return 'Expired'
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h`
+  return '< 1h'
 }
 
 export function BinaryTradeModal({
@@ -32,36 +57,101 @@ export function BinaryTradeModal({
   market,
   strike,
   manager,
-  mintPrice,
   mint,
+  getTradeQuote,
   error,
 }: BinaryTradeModalProps) {
   const dAppKit = useDAppKit()
   const account = useCurrentAccount()
-  const [direction, setDirection] = useState<Direction>('up')
-  const [amount, setAmount] = useState('')
+  const [direction, setDirection] = useState<'up' | 'down'>('up')
+  const [amount, setAmount] = useState('1')
   const [loading, setLoading] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+  const [upQuote, setUpQuote] = useState<TradeQuote | null>(null)
+  const [downQuote, setDownQuote] = useState<TradeQuote | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Fetch mint price when strike changes
-  // useEffect(() => {
-  //   if (market.oracle_id && strike > 0) {
-  //     fetchMintPrice(market.oracle_id, strike)
-  //   }
-  // }, [market.oracle_id, strike, fetchMintPrice])
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const upProb = mintPrice?.up ?? 50
-  const downProb = mintPrice?.down ?? 50
-  const selectedProb = direction === 'up' ? upProb : downProb
   const roundedAmount = parseFloat(amount) || 0
-  const potentialPayout = roundedAmount > 0 ? (roundedAmount / selectedProb) * 100 : 0
+  const activeQuote = direction === 'up' ? upQuote : downQuote
+
+  // Get per-$1 values
+  const costPer = activeQuote?.cost ?? 0.5
+  const redeemPer = activeQuote?.redeem ?? 1.0
+  const premiumPer = activeQuote?.premium ?? 0
+
+  // Calculate totals
+  const totalCost = costPer * roundedAmount
+  const payoutIfWin = (redeemPer + (1 - redeemPer)) * roundedAmount
+  const profitIfWin = payoutIfWin - totalCost
+
+  // Reset on modal open
+  useEffect(() => {
+    if (isOpen) {
+      setAmount('1')
+      setUpQuote(null)
+      setDownQuote(null)
+      setLocalError(null)
+      setDirection('up')
+      setRefreshing(false)
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [isOpen])
+
+  // Fetch quotes with 3s interval
+  useEffect(() => {
+    if (!isOpen || !getTradeQuote || !market.oracle_id || !market.expiryMs || strike <= 0) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      return
+    }
+
+    // Only set up interval once
+    if (!intervalRef.current) {
+      const fetchQuotes = async () => {
+        const qty = roundedAmount > 0 ? roundedAmount : 1
+        setRefreshing(true)
+        try {
+          const [up, down] = await Promise.all([
+            getTradeQuote(market.oracle_id, market.expiryMs, strike, 'up', qty),
+            getTradeQuote(market.oracle_id, market.expiryMs, strike, 'down', qty),
+          ])
+          setUpQuote(up)
+          setDownQuote(down)
+        } catch (e) {
+          console.error('Quote fetch failed:', e)
+        } finally {
+          setRefreshing(false)
+        }
+      }
+
+      fetchQuotes()
+      intervalRef.current = setInterval(fetchQuotes, 3000)
+    }
+  }, [isOpen, getTradeQuote, market.oracle_id, market.expiryMs, strike])
+
+  // Format expiry
+  const expiryLabel = useMemo(() => {
+    if (!market.expiryMs) return ''
+    return `Expires in ${formatTimeRemaining(market.expiryMs)}`
+  }, [market.expiryMs])
+
+  // Question title
+  const questionTitle = `${market.name} at expiry — above or below $${Math.round(strike).toLocaleString()}?`
 
   const handleTrade = async () => {
-    if (!manager || roundedAmount < 0.01) return
-
+    if (!manager || !mint || roundedAmount < 0.01) return
     setLoading(true)
     setLocalError(null)
-
     try {
       await mint(
         dAppKit.signAndExecuteTransaction,
@@ -71,7 +161,6 @@ export function BinaryTradeModal({
         direction,
         roundedAmount
       )
-      setAmount('')
       onClose()
     } catch (e: any) {
       setLocalError(e.message || 'Transaction failed')
@@ -80,31 +169,19 @@ export function BinaryTradeModal({
     }
   }
 
+  const hasQuote = activeQuote !== null
+
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-      }}>
+
+      {/* Header - Question as title */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
-          <h2 style={{
-            color: WHITE,
-            fontSize: 18,
-            fontWeight: 700,
-            margin: 0,
-            fontFamily: "'Space Mono', monospace",
-          }}>
-            Predict {market.name}
+          <h2 style={{ color: WHITE, fontSize: 13, fontWeight: 600, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+            {questionTitle}
           </h2>
-          <p style={{
-            color: MUTED,
-            fontSize: 12,
-            margin: '4px 0 0',
-          }}>
-            Strike: ${strike.toLocaleString()} • {selectedProb.toFixed(1)}% implied
+          <p style={{ color: MUTED, fontSize: 10, margin: '2px 0 0', fontFamily: "'DM Sans', sans-serif" }}>
+            {expiryLabel}
           </p>
         </div>
         <button
@@ -112,194 +189,191 @@ export function BinaryTradeModal({
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: 'none',
-            borderRadius: 8,
-            width: 32,
-            height: 32,
+            borderRadius: 6,
+            width: 24,
+            height: 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             color: MUTED,
-            fontSize: 18,
+            fontSize: 14,
           }}
         >
           ×
         </button>
       </div>
 
-      {/* Wallet Check */}
       {!account ? (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+        <div style={{ textAlign: 'center', padding: '16px 0' }}>
           <ConnectButton />
-          <p style={{ color: MUTED, fontSize: 12, marginTop: 12 }}>
-            Connect wallet to trade
-          </p>
+          <p style={{ color: MUTED, fontSize: 11, marginTop: 8 }}>Connect wallet to trade</p>
         </div>
       ) : !manager ? (
-        <div style={{ textAlign: 'center', padding: '20px 0', color: MUTED }}>
-          Create a manager first in Overview tab
+        <div style={{ textAlign: 'center', padding: '16px 0', color: MUTED, fontSize: 11 }}>
+          Create a manager first
         </div>
       ) : (
         <>
-          {/* Direction Toggle */}
-          <div style={{
-            display: 'flex',
-            gap: 8,
-            marginBottom: 20,
-          }}>
-            <button
-              onClick={() => setDirection('up')}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: 8,
-                border: `2px solid ${direction === 'up' ? GREEN : 'rgba(255,255,255,0.1)'}`,
-                background: direction === 'up' ? 'rgba(34,197,94,0.15)' : 'transparent',
-                color: direction === 'up' ? GREEN : MUTED,
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: "'Space Mono', monospace",
-                transition: 'all 0.2s ease',
-              }}
-            >
-              ▲ UP ({upProb.toFixed(1)}%)
-            </button>
-            <button
-              onClick={() => setDirection('down')}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: 8,
-                border: `2px solid ${direction === 'down' ? RED : 'rgba(255,255,255,0.1)'}`,
-                background: direction === 'down' ? 'rgba(239,68,68,0.15)' : 'transparent',
-                color: direction === 'down' ? RED : MUTED,
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: "'Space Mono', monospace",
-                transition: 'all 0.2s ease',
-              }}
-            >
-              ▼ DOWN ({downProb.toFixed(1)}%)
-            </button>
+
+          {/* Direction Buttons */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {(['up', 'down'] as const).map((d) => {
+              const isActive = direction === d
+              const quote = d === 'up' ? upQuote : downQuote
+
+              console.log("quote / amount : ", quote, amount)
+
+              const pricePer = quote?.cost ?? null
+              const color = d === 'up' ? GREEN : RED
+
+              return (
+                <button
+                  key={d}
+                  onClick={() => setDirection(d)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 6px',
+                    borderRadius: 6,
+                    border: `1.5px solid ${isActive ? color : 'rgba(255,255,255,0.08)'}`,
+                    background: isActive
+                      ? d === 'up' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'
+                      : 'rgba(255,255,255,0.02)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ color: isActive ? color : MUTED, fontSize: 11, fontWeight: 600 }}>
+                    {d === 'up' ? '▲ UP' : '▼ DOWN'}
+                  </div>
+                  <div style={{ color: isActive ? color : MUTED, fontSize: 13, fontWeight: 600, fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
+                    {refreshing ? '...' : pricePer !== null ? `$${pricePer.toFixed(2)}` : '—'}
+                  </div>
+                </button>
+              )
+            })}
           </div>
 
           {/* Amount Input */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{
-              display: 'block',
-              color: MUTED,
-              fontSize: 11,
-              marginBottom: 8,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}>
-              Amount (DUSDC)
-            </label>
+          <div style={{ marginBottom: 10 }}>
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: 6,
+              border: '1px solid rgba(255,255,255,0.08)',
               overflow: 'hidden',
+              marginBottom: 6,
             }}>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="10"
-                step="0.01"
-                min="0.01"
+                step="1"
+                min="1"
                 style={{
                   flex: 1,
-                  padding: '12px 16px',
+                  padding: '8px 10px',
                   background: 'transparent',
                   border: 'none',
                   color: WHITE,
-                  fontSize: 16,
+                  fontSize: 13,
                   fontFamily: "'Space Mono', monospace",
                   outline: 'none',
                 }}
               />
-              <span style={{
-                padding: '12px 16px',
-                color: MUTED,
-                fontSize: 14,
-                fontWeight: 600,
-              }}>
+              <span style={{ padding: '8px 10px', color: MUTED, fontSize: 11 }}>
                 DUSDC
               </span>
             </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {PRESETS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setAmount(String(p))}
+                  style={{
+                    flex: 1,
+                    padding: '6px 0',
+                    background: roundedAmount === p ? 'rgba(62,196,192,0.15)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${roundedAmount === p ? 'rgba(62,196,192,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                    borderRadius: 4,
+                    color: roundedAmount === p ? CYAN : MUTED,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    fontFamily: "'Space Mono', monospace",
+                  }}
+                >
+                  ${p}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Payout Display */}
-          {roundedAmount > 0 && (
+          {/* Payout Details */}
+          {roundedAmount > 0 && hasQuote && (
             <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              borderRadius: 8,
-              padding: 16,
-              marginBottom: 20,
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <span style={{ color: MUTED, fontSize: 12 }}>Implied Probability</span>
-                <span style={{ color: WHITE, fontSize: 12, fontWeight: 600 }}>{selectedProb.toFixed(1)}%</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <span style={{ color: MUTED, fontSize: 12 }}>Potential Payout</span>
-                <span style={{ color: CYAN, fontSize: 12, fontWeight: 600 }}>
-                  {potentialPayout.toFixed(2)} DUSDC
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}>
-                <span style={{ color: MUTED, fontSize: 12 }}>Profit if Win</span>
-                <span style={{ color: GREEN, fontSize: 12, fontWeight: 600 }}>
-                  +{(potentialPayout - roundedAmount).toFixed(2)} DUSDC
-                </span>
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 6,
+              padding: '10px 12px',
+              marginBottom: 10,
+            }}> 
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED }}>Premium</div>
+                  <div style={{ fontSize: 12, color: WHITE, fontFamily: "'Space Mono', monospace" }}>
+                    {refreshing ? '...' : `$${costPer.toFixed(2)}`}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED }}>Payout</div>
+                  <div style={{ fontSize: 12, color: CYAN, fontFamily: "'Space Mono', monospace" }}>
+                    {refreshing ? '...' : `$${redeemPer.toFixed(2)}`}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED }}>Profit</div>
+                  <div style={{ fontSize: 12, color: profitIfWin >= 0 ? GREEN : RED, fontFamily: "'Space Mono', monospace" }}>
+                    {refreshing ? '...' : `${profitIfWin >= 0 ? '+' : ''}$${profitIfWin.toFixed(2)}`}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: MUTED }}>Premium</div>
+                  <div style={{ fontSize: 12, color: MUTED, fontFamily: "'Space Mono', monospace" }}>
+                    {refreshing ? '...' : `-$${premiumPer.toFixed(2)}`}
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Error Display */}
+          {/* Error */}
           {(localError || error) && (
-            <div style={{ marginBottom: 16, padding: 12, background: 'rgba(239,68,68,0.1)', borderRadius: 8, color: RED, fontSize: 12 }}>
+            <div style={{ marginBottom: 8, padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 4, color: RED, fontSize: 10 }}>
               {localError || error}
             </div>
           )}
 
-          {/* Confirm Button */}
+          {/* Mint Button */}
           <button
             onClick={handleTrade}
-            disabled={loading || roundedAmount < 0.01}
+            disabled={loading || !mint || !hasQuote}
             style={{
               width: '100%',
-              padding: '14px 24px',
-              borderRadius: 8,
+              padding: '10px 16px',
+              borderRadius: 6,
               border: 'none',
-              background: roundedAmount >= 0.01 ? (direction === 'up' ? GREEN : RED) : 'rgba(255,255,255,0.1)',
-              color: roundedAmount >= 0.01 ? NAVY : MUTED,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: loading || roundedAmount < 0.01 ? 'not-allowed' : 'pointer',
-              fontFamily: "'Space Mono', monospace",
-              transition: 'all 0.2s ease',
+              background: hasQuote ? CYAN : 'rgba(255,255,255,0.08)',
+              color: hasQuote ? NAVY : MUTED,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: loading || !hasQuote ? 'not-allowed' : 'pointer',
+              fontFamily: "'DM Sans', sans-serif",
               opacity: loading ? 0.6 : 1,
             }}
           >
-            {loading ? 'Processing...' : `Mint Position at ${selectedProb.toFixed(1)}%`}
+            {loading ? 'Processing...' : refreshing ? 'Updating...' : !hasQuote ? 'Loading...' : `Mint ${direction === 'up' ? '▲ UP' : '▼ DOWN'}`}
           </button>
+
         </>
       )}
     </ModalWrapper>
