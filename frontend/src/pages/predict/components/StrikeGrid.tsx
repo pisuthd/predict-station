@@ -5,8 +5,7 @@ import { MUTED } from '../../../theme'
 import type { Market } from '../../../hooks'
 import { useMarketPrices, sviVol, binaryUpProb, type SVIParams } from '../../../hooks' 
 
-const WHITE = '#ffffff'
-const CYAN = '#3EC4C0'
+const WHITE = '#ffffff' 
 const PRICE_SCALE = 1e9
 
 export type StrikeGridMode = 'binary' | 'range'
@@ -49,7 +48,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
   // Handle spot click
   const handleSelectSpot = () => {
     if (mode === 'range') {
-      onStrikeChange?.(spotPrice, spotPrice + 1000, direction)
+      onStrikeChange?.(spotPrice, spotPrice + 10, direction)
     } else {
       onStrikeChange?.(spotPrice, null, direction)
     }
