@@ -19,12 +19,14 @@ export interface ManagerData {
 export interface ManagerSummary {
   owner: string
   balances: { balance: string; coin_type: string }[]
+  trading_balance: number
+  redeemable_value: number
+  open_exposure: number
+  realized_pnl: number
+  unrealized_pnl: number
+  account_value: number
   open_positions: number
   awaiting_settlement_positions: number
-  open_exposure: string
-  account_value: string
-  realized_pnl: string
-  unrealized_pnl: string
 }
 
 export interface Position {

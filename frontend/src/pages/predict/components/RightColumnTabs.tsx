@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
-import { Flame, LayoutDashboard } from 'lucide-react'
+import { Flame, CircleUser } from 'lucide-react'
 import type { Market, ManagerData, ManagerSummary } from '../../../hooks'
 import { StrikeGrid, type StrikeGridMode } from './StrikeGrid'
 import { TradeOverview } from './TradePanel/TradeOverview'
@@ -98,7 +98,7 @@ export function RightColumnTabs({
             transition: 'all 0.2s ease',
           }}
         >
-          <LayoutDashboard size={18} />
+          <CircleUser size={18} />
         </button>
       </div>
 

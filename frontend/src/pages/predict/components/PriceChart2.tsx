@@ -43,7 +43,6 @@ export function PriceChart2({
   initialStrike2,
   initialDirection = 'up',
   onStrikeChange,
-  // onDirectionChange,
   onModeChange,
   onPredictClick,
 }: PriceChart2Props) {
