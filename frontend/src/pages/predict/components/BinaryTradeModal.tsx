@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useCurrentAccount } from '@mysten/dapp-kit-react'
+import { useState } from 'react'
+import { useDAppKit, useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
 import { ModalWrapper } from '../../../components/ModalWrapper'
 import { usePredict } from '../../../hooks'
@@ -28,19 +28,20 @@ export function BinaryTradeModal({
   market,
   strike,
 }: BinaryTradeModalProps) {
+  const dAppKit = useDAppKit()
   const account = useCurrentAccount()
-  const { manager, mintPrice, fetchMintPrice, mint, error } = usePredict()
+  const { manager, mintPrice, mint, error } = usePredict()
   const [direction, setDirection] = useState<Direction>('up')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
   // Fetch mint price when strike changes
-  useEffect(() => {
-    if (market.oracle_id && strike > 0) {
-      fetchMintPrice(market.oracle_id, strike)
-    }
-  }, [market.oracle_id, strike, fetchMintPrice])
+  // useEffect(() => {
+  //   if (market.oracle_id && strike > 0) {
+  //     fetchMintPrice(market.oracle_id, strike)
+  //   }
+  // }, [market.oracle_id, strike, fetchMintPrice])
 
   const upProb = mintPrice?.up ?? 50
   const downProb = mintPrice?.down ?? 50
@@ -56,7 +57,7 @@ export function BinaryTradeModal({
 
     try {
       await mint(
-        (tx: any) => (window as any).signAndExecuteTransaction({ transaction: tx }),
+        dAppKit.signAndExecuteTransaction,
         market.oracle_id,
         market.expiryMs,
         strike,

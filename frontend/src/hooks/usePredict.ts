@@ -242,9 +242,9 @@ export function usePredict(): UsePredictReturn {
       const CLOCK = '0x6'
 
       const tx = new Transaction()
-      const strikeScaled = BigInt(Math.round(strike)) * PRICE_SCALE
-      const qty = BigInt(Math.round(amount)) * DUSDC_SCALE
-
+      const strikeScaled = BigInt(Math.round(strike * 1e9))
+      const qty = BigInt(Math.round(amount * 1e6))
+ 
       const keyFn = direction === 'up' ? 'up' : 'down'
       const key = tx.moveCall({
         target: `${PREDICT_PACKAGE}::market_key::${keyFn}`,
