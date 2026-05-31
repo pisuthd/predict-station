@@ -228,7 +228,7 @@ export function PriceChart2({
     })
 
     if (mode === 'range') {
-      const init2 = parseFloat((useStrike + 100).toFixed(2))
+      const init2 = parseFloat((useStrike + 10).toFixed(2))
       strikeLine2Ref.current = series.createPriceLine({
         price: init2,
         color: UPPER_COLOR,

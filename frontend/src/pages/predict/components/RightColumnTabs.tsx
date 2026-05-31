@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { useCurrentAccount } from '@mysten/dapp-kit-react'
 import { ConnectButton } from '@mysten/dapp-kit-react/ui'
+import { Flame, LayoutDashboard } from 'lucide-react'
 import type { Market } from '../../../hooks'
 import { StrikeGrid, type StrikeGridMode } from './StrikeGrid'
 import { TradeOverview } from './TradePanel/TradeOverview'
-import { TradeTrade } from './TradePanel/TradeTrade'
 
-const WHITE = '#ffffff'
+// const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
 const CYAN = '#3EC4C0'
 
@@ -34,41 +34,57 @@ export function RightColumnTabs({ market, mode = 'binary', strike1, strike2, dir
       height: '100%',
       overflow: 'hidden',
     }}>
-      {/* Tab Headers - Fixed height */}
+      {/* Icon-based Tab Navigation */}
       <div style={{
         display: 'flex',
-        height: 40,
+        gap: 8,
+        padding: '12px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         flexShrink: 0,
       }}>
-        {(['heatmap', 'overview'] as TabType[]).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              padding: '10px 8px',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === tab ? `2px solid ${CYAN}` : '2px solid transparent',
-              color: activeTab === tab ? WHITE : MUTED,
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: "'Space Mono', monospace",
-              cursor: 'pointer',
-              letterSpacing: '0.5px',
-              // textTransform:"uppercase",
-              marginBottom: -1,
-            }}
-          >
-            {tab === 'heatmap' ? 'Heatmap' : 'Overview'}
-          </button>
-        ))}
+        <button
+          onClick={() => setActiveTab('heatmap')}
+          title="Heatmap"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: 'none',
+            background: activeTab === 'heatmap' ? CYAN : 'rgba(255,255,255,0.05)',
+            color: activeTab === 'heatmap' ? '#0a0a1a' : MUTED,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Flame size={18} />
+        </button>
+
+        <button
+          onClick={() => setActiveTab('overview')}
+          title="Overview"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: 'none',
+            background: activeTab === 'overview' ? CYAN : 'rgba(255,255,255,0.05)',
+            color: activeTab === 'overview' ? '#0a0a1a' : MUTED,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <LayoutDashboard size={18} />
+        </button>
       </div>
 
-      {/* Tab Content - Fixed height */}
-      <div style={{ height: 336, overflow: 'auto', flexShrink: 0 }}>
-        
+      {/* Tab Content - Flex grow */}
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
         {(!account && activeTab !== 'heatmap') ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 16 }}>
             <ConnectButton />
@@ -83,22 +99,6 @@ export function RightColumnTabs({ market, mode = 'binary', strike1, strike2, dir
           />
         ) : (
           <TradeOverview />
-        )}
-      </div>
-
-      {/* Trade Section - Flex grow */}
-      <div style={{
-        flex: 1,
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        overflow: 'auto',
-        minHeight: 0,
-      }}>
-        {account ? (
-          <TradeTrade market={market} selectedStrike={strike1} direction={direction} />
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <span style={{ color: MUTED, fontSize: 11 }}>Connect wallet to trade</span>
-          </div>
         )}
       </div>
     </div>
