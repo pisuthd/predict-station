@@ -31,6 +31,7 @@ interface PriceChart2Props {
   onStrikeChange?: (s1: number, s2: number | null, direction: Direction) => void
   onDirectionChange?: (direction: Direction) => void
   onModeChange?: (mode: MarketMode) => void
+  onPredictClick?: () => void
 }
 
 export function PriceChart2({
@@ -43,6 +44,7 @@ export function PriceChart2({
   onStrikeChange,
   // onDirectionChange,
   onModeChange,
+  onPredictClick,
 }: PriceChart2Props) {
 
 
@@ -412,51 +414,77 @@ export function PriceChart2({
 
       {/* Chart with overlay labels */}
       <div style={{ height: 280, position: 'relative' }}>
-        {/* Mode selector - top left overlay */}
+        {/* Mode selector + Predict button - top left overlay */}
         <div style={{
           position: 'absolute',
           top: 12,
           left: 12,
           zIndex: 10,
           display: 'flex',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: 8,
-          padding: 3,
-          backdropFilter: 'blur(8px)',
+          gap: 8,
+          alignItems: 'center',
         }}>
+          {/* Mode selector */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: 8,
+            padding: 3,
+            backdropFilter: 'blur(8px)',
+          }}>
+            <button
+              onClick={() => handleModeChange('binary')}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 6,
+                border: 'none',
+                background: mode === 'binary' ? CYAN : 'transparent',
+                color: mode === 'binary' ? '#0a0a1a' : MUTED,
+                fontSize: 10,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: "'Space Mono', monospace",
+              }}
+            >
+              Binary
+            </button>
+            <button
+              onClick={() => handleModeChange('range')}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 6,
+                border: 'none',
+                background: mode === 'range' ? CYAN : 'transparent',
+                color: mode === 'range' ? '#0a0a1a' : MUTED,
+                fontSize: 10,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: "'Space Mono', monospace",
+              }}
+            >
+              Range
+            </button>
+          </div>
+
+          {/* + Predict button */}
           <button
-            onClick={() => handleModeChange('binary')}
+            onClick={onPredictClick}
             style={{
-              padding: '4px 12px',
-              borderRadius: 6,
+              padding: '6px 14px',
+              borderRadius: 8,
               border: 'none',
-              background: mode === 'binary' ? CYAN : 'transparent',
-              color: mode === 'binary' ? '#0a0a1a' : MUTED,
+              background: CYAN,
+              color: '#0a0a1a',
               fontSize: 10,
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               fontFamily: "'Space Mono', monospace",
             }}
           >
-            Binary
-          </button>
-          <button
-            onClick={() => handleModeChange('range')}
-            style={{
-              padding: '4px 12px',
-              borderRadius: 6,
-              border: 'none',
-              background: mode === 'range' ? CYAN : 'transparent',
-              color: mode === 'range' ? '#0a0a1a' : MUTED,
-              fontSize: 10,
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              fontFamily: "'Space Mono', monospace",
-            }}
-          >
-            Range
+            + Predict
           </button>
         </div>
 

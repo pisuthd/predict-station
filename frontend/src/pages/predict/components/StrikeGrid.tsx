@@ -242,10 +242,7 @@ export function StrikeGrid({ market, mode = 'binary', direction = 'up', onStrike
         > 
           <span style={{ fontSize: 16, fontWeight: 700, color: WHITE }}>
             ${spotPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-          <span style={{ fontSize: 10, color: CYAN, opacity: 0.7 }}>
-            FWD ${forwardPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+          </span> 
         </div>
 
         {/* Below spot section - DOWN bets (red bars) */}

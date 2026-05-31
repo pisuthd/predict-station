@@ -8,6 +8,8 @@ import { PriceChart2, type Direction } from './components/PriceChart2'
 import type { MarketMode } from './components/PriceChart2'
 import { RightColumnTabs } from './components/RightColumnTabs'
 import { TradePositions } from './components/TradePanel/TradePositions'
+import { BinaryTradeModal } from './components/BinaryTradeModal'
+import { RangeTradeModal } from './components/RangeTradeModal'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -20,6 +22,8 @@ export default function PredictPage() {
   const { markets, loading, error, refetch } = useMarkets(30_000)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
+  const [showBinaryModal, setShowBinaryModal] = useState(false)
+  const [showRangeModal, setShowRangeModal] = useState(false)
 
   // Strike states moved from PriceChart2 to parent
   const [strike1, setStrike1] = useState(0)
@@ -56,6 +60,15 @@ export default function PredictPage() {
   // Handle direction changes from PriceChart2
   const handleDirectionChange = (dir: 'up' | 'down') => {
     setDirection(dir)
+  }
+
+  // Handle predict button click
+  const handlePredictClick = () => {
+    if (chartMode === 'binary') {
+      setShowBinaryModal(true)
+    } else {
+      setShowRangeModal(true)
+    }
   }
 
   return (
@@ -166,6 +179,7 @@ export default function PredictPage() {
                   initialDirection={direction}
                   onStrikeChange={handleStrikeChange}
                   onDirectionChange={handleDirectionChange}
+                  onPredictClick={handlePredictClick}
                 />
               </div>
             </div>
@@ -243,6 +257,21 @@ export default function PredictPage() {
             </div>
           )}
         </div>
+
+        {/* Trade Modals */}
+        {selected && (
+          <BinaryTradeModal
+            isOpen={showBinaryModal}
+            onClose={() => setShowBinaryModal(false)}
+            market={selected}
+            strike={strike1}
+          />
+        )}
+        <RangeTradeModal
+          isOpen={showRangeModal}
+          onClose={() => setShowRangeModal(false)}
+          marketName={selected?.name || 'BTC'}
+        />
       </div>
     </AppWrapper>
   )
