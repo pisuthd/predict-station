@@ -68,29 +68,7 @@ export function PriceChart2({
     setDirection(initialDirection ?? 'up')
   }, [initialDirection])
 
-  // Use props directly for strikes (moved to parent)
-  const strike1 = initialStrike1 ?? null
-  const strike2 = initialStrike2 ?? null
-
-  // Calculate mint price using SVI model from shared hook
-  // const mintPrice = useMemo(() => {
-  //   if (!strike1 || strike1 <= 0) return null
-  //   const forwardPrice = market.forward / 1e9
-  //   const T = Math.max(0, (market.expiryMs - Date.now()) / (365.25 * 24 * 3600 * 1000))
-
-  //   // SVI parameters from market
-  //   const sviParams = market.svi ? {
-  //     a: market.svi.a,
-  //     b: market.svi.b,
-  //     rho: market.svi.rho,
-  //     m: market.svi.m,
-  //     sigma: market.svi.sigma
-  //   } : { a: 80887, b: 9328786, rho: 102029829, m: 7561599, sigma: 9522806 }
-
-  //   const vol = sviVol(strike1, forwardPrice, T, sviParams)
-  //   const upProb = binaryUpProb(forwardPrice, strike1, T, vol)
-  //   return { up: upProb, down: 100 - upProb }
-  // }, [strike1, market.forward, market.expiryMs, market.svi])
+  
 
   const { history, loading } = useMarketPrices(market.oracle_id, timeRange, 9000)
 
@@ -335,8 +313,8 @@ export function PriceChart2({
     }
   }, [mode, notifyParent])
 
-  const fmt = (v: number | null) =>
-    v === null ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: 4 })
+  // const fmt = (v: number | null) =>
+  //   v === null ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: 4 })
 
   const fmtUSD = (v: number | null) => {
     if (v === null) return '—'
@@ -493,53 +471,7 @@ export function PriceChart2({
             </div> 
           </button>
         </div>
-
-        {/* Strike overlay labels - top right */}
-        {/* {!loading && history?.prices?.length && (
-          <> 
-            <div style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'rgba(0,0,0,0.6)',
-              borderRadius: 6,
-              padding: '4px 10px',
-              backdropFilter: 'blur(8px)',
-              fontFamily: "'Space Mono', monospace",
-              fontSize: 11,
-            }}>
-              <span style={{ width: 16, height: 2, background: CYAN, display: 'inline-block', borderRadius: 1 }} />
-              <span style={{ color: MUTED }}>{mode === 'binary' ? 'Strike' : 'Lower'}</span>
-              <span style={{ color: CYAN, fontWeight: 600 }}>{fmt(strike1)}</span>
-            </div>
  
-            {mode === 'range' && (
-              <div style={{
-                position: 'absolute',
-                top: 44,
-                right: 12,
-                zIndex: 10,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                background: 'rgba(0,0,0,0.6)',
-                borderRadius: 6,
-                padding: '4px 10px',
-                backdropFilter: 'blur(8px)',
-                fontFamily: "'Space Mono', monospace",
-                fontSize: 11,
-              }}>
-                <span style={{ width: 16, height: 2, background: UPPER_COLOR, display: 'inline-block', borderRadius: 1 }} />
-                <span style={{ color: MUTED }}>Upper</span>
-                <span style={{ color: UPPER_COLOR, fontWeight: 600 }}>{fmt(strike2)}</span>
-              </div>
-            )}
-          </>
-        )} */}
 
         {loading ? (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, gap: 16 }}>

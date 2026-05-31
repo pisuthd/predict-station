@@ -81,7 +81,7 @@ export function BinaryTradeModal({
   const activeQuote = direction === 'up' ? upQuote : downQuote
 
   const costPer = activeQuote?.cost ?? 0.5
-  const premiumPer = activeQuote?.premium ?? 0
+  const premiumPer = activeQuote?.premium ?? 0 // this is spread
 
   // Calculate totals 
   const payoutIfWin = (1 + (1 - costPer - premiumPer)) * roundedAmount
@@ -141,7 +141,7 @@ export function BinaryTradeModal({
   }, [market.expiryMs])
 
   // Question title
-  const questionTitle = `${market.name} at expiry — above or below $${Math.round(strike).toLocaleString()}?`
+  const questionTitle = `Will ${market.name} price be above or below $${Math.round(strike).toLocaleString()}?`
 
   const handleTrade = async () => {
     if (!manager || !mint || roundedAmount < 0.01) return
@@ -226,7 +226,7 @@ export function BinaryTradeModal({
                   {d === 'up' ? '▲ UP' : '▼ DOWN'}
                 </div>
                 <div style={{ color: isActive ? color : MUTED, fontSize: 13, fontWeight: 600, fontFamily: "'Space Mono', monospace", marginTop: 2 }}>
-                  {pricePer !== null ? `$${pricePer.toFixed(2)}` : '—'}
+                  {pricePer !== null ? `$${pricePer.toFixed(4)}` : '—'}
                 </div>
               </button>
             )
@@ -303,14 +303,14 @@ export function BinaryTradeModal({
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               <div>
-                <div style={{ fontSize: 10, color: MUTED }}>Payout If Win</div>
-                <div style={{ fontSize: 12, color: CYAN, fontFamily: "'Space Mono', monospace" }}>
+                <div style={{ fontSize: 10, color: MUTED }}>Total Payout</div>
+                <div style={{ fontSize: 14, color: CYAN, fontFamily: "'Space Mono', monospace", fontWeight: 600 }}>
                   {`$${payoutIfWin.toFixed(2)}`}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 10, color: MUTED }}>Profit If Win</div>
-                <div style={{ fontSize: 12, color: profitIfWin >= 0 ? GREEN : RED, fontFamily: "'Space Mono', monospace" }}>
+                <div style={{ fontSize: 14, color: profitIfWin >= 0 ? GREEN : RED, fontFamily: "'Space Mono', monospace", fontWeight: 600 }}>
                   {`${profitIfWin >= 0 ? '+' : ''}$${profitIfWin.toFixed(2)}`}
                 </div>
               </div>

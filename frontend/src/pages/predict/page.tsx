@@ -19,10 +19,10 @@ const MUTED = 'rgba(180,200,255,0.6)'
 const PRICE_SCALE = 1_000_000_000n
 
 export default function PredictPage() {
-  
+
   const { markets, loading, error, refetch } = useMarkets(30_000)
-  const { manager, summary, positions, createManager, deposit, withdraw, mint, getTradeQuote, error: predictError, loading: predictLoading } = usePredict()
-  
+  const { manager, summary, positions, createManager, deposit, withdraw, mint, mintRange, getTradeQuote, getRangeQuote, error: predictError, loading: predictLoading } = usePredict()
+
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [chartMode, setChartMode] = useState<MarketMode>('binary')
   const [showBinaryModal, setShowBinaryModal] = useState(false)
@@ -194,7 +194,7 @@ export default function PredictPage() {
 
           {/* Positions Table */}
           <div style={{
-            flex: 1, 
+            flex: 1,
             borderTop: '1px solid rgba(255,255,255,0.08)',
             overflowY: 'auto',
             display: 'flex',
@@ -282,11 +282,19 @@ export default function PredictPage() {
             error={predictError}
           />
         )}
-        <RangeTradeModal
-          isOpen={showRangeModal}
-          onClose={() => setShowRangeModal(false)}
-          marketName={selected?.name || 'BTC'}
-        />
+        {selected && (
+          <RangeTradeModal
+            isOpen={showRangeModal}
+            onClose={() => setShowRangeModal(false)}
+            market={selected}
+            lowerStrike={strike1}
+            higherStrike={strike2 ?? strike1 + 10}
+            manager={manager}
+            mintRange={mintRange}
+            getRangeQuote={getRangeQuote}
+            error={predictError}
+          />
+        )}
       </div>
     </AppWrapper>
   )
