@@ -1,7 +1,6 @@
 'use client'
 
 import { type OrderBook as OrderBookType } from '../../../hooks'
-import { getCoinIcon } from '../../../lib/coinIcons'
 
 const GREEN = '#22c55e'
 const RED = '#ef4444'
@@ -84,66 +83,6 @@ export function OrderBook({ orderBook, loading, baseAsset, quoteAsset }: OrderBo
       height: '100%',
       overflow: 'hidden',
     }}>
-      {/* Header with icons and name */}
-      <div style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        {/* Left: Icons + name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {baseAsset && quoteAsset && (
-            <div style={{ position: 'relative', width: 40, height: 20 }}>
-              <img 
-                src={getCoinIcon(baseAsset)} 
-                alt={baseAsset}
-                style={{ 
-                  width: 20, 
-                  height: 20, 
-                  borderRadius: '50%',
-                  border: '2px solid #0a0a1a',
-                  position: 'absolute',
-                  left: 0,
-                  zIndex: 2,
-                }}
-              />
-              <img 
-                src={getCoinIcon(quoteAsset)} 
-                alt={quoteAsset}
-                style={{ 
-                  width: 20, 
-                  height: 20, 
-                  borderRadius: '50%',
-                  border: '2px solid #0a0a1a',
-                  position: 'absolute',
-                  left: 10,
-                  zIndex: 1,
-                }}
-              />
-            </div>
-          )}
-          <span style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: WHITE,
-            fontFamily: "'DM Sans', sans-serif",
-          }}>
-            {baseAsset}/{quoteAsset}
-          </span>
-        </div>
-        
-        {/* Right: Spread */}
-        <span style={{
-          fontSize: 10,
-          color: MUTED,
-          fontFamily: "'Space Mono', monospace",
-        }}>
-          Spread: {orderBook.spreadPercent.toFixed(3)}%
-        </span>
-      </div>
-
       {/* Column Headers */}
       <div style={{
         display: 'grid',

@@ -13,9 +13,9 @@ interface OHLCVCandle {
   volume: number
 }
 import { PairList } from './components/PairList'
-import { OrderBook } from './components/OrderBook'
 import { PriceChart } from './components/PriceChart'
 import { SpotHeader } from './components/SpotHeader'
+import { SpotRightColumnTabs } from './components/SpotRightColumnTabs'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
@@ -71,13 +71,6 @@ export default function SpotPage() {
     if (selectedPool) {
       loadOHLCV(selectedPool.poolName, interval)
     }
-  }
-
-  const formatPrice = (price: number | undefined): string => {
-    if (!price && price !== 0) return '--'
-    if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    if (price >= 1) return price.toFixed(4)
-    return price.toFixed(6)
   }
 
   return (
@@ -158,7 +151,7 @@ export default function SpotPage() {
           )}
         </div>
 
-        {/* Right Column - Order Book */}
+        {/* Right Column - Tabs */}
         <div style={{
           width: 360,
           height: '100vh',
@@ -168,13 +161,12 @@ export default function SpotPage() {
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          {/* Order Book */}
+          {/* Tabs */}
           {selectedPool && (
-            <OrderBook
+            <SpotRightColumnTabs
+              pool={selectedPool}
               orderBook={orderBook}
               loading={orderBookLoading}
-              baseAsset={selectedPool.baseAsset}
-              quoteAsset={selectedPool.quoteAsset}
             />
           )}
         </div>
