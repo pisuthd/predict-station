@@ -175,6 +175,7 @@ export default function PredictPage() {
               <div style={{ flex: 1 }}>
                 <PriceChart2
                   market={selected}
+                  markets={activeMarkets}
                   mode={chartMode}
                   onModeChange={setChartMode}
                   initialStrike1={strike1}
@@ -182,6 +183,10 @@ export default function PredictPage() {
                   initialDirection={direction}
                   onStrikeChange={handleStrikeChange}
                   onDirectionChange={handleDirectionChange}
+                  onMarketChange={(m) => {
+                    const idx = activeMarkets.findIndex((x: Market) => x.oracle_id === m.oracle_id)
+                    if (idx >= 0) setSelectedIdx(idx)
+                  }}
                   onPredictClick={handlePredictClick}
                 />
               </div>

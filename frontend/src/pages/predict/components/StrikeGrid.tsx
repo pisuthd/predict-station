@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { MUTED } from '../../../theme'
 import type { Market } from '../../../hooks'
-import { useMarketPrices, sviVol, binaryUpProb, type SVIParams } from '../../../hooks' 
+import { sviVol, binaryUpProb, type SVIParams } from '../../../hooks' 
 
 const WHITE = '#ffffff' 
 const PRICE_SCALE = 1e9

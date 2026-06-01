@@ -130,17 +130,17 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
       alignItems: 'center',
       gap: 6,
     }}>
-      <img 
-        src={DBUSDC_ICON} 
-        alt="DBUSDC" 
-        style={{ width: 16, height: 16, borderRadius: '50%' }} 
+      <img
+        src={DBUSDC_ICON}
+        alt="DBUSDC"
+        style={{ width: 16, height: 16, borderRadius: '50%' }}
       />
       <span style={{ fontSize: 11, color: MUTED }}>{label}:</span>
-      <span style={{ 
-        fontSize: 11, 
-        color: WHITE, 
+      <span style={{
+        fontSize: 11,
+        color: WHITE,
         fontFamily: "'Space Mono', monospace",
-        fontWeight: 600 
+        fontWeight: 600
       }}>
         {fmtCompact(value)}
       </span>
@@ -157,11 +157,11 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
       <div style={{ fontSize: 9, color: MUTED, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.5px' }}>
         {label}
       </div>
-      <div style={{ 
-        fontSize: 13, 
-        color: valueColor || WHITE, 
+      <div style={{
+        fontSize: 13,
+        color: valueColor || WHITE,
         fontFamily: "'Space Mono', monospace",
-        fontWeight: 700 
+        fontWeight: 700
       }}>
         {value}
       </div>
@@ -198,11 +198,11 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
               <div style={{ fontSize: 10, color: MUTED, textTransform: 'uppercase', marginBottom: 2 }}>
                 Account Value
               </div>
-              <div style={{ 
-                fontSize: 22, 
-                color: WHITE, 
+              <div style={{
+                fontSize: 22,
+                color: WHITE,
                 fontFamily: "'Space Mono', monospace",
-                fontWeight: 700 
+                fontWeight: 700
               }}>
                 ${fmtCompact(accountValue)}
               </div>
@@ -211,31 +211,36 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
               <div style={{ fontSize: 10, color: MUTED, textTransform: 'uppercase', marginBottom: 2 }}>
                 Trading Balance
               </div>
-              <div style={{ 
-                fontSize: 18, 
-                color: CYAN, 
+              <div style={{
+                fontSize: 18,
+                color: CYAN,
                 fontFamily: "'Space Mono', monospace",
-                fontWeight: 700 
+                fontWeight: 700
               }}>
                 ${fmtCompact(tradingBalance)}
               </div>
-            </div> 
+            </div>
           </div>
 
           {/* Secondary Stats - 2x3 Card Grid */}
           <div style={{ padding: '12px 16px', flex: 1 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <StatCard label="Open Exposure" value={fmt(openExposure)} />
-              <StatCard label="Redeemable" value={fmt(redeemableValue)} valueColor={GREEN} />
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <StatCard label="uPnL" value={fmt(unrealizedPnl)} valueColor={unrealizedPnl >= 0 ? GREEN : RED} />
-              <StatCard label="Realized P&L" value={fmt(realizedPnl)} valueColor={realizedPnl >= 0 ? GREEN : RED} />
+              <StatCard label="uPnL %" value={`${upnlPercent.toFixed(1)}%`} valueColor={unrealizedPnl >= 0 ? GREEN : RED} />
+
             </div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+
+              <StatCard label="Realized P&L" value={fmt(realizedPnl)} valueColor={realizedPnl >= 0 ? GREEN : RED} />
+              <StatCard label="Redeemable" value={fmt(redeemableValue)} valueColor={GREEN} />
+
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <StatCard label="Open Exposure" value={fmt(openExposure)} />
+
               <StatCard label="Exposure Ratio" value={`${exposureRatio.toFixed(1)}x`} />
-              <StatCard label="uPnL %" value={`${upnlPercent.toFixed(1)}%`} valueColor={unrealizedPnl >= 0 ? GREEN : RED} />
-            </div> 
+
+            </div>
           </div>
 
           {/* Action Tabs */}
@@ -338,10 +343,10 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
               }}>
                 {fmtCompact(activeTab === 'deposit' ? walletBalance : tradingBalance)}
               </span>
-              <img 
-                src={DBUSDC_ICON} 
-                alt="DBUSDC" 
-                style={{ width: 14, height: 14, borderRadius: '50%' }} 
+              <img
+                src={DBUSDC_ICON}
+                alt="DBUSDC"
+                style={{ width: 14, height: 14, borderRadius: '50%' }}
               />
               <span>DBUSDC</span>
             </div>
@@ -350,13 +355,13 @@ export function TradeOverview({ manager, summary, createManager, deposit, withdr
       )}
 
       {displayError && (
-        <div style={{ 
-          margin: '0 16px 16px', 
-          padding: 8, 
-          background: 'rgba(239,68,68,0.1)', 
-          borderRadius: 6, 
-          color: RED, 
-          fontSize: 10 
+        <div style={{
+          margin: '0 16px 16px',
+          padding: 8,
+          background: 'rgba(239,68,68,0.1)',
+          borderRadius: 6,
+          color: RED,
+          fontSize: 10
         }}>
           {displayError}
         </div>

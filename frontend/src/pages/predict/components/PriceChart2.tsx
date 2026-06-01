@@ -8,7 +8,7 @@ import {
   // sviVol, binaryUpProb 
 } from '../../../hooks'
 import { getCoinIcon } from '../../../lib/coinIcons'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronDown } from 'lucide-react'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
@@ -24,6 +24,7 @@ export type Direction = 'up' | 'down'
 
 interface PriceChart2Props {
   market: Market
+  markets?: Market[]
   timeRange?: number
   mode?: MarketMode
   initialStrike1?: number
@@ -32,11 +33,13 @@ interface PriceChart2Props {
   onStrikeChange?: (s1: number, s2: number | null, direction: Direction) => void
   onDirectionChange?: (direction: Direction) => void
   onModeChange?: (mode: MarketMode) => void
+  onMarketChange?: (market: Market) => void
   onPredictClick?: () => void
 }
 
 export function PriceChart2({
   market,
+  markets = [],
   timeRange = 1800,
   mode = 'binary',
   initialStrike1,
@@ -44,9 +47,11 @@ export function PriceChart2({
   initialDirection = 'up',
   onStrikeChange,
   onModeChange,
+  onMarketChange,
   onPredictClick,
 }: PriceChart2Props) {
 
+  const [showMarketDropdown, setShowMarketDropdown] = useState(false)
 
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -383,9 +388,92 @@ export function PriceChart2({
         <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
 
         {/* Expiry */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: MUTED, fontSize: 10 }}>EXPIRES</span>
-          <span style={{ fontWeight: 600 }}>{expiryLabel}</span>
+        <div style={{ position: 'relative' }}>
+          <div 
+            onClick={() => setShowMarketDropdown(!showMarketDropdown)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8,
+              cursor: markets.length > 1 ? 'pointer' : 'default',
+              padding: '4px 8px',
+              borderRadius: 6,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (markets.length > 1) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent'
+            }}
+          >
+            <span style={{ color: MUTED, fontSize: 10 }}>EXPIRES</span>
+            <span style={{ fontWeight: 600 }}>{expiryLabel}</span>
+            {markets.length > 1 && (
+              <ChevronDown size={12} style={{ color: MUTED }} />
+            )}
+          </div>
+          
+          {/* Expiry Dropdown */}
+          {showMarketDropdown && markets.length > 1 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: 4,
+              background: 'rgba(10,10,26,0.98)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8,
+              padding: 4,
+              minWidth: 200,
+              maxHeight: 240,
+              overflowY: 'auto',
+              zIndex: 100,
+              backdropFilter: 'blur(12px)',
+            }}>
+              {markets.filter((m: Market) => m.status === 'active').map((m: Market) => {
+                const mExpiry = new Date(m.expiryMs)
+                const mExpiryLabel = mExpiry.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+                  mExpiry.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                return (
+                  <div
+                    key={m.oracle_id}
+                    onClick={() => {
+                      onMarketChange?.(m)
+                      setShowMarketDropdown(false)
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      background: m.oracle_id === market.oracle_id ? 'rgba(62,196,192,0.15)' : 'transparent',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (m.oracle_id !== market.oracle_id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (m.oracle_id !== market.oracle_id) (e.currentTarget as HTMLElement).style.background = 'transparent'
+                    }}
+                  >
+                    <img
+                      src={getCoinIcon('BTC')}
+                      alt="BTC"
+                      style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0 }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span style={{ fontSize: 11, fontWeight: m.oracle_id === market.oracle_id ? 700 : 400, color: WHITE }}>{m.name}</span>
+                      <span style={{ fontSize: 9, color: MUTED }}>{mExpiryLabel}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
       </div>
