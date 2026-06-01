@@ -223,7 +223,6 @@ export function useSpotPools(refreshInterval = 5_000) {
         }
       }).reverse()
  
-
       setPools(mappedPools.filter(p =>
         p.poolName === 'DEEP_SUI' || p.poolName === 'SUI_DBUSDC' ||
         ((p.lastPrice ?? 0) > 0 && !p.isFrozen)

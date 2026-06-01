@@ -15,13 +15,12 @@ interface OHLCVCandle {
 import { PairList } from './components/PairList'
 import { OrderBook } from './components/OrderBook'
 import { PriceChart } from './components/PriceChart'
+import { SpotHeader } from './components/SpotHeader'
 import AppNavbar from '../../components/layout/AppNavbar'
 import AppWrapper from '../../components/layout/AppWrapper'
 
 const WHITE = '#ffffff'
 const MUTED = 'rgba(180,200,255,0.6)'
-const GREEN = '#22c55e'
-const RED = '#ef4444'
 
 export default function SpotPage() {
   const { pools, loading, error, refetch, getOrderBook, getOHLCV } = useSpotPools(5_000)
@@ -137,41 +136,16 @@ export default function SpotPage() {
           {/* AppNavbar */}
           <AppNavbar />
 
-          {/* Header with pair info */}
-          <div style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-          }}>
-            {selectedPool ? (
-              /* Market data grid */
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 16,
-              }}>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>24h High</div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{formatPrice(selectedPool.highestPrice24h)}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>24h Low</div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{formatPrice(selectedPool.lowestPrice24h)}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Best Bid</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: GREEN }}>{formatPrice(selectedPool.highestBid)}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: MUTED, marginBottom: 4, textTransform: 'uppercase' }}>Best Ask</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: RED }}>{formatPrice(selectedPool.lowestAsk)}</div>
-                </div>
-              </div>
-            ) : (
+          {/* Single-line header with pair info */}
+          {selectedPool ? (
+            <SpotHeader pool={selectedPool} />
+          ) : (
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>
                 Select a trading pair to view details
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Price Chart */}
           {selectedPool && (
