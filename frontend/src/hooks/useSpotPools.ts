@@ -177,10 +177,6 @@ export function useSpotPools(refreshInterval = 5_000) {
         fetchSummary()
       ])
 
-      console.log("poolsData:", poolsData)
-      console.log("tickerData:", tickerData)
-      console.log("summaryData:", summaryData)
-
       // Create a map of summary data keyed by trading_pairs (BASE_QUOTE format)
       const summaryMap = new Map<string, SummaryItem>()
       summaryData.forEach(item => {
@@ -226,9 +222,11 @@ export function useSpotPools(refreshInterval = 5_000) {
           isFrozen: ticker?.isFrozen === 1,
         }
       }).reverse()
+ 
 
       setPools(mappedPools.filter(p =>
-        (p.lastPrice ?? 0) > 0 && !p.isFrozen
+        p.poolName === 'DEEP_SUI' || p.poolName === 'SUI_DBUSDC' ||
+        ((p.lastPrice ?? 0) > 0 && !p.isFrozen)
       ))
       setError(null)
     } catch (err) {
